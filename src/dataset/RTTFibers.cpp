@@ -147,6 +147,8 @@ void RTTFibers::clearFibersRTT()
     m_streamlinesColors.clear();
     m_streamlinesPoints.clear();
 
+    m_storedDir.clear();
+
     if( SceneManager::getInstance()->isUsingVBO() )
     {
         glDeleteBuffers( 2, m_bufferObjectsRTT );
@@ -169,6 +171,9 @@ void RTTFibers::seed()
     float xVoxel = DatasetManager::getInstance()->getVoxelX();
     float yVoxel = DatasetManager::getInstance()->getVoxelY();
     float zVoxel = DatasetManager::getInstance()->getVoxelZ();
+
+    int columns = DatasetManager::getInstance()->getColumns();
+    int rows    = DatasetManager::getInstance()->getRows();
 
     Vector minCorner, maxCorner, middle;
     selObjs = SceneManager::getInstance()->getSelectionTree().getAllObjects();
@@ -412,7 +417,7 @@ void RTTFibers::seed()
                         vector<float> pointsF;
                         vector<float> pointsB;
                         vector<float> colorF;
-                        vector<float> colorB;
+                        vector<float> colorB;           
 
                         bool draw;
 						m_stop = false;
@@ -1500,7 +1505,15 @@ void RTTFibers::performHARDIRTT(Vector seed, int bwdfwd, vector<float>& points, 
         if( withinMapThreshold(sticksNumber, currPosition) && !m_stop && absPeak != 0)
         {
             bool initWithDir = RTTrackingHelper::getInstance()->isInitSeed();
-            sticks = pickDirection(m_pMaximasInfo->getMainDirData()->at(sticksNumber), initWithDir, currPosition); 
+            if(bwdfwd != -1)
+            {
+                sticks = pickDirection(m_pMaximasInfo->getMainDirData()->at(sticksNumber), initWithDir, currPosition); 
+                m_storedDir = sticks;
+            }
+            else
+            { 
+                sticks = m_storedDir;
+            }
 
             currDirection.x = flippedAxes.x * sticks[0];
             currDirection.y = flippedAxes.y * sticks[1];

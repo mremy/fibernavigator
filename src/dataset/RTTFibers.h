@@ -26,7 +26,7 @@ public:
     void seed();
     void renderRTTFibers(bool bindBuffers, bool isPlaying, bool changeAlpha);
     void performDTIRTT( Vector seed, int bwdfwd, std::vector<float>& points, std::vector<float>& color );
-    void performHARDIRTT( Vector seed, int bwdfwd, std::vector<float>& points, std::vector<float>& color );
+    void performHARDIRTT( Vector seed, int bwdfwd, std::vector<float>& points, std::vector<float>& color);
     void setDiffusionAxis( const FMatrix &tensor, Vector& e1, Vector& e2, Vector& e3 );
 	std::vector<float> pickDirection(std::vector<float> initialPeaks, bool initWithDir, Vector currPos);
     bool withinMapThreshold(unsigned int sticksNumber, Vector pos);
@@ -127,6 +127,8 @@ private:
 
     std::vector<float> m_streamlinesPoints; // Points to be rendered Forward
 	std::vector<float> m_streamlinesColors; //Color (local directions)Forward
+
+    std::vector<float> m_storedDir;
     
 
 	float m_alpha;
