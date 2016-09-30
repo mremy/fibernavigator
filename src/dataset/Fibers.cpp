@@ -3563,7 +3563,7 @@ void Fibers::drawCrossingFibers()
 
         if( m_showFS )
         {
-            glColorPointer( 3, GL_FLOAT, 0, &m_colorArray[0] );  // Global colors.
+            glColorPointer( 3, GL_FLOAT, 0, &m_normalArray[0] );  // Global colors.
         }
         else
         {
@@ -3579,7 +3579,7 @@ void Fibers::drawCrossingFibers()
 
         if( m_showFS )
         {
-            glBindBuffer( GL_ARRAY_BUFFER, m_bufferObjects[1] );
+            glBindBuffer( GL_ARRAY_BUFFER, m_bufferObjects[2] );
             glColorPointer( 3, GL_FLOAT, 0, 0 );
         }
         else
