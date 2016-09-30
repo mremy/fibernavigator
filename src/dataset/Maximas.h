@@ -18,6 +18,7 @@ public:
     //Maximas();
     Maximas( const wxString &filename );
     virtual ~Maximas();
+    bool save( wxXmlNode *pNode, const wxString &rootPath ) const;
 
     std::vector< std::vector<float> > *getMainDirData()                       { return &m_mainDirections;           };
 
@@ -35,6 +36,7 @@ public:
     
     //Empty
     void    draw();
+    void         flipAnat( AxisType axe );
 
 private:
     

@@ -73,7 +73,7 @@ SceneManager::SceneManager(void)
     m_screenshotName( wxT( "" ) ),
     m_screenshotPath( wxT( "" ) ),
     m_clearToBlack( true ),
-    m_colorMap( 0 ),
+    m_colorMap( 6 ),
     m_filterIsoSurface( false ),
     m_pSelTree( NULL ),
     m_selBoxChanged( true ),
@@ -602,7 +602,7 @@ bool SceneManager::loadOldVersion( wxXmlNode * pRoot, const wxString &rootPath  
                 }
                 else
                 {
-                    wxFileName fullDatasetPath( rootPath + wxFileName::GetPathSeparator() + path );
+                    wxFileName fullDatasetPath( path );
                     index = DatasetManager::getInstance()->load( fullDatasetPath.GetFullPath(), extension );
                 }
 
