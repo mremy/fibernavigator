@@ -1505,6 +1505,7 @@ void RTTFibers::performHARDIRTT(Vector seed, int bwdfwd, vector<float>& points, 
         if( withinMapThreshold(sticksNumber, currPosition) && !m_stop && absPeak != 0)
         {
             bool initWithDir = RTTrackingHelper::getInstance()->isInitSeed();
+			
             if(bwdfwd != -1)
             {
                 sticks = pickDirection(m_pMaximasInfo->getMainDirData()->at(sticksNumber), initWithDir, currPosition); 
