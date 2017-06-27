@@ -314,8 +314,8 @@ void FibersGroup::createPropertiesSizer( PropertiesWindow *pParent )
     m_pLblSubsampling = new wxStaticText( pParent, wxID_ANY, wxT( "Subsampling" ) );
     m_pLblThickness   = new wxStaticText( pParent, wxID_ANY, wxT( "Thickness" ) );
     m_pLblColoring    = new wxStaticText( pParent, wxID_ANY, wxT( "Coloring" ) );
-    m_pSliderFibersFilterMin = new wxSlider( pParent, wxID_ANY, 0,       0, INT_MAX, DEF_POS, wxSize( 140, -1 ), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
-    m_pSliderFibersFilterMax = new wxSlider( pParent, wxID_ANY, INT_MAX, 0, INT_MAX, DEF_POS, DEF_SIZE,         wxSL_HORIZONTAL | wxSL_AUTOTICKS );
+    m_pSliderFibersFilterMin = new wxSlider( pParent, wxID_ANY, 0,       0, 300, DEF_POS, wxSize( 140, -1 ), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
+    m_pSliderFibersFilterMax = new wxSlider( pParent, wxID_ANY, 300, 0, 300, DEF_POS, DEF_SIZE,         wxSL_HORIZONTAL | wxSL_AUTOTICKS );
 
     // We don't set the initial value of this slider to the START value because
     // it is not used the same way when in the FibersGroup context.

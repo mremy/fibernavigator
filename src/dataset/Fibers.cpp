@@ -84,6 +84,7 @@ Fibers::Fibers()
     m_coronalShown(  SceneManager::getInstance()->isCoronalDisplayed() ),
     m_sagittalShown( SceneManager::getInstance()->isSagittalDisplayed() ),
     m_useIntersectedFibers( false ),
+    m_useSliceFibers( false ),
     m_thickness( 2.5f ),
     m_tubeRadius( 3.175f ),
     m_xDrawn( 0.0f ),
@@ -101,6 +102,7 @@ Fibers::Fibers()
     m_pToggleNormalColoring( NULL ),
     m_pSelectConstantFibersColor( NULL ),
     m_pToggleCrossingFibers( NULL ),
+    m_pToggleSliceFibers( NULL ),
     m_pRadNormalColoring( NULL ),
     m_pRadDistanceAnchoring( NULL ),
     m_pRadMinDistanceAnchoring( NULL ),
@@ -3114,7 +3116,7 @@ void Fibers::draw()
         return;
     }
 
-    if( m_useTransparency && !m_useIntersectedFibers )
+    if( m_useTransparency && !m_useIntersectedFibers && !m_useSliceFibers )
     {
         glPushAttrib( GL_ALL_ATTRIB_BITS );
         glEnable( GL_BLEND );
@@ -3127,7 +3129,7 @@ void Fibers::draw()
 
     // If geometry shaders are supported, the shader will take care of the filtering
     // Otherwise, use the drawCrossingFibers
-    if ( !SceneManager::getInstance()->isFibersGeomShaderActive() && m_useIntersectedFibers )
+    if ( !SceneManager::getInstance()->isFibersGeomShaderActive() && m_useIntersectedFibers && !m_useSliceFibers )
     {
         if( m_useTransparency )
         {
@@ -3931,7 +3933,9 @@ void Fibers::createPropertiesSizer( PropertiesWindow *pParent )
     m_pToggleLocalColoring  = new wxToggleButton(   pParent, wxID_ANY, wxT( "Local Coloring" ) );
     m_pToggleNormalColoring = new wxToggleButton(   pParent, wxID_ANY, wxT( "Color With Overlay" ) );
     m_pSelectConstantFibersColor = new wxButton(    pParent, wxID_ANY, wxT( "Select Constant Color..." ) );
-    m_pToggleCrossingFibers = new wxToggleButton(   pParent, wxID_ANY, wxT( "Intersected Fibers" ) );
+    m_pToggleCrossingFibers = new wxToggleButton(   pParent, wxID_ANY, wxT( "TDI Fibers" ) );
+    m_pToggleSliceFibers = new wxToggleButton(   pParent, wxID_ANY, wxT( "Slice Fibers" ) );
+    m_pToggleSliceFibers->Enable(false);
     m_pRadNormalColoring       = new wxRadioButton( pParent, wxID_ANY, wxT( "Normal" ), DEF_POS, DEF_SIZE, wxRB_GROUP );
 
 #if !_USE_LIGHT_GUI
@@ -4022,6 +4026,7 @@ void Fibers::createPropertiesSizer( PropertiesWindow *pParent )
     //////////////////////////////////////////////////////////////////////////
 
     pBoxMain->Add( m_pToggleCrossingFibers,    0, wxEXPAND | wxLEFT | wxRIGHT, 24 );
+    pBoxMain->Add(m_pToggleSliceFibers,0, wxEXPAND | wxLEFT | wxRIGHT, 24 );
 
 #if !_USE_LIGHT_GUI
     pBoxMain->Add( pBtnGeneratesDensityVolume, 0, wxEXPAND | wxLEFT | wxRIGHT, 24 );
@@ -4095,6 +4100,7 @@ void Fibers::createPropertiesSizer( PropertiesWindow *pParent )
     pParent->Connect( m_pToggleNormalColoring->GetId(),          wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxEventHandler(        PropertiesWindow::OnToggleShowFS ) );
     pParent->Connect( m_pSelectConstantFibersColor->GetId(),     wxEVT_COMMAND_BUTTON_CLICKED,       wxCommandEventHandler( PropertiesWindow::OnSelectConstantColor ) );
     pParent->Connect( m_pToggleCrossingFibers->GetId(),          wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxEventHandler(        PropertiesWindow::OnToggleCrossingFibers ) );
+    pParent->Connect( m_pToggleSliceFibers->GetId(),          wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxEventHandler(        PropertiesWindow::OnToggleSliceFibers ) );
     pParent->Connect( m_pRadNormalColoring->GetId(),             wxEVT_COMMAND_RADIOBUTTON_SELECTED, wxCommandEventHandler( PropertiesWindow::OnNormalColoring ) );
 
 #if !_USE_LIGHT_GUI
@@ -4130,7 +4136,8 @@ void Fibers::updatePropertiesSizer()
     m_pSliderOpacity->Enable( false );
     m_pSliderInterFibersThickness->Enable( m_useIntersectedFibers );
     m_pToggleFiltering->Enable( false );
-    m_pToggleCrossingFibers->Enable( true );
+    //m_pToggleCrossingFibers->Enable( true );
+    m_pToggleSliceFibers->Enable( SceneManager::getInstance()->isFibersGeomShaderActive() && !m_useIntersectedFibers);
     m_pRadNormalColoring->Enable(       getShowFS() );
 
 #if !_USE_LIGHT_GUI
@@ -4144,6 +4151,7 @@ void Fibers::updatePropertiesSizer()
 
     m_pToggleFiltering->SetValue( false );
     m_pToggleCrossingFibers->SetValue( m_useIntersectedFibers );
+    m_pToggleSliceFibers->SetValue(m_useSliceFibers);
     m_pSliderOpacity->SetValue( m_pSliderOpacity->GetMin() );
     m_pToggleNormalColoring->SetValue( !getShowFS() );
     m_pSliderThresholdIntensity->SetValue( getThreshold() * 100 );
@@ -4385,6 +4393,34 @@ void Fibers::setShader()
 
         ShaderHelper::getInstance()->getCrossingFibersShader()->setUniFloat("zMin", SceneManager::getInstance()->isAxialDisplayed() ? zMin : 0 );
         ShaderHelper::getInstance()->getCrossingFibersShader()->setUniFloat("zMax", SceneManager::getInstance()->isAxialDisplayed() ? zMax : 0 );
+
+    }
+    else if( SceneManager::getInstance()->isFibersGeomShaderActive() && m_useSliceFibers )
+    {
+        // Determine X, Y and Z range
+        int curSliceX = SceneManager::getInstance()->getSliceX();
+        int curSliceY = SceneManager::getInstance()->getSliceY();
+        int curSliceZ = SceneManager::getInstance()->getSliceZ();
+
+        float xVoxSize = DatasetManager::getInstance()->getVoxelX();
+        float yVoxSize = DatasetManager::getInstance()->getVoxelY();
+        float zVoxSize = DatasetManager::getInstance()->getVoxelZ();
+
+        const float xMax( ( curSliceX + 0.5f ) * xVoxSize);
+        const float yMax( ( curSliceY + 0.5f ) * yVoxSize);
+        const float zMax( ( curSliceZ + 0.5f ) * zVoxSize);
+
+        ShaderHelper::getInstance()->getCrossingFibersShader()->bind();
+
+        ShaderHelper::getInstance()->getCrossingFibersShader()->setUniFloat("xMin", 0 );
+        ShaderHelper::getInstance()->getCrossingFibersShader()->setUniFloat("xMax", SceneManager::getInstance()->isSagittalDisplayed() ? xMax : 0 );
+
+        ShaderHelper::getInstance()->getCrossingFibersShader()->setUniFloat("yMin", 0 );
+        ShaderHelper::getInstance()->getCrossingFibersShader()->setUniFloat("yMax", SceneManager::getInstance()->isCoronalDisplayed() ? yMax : 0 );
+
+        ShaderHelper::getInstance()->getCrossingFibersShader()->setUniFloat("zMin", 0 );
+        ShaderHelper::getInstance()->getCrossingFibersShader()->setUniFloat("zMax", SceneManager::getInstance()->isAxialDisplayed() ? zMax : 0 );
+
     }
     else if ( !m_useTex )
     {
@@ -4557,6 +4593,24 @@ void Fibers::updateAlpha()
     m_pTxtlina->SetValue(wxString::Format( wxT( "%.1f"), m_pSliderFibersLina->GetValue()/10.0f));
     m_pTxtlinb->SetValue(wxString::Format( wxT( "%.1f"), m_pSliderFibersLinb->GetValue()/10.0f));
     m_pTxtclBox->SetValue(wxString::Format( wxT( "%.2f"), m_pSliderFiberscl->GetValue()/100.0f));
+}
+
+void Fibers::toggleCrossingFibers()
+{ 
+    m_useIntersectedFibers = !m_useIntersectedFibers; 
+    if(m_useIntersectedFibers) 
+        m_pToggleSliceFibers->Enable(false);
+    else
+        m_pToggleSliceFibers->Enable(true);
+}
+
+void Fibers::toggleSliceFibers()
+{ 
+    m_useSliceFibers = !m_useSliceFibers; 
+    if(m_useSliceFibers) 
+        m_pToggleCrossingFibers->Enable(false);
+    else
+        m_pToggleCrossingFibers->Enable(true);
 }
 
 void Fibers::setAxisView(bool value)

@@ -151,7 +151,11 @@ public:
     void    generateGeometry() {};
     void    smooth()           {};
 
-    void    toggleCrossingFibers() { m_useIntersectedFibers = !m_useIntersectedFibers; }
+    void    toggleCrossingFibers();
+    void    toggleSliceFibers();
+    bool    isIntersectFibers() {return m_useIntersectedFibers;}
+    bool    isSliceFibers() {return m_useSliceFibers;}
+
     void    updateCrossingFibersThickness();
     void    updateTubeRadius();
 
@@ -258,6 +262,7 @@ private:
     bool            m_coronalShown;
     bool            m_sagittalShown;
     bool            m_useIntersectedFibers;
+    bool            m_useSliceFibers;
     float           m_thickness;
     float           m_tubeRadius;
     float           m_xDrawn;
@@ -294,6 +299,7 @@ private:
     wxToggleButton *m_pToggleNormalColoring;
     wxButton       *m_pSelectConstantFibersColor;
     wxToggleButton *m_pToggleCrossingFibers;
+    wxToggleButton *m_pToggleSliceFibers;
     wxRadioButton  *m_pRadNormalColoring;
     wxRadioButton  *m_pRadDistanceAnchoring;
     wxRadioButton  *m_pRadMinDistanceAnchoring;

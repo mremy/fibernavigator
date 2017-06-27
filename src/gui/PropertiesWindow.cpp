@@ -2063,6 +2063,19 @@ void PropertiesWindow::OnToggleCrossingFibers( wxEvent& WXUNUSED(event) )
     }
 }
 
+void PropertiesWindow::OnToggleSliceFibers( wxEvent& WXUNUSED(event) )
+{
+    Logger::getInstance()->print( wxT( "Event triggered - PropertiesWindow::OnToggleCrossingFibers" ), LOGLEVEL_DEBUG );
+
+    if( m_pMainFrame->m_pCurrentSceneObject != NULL && m_pMainFrame->m_currentListIndex != -1 )
+    {
+        if( ((DatasetInfo*)m_pMainFrame->m_pCurrentSceneObject)->getType() == FIBERS )
+        {
+            ((Fibers*)m_pMainFrame->m_pCurrentSceneObject)->toggleSliceFibers();
+        }
+    }
+}
+
 void PropertiesWindow::OnCrossingFibersThicknessChange( wxCommandEvent& WXUNUSED(event) )
 {
     Logger::getInstance()->print( wxT( "Event triggered - PropertiesWindow::OnCrossingFibersThicknessChange" ), LOGLEVEL_DEBUG );
