@@ -2,12 +2,20 @@
 #version 120
 #extension GL_EXT_geometry_shader4 : enable
 
+varying in vec4 myColor[];
+varying out vec4 omyColor;
+
+varying in vec4 VaryingTexCoord0[];
+varying out vec4 oVaryingTexCoord0;
+
 uniform float xMin, xMax, yMin, yMax, zMin, zMax;
 
 void main( void )
 {
     for( int i = 0 ; i < gl_VerticesIn ; ++i )
     {
+        omyColor = myColor[i];
+        oVaryingTexCoord0 = VaryingTexCoord0[i];
         gl_FrontColor = gl_FrontColorIn[i];
         gl_Position = gl_ModelViewProjectionMatrix * gl_PositionIn[i];
 

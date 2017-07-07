@@ -3235,7 +3235,7 @@ void Fibers::drawFakeTubes()
 
     GLfloat *pColors  = NULL;
     GLfloat *pNormals = NULL;
-    pColors  = &m_colorArray[0];
+    pColors  = &m_normalArray[0];
     pNormals = &m_normalArray[0];
 
     if( SceneManager::getInstance()->isPointMode() )
@@ -3261,7 +3261,7 @@ void Fibers::drawFakeTubes()
                 for( unsigned int k = 0; k < m_cfPointsPerLine[i]; ++k, index += 3 )
                 {
                     glNormal3f( m_normalArray[index], m_normalArray[index + 1], m_normalArray[index + 2] );
-                    glColor3f( m_colorArray[index],  m_colorArray[index + 1],  m_colorArray[index + 2] );
+                    glColor3f( m_normalArray[index],  m_normalArray[index + 1],  m_normalArray[index + 2] );
                     glTexCoord2f( -1.0f, 0.0f );
                     glVertex3f( m_pointArray[index], m_pointArray[index + 1], m_pointArray[index + 2] );
                     glTexCoord2f( 1.0f, 0.0f );
@@ -4394,6 +4394,12 @@ void Fibers::setShader()
         ShaderHelper::getInstance()->getCrossingFibersShader()->setUniFloat("zMin", SceneManager::getInstance()->isAxialDisplayed() ? zMin : 0 );
         ShaderHelper::getInstance()->getCrossingFibersShader()->setUniFloat("zMax", SceneManager::getInstance()->isAxialDisplayed() ? zMax : 0 );
 
+        ShaderHelper::getInstance()->setGeomShaderVars();
+        ShaderHelper::getInstance()->getCrossingFibersShader()->setUniInt( "useTex", !pDsInfo->getUseTex() );
+         ShaderHelper::getInstance()->getCrossingFibersShader()->setUniInt( "useColorMap", SceneManager::getInstance()->getColorMap() );
+        ShaderHelper::getInstance()->getCrossingFibersShader()->setUniInt( "useOverlay", pDsInfo->getShowFS() );
+
+
     }
     else if( SceneManager::getInstance()->isFibersGeomShaderActive() && m_useSliceFibers )
     {
@@ -4421,6 +4427,12 @@ void Fibers::setShader()
         ShaderHelper::getInstance()->getCrossingFibersShader()->setUniFloat("zMin", 0 );
         ShaderHelper::getInstance()->getCrossingFibersShader()->setUniFloat("zMax", SceneManager::getInstance()->isAxialDisplayed() ? zMax : 0 );
 
+        ShaderHelper::getInstance()->setGeomShaderVars();
+        ShaderHelper::getInstance()->getCrossingFibersShader()->setUniInt( "useTex", !pDsInfo->getUseTex() );
+            ShaderHelper::getInstance()->getCrossingFibersShader()->setUniInt( "useColorMap", SceneManager::getInstance()->getColorMap() );
+        ShaderHelper::getInstance()->getCrossingFibersShader()->setUniInt( "useOverlay", pDsInfo->getShowFS() );
+
+
     }
     else if ( !m_useTex )
     {
@@ -4438,7 +4450,7 @@ void Fibers::releaseShader()
     {
         ShaderHelper::getInstance()->getFakeTubesShader()->release();
     }
-    else if( SceneManager::getInstance()->isFibersGeomShaderActive() && m_useIntersectedFibers )
+    else if( SceneManager::getInstance()->isFibersGeomShaderActive() && (m_useIntersectedFibers || m_useSliceFibers) )
     {
         ShaderHelper::getInstance()->getCrossingFibersShader()->release();
     }

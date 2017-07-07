@@ -202,6 +202,7 @@ MainFrame::MainFrame( const wxString     &title,
 
     initLayout();
 
+
     m_pTimer = new wxTimer( this );
     m_pTimer->Start( 100 );
 
