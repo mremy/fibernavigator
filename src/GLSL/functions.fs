@@ -146,15 +146,15 @@ vec3 colorMap4( in float value )
 
 vec3 colorMap5( in float value )
 {
-	vec4 color0 = vec4(255./255., 255./255., 217./255., 1.);
-	vec4 color1 = vec4(237./255., 248./255., 177./255., 1.);
-	vec4 color2 = vec4(199./255., 233./255., 180./255., 1.);
-	vec4 color3 = vec4(127./255., 205./255., 187./255., 1.);
-	vec4 color4 = vec4( 65./255., 182./255., 196./255., 1.);
-	vec4 color5 = vec4( 29./255., 145./255., 192./255., 1.);
-	vec4 color6 = vec4( 34./255.,  94./255., 168./255., 1.);
-	vec4 color7 = vec4( 37./255.,  52./255., 148./255., 1.);
-	vec4 color8 = vec4(  8./255.,  29./255.,  88./255., 1.);
+	vec4 color0 = vec4(255./255., 255./255.,217./255. , 1.);
+	vec4 color1 = vec4(237./255., 248./255.,177./255. , 1.);
+	vec4 color2 = vec4(199./255., 233./255.,180./255. , 1.);
+	vec4 color3 = vec4(127./255., 205./255.,187./255. , 1.);
+	vec4 color4 = vec4( 65./255., 182./255.,196./255. , 1.);
+	vec4 color5 = vec4( 29./255., 145./255.,192./255. , 1.);
+	vec4 color6 = vec4( 34./255.,  94./255.,168./255. , 1.);
+	vec4 color7 = vec4( 37./255.,  52./255.,148./255. , 1.);
+	vec4 color8 = vec4(  8./255.,  29./255., 88./255. , 1.);
 
 	float colorValue = value * 8.;
 	int sel = int(floor(colorValue));
@@ -248,6 +248,49 @@ vec4 color8  = vec4(255./255., 255./255., 204./255., 1.);
 	}
 }
 
+vec3 colorMap7( in float value )
+{
+	vec4 color0 = vec4(217./255., 255./255.,255./255. , 1.);
+	vec4 color1 = vec4(177./255., 248./255.,237./255. , 1.);
+	vec4 color2 = vec4(180./255., 233./255.,199./255. , 1.);
+	vec4 color3 = vec4(187./255., 205./255.,127./255. , 1.);
+	vec4 color4 = vec4(196./255., 182./255., 65./255. , 1.);
+	vec4 color5 = vec4(192./255., 145./255., 29./255. , 1.);
+	vec4 color6 = vec4(168./255.,  94./255., 34./255. , 1.);
+	vec4 color7 = vec4(148./255.,  52./255., 37./255. , 1.);
+	vec4 color8 = vec4( 88./255.,  29./255.,  8./255. , 1.);
+
+	float colorValue = value * 8.;
+	int sel = int(floor(colorValue));
+
+	if ( sel >= 8 )
+		return color8.rgb;
+	else if ( sel < 0 )
+		return color0.rgb;
+	else
+	{
+		colorValue -= float(sel);
+
+		if (sel < 1)
+			return ( color1*colorValue + color0*(1.-colorValue)).rgb;
+		else if (sel < 2)
+			return ( color2*colorValue + color1*(1.-colorValue)).rgb;
+		else if (sel < 3)
+			return ( color3*colorValue + color2*(1.-colorValue)).rgb;
+		else if (sel < 4)
+			return ( color4*colorValue + color3*(1.-colorValue)).rgb;
+		else if (sel < 5)
+			return ( color5*colorValue + color4*(1.-colorValue)).rgb;
+		else if (sel < 6)
+			return ( color6*colorValue + color5*(1.-colorValue)).rgb;
+		else if (sel < 7)
+			return ( color7*colorValue + color6*(1.-colorValue)).rgb;
+		else if (sel < 8)
+			return ( color8*colorValue + color7*(1.-colorValue)).rgb;
+		else return color0.rgb;
+	}
+}
+
 void colorMap( inout vec3 col, in float value )
 {
 
@@ -263,6 +306,8 @@ void colorMap( inout vec3 col, in float value )
 		col = colorMap5( value );
     else if ( useColorMap == 6 )
 		col = colorMap6( value );
+    else if ( useColorMap == 7 )
+		col = colorMap7( value );
 	else
 	    col = defaultColorMap( value );
 }

@@ -102,6 +102,7 @@ public:
             wxMenuItem  *m_itemRedYellow;
             wxMenuItem  *m_itemBlueLightblue;
 			wxMenuItem  *m_itemCoolIron;
+            wxMenuItem  *m_itemRedIron;
 			wxMenuItem  *m_itemCustom;
 
         wxMenuItem  *m_itemToggleDrawPoints;

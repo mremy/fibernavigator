@@ -128,6 +128,7 @@ MenuBar::MenuBar()
     m_itemRedYellow = m_menuColorMaps->Append(wxID_ANY, wxT("Red-Yellow"));
     m_itemBlueLightblue = m_menuColorMaps->Append(wxID_ANY, wxT("Blue-Lightblue"));
 	m_itemCoolIron = m_menuColorMaps->Append(wxID_ANY, wxT("Cooliron"));
+    m_itemRedIron = m_menuColorMaps->Append(wxID_ANY, wxT("Rediron"));
 	m_itemCustom = m_menuColorMaps->Append(wxID_ANY, wxT("Custom"));
     m_menuOptions->AppendSubMenu(m_menuColorMaps,wxT("Color Maps"));  
 
@@ -254,6 +255,7 @@ void MenuBar::initMenuBar( MainFrame *mf )
     mf->Connect(m_itemRedYellow->GetId(), wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler(MainFrame::onSetCMap3));
     mf->Connect(m_itemBlueLightblue->GetId(), wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler(MainFrame::onSetCMap4));
 	mf->Connect(m_itemCoolIron->GetId(), wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler(MainFrame::onSetCMap5));
+    mf->Connect(m_itemRedIron->GetId(), wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler(MainFrame::onSetCMap7));
 	mf->Connect(m_itemCustom->GetId(), wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler(MainFrame::onSetCMap6));
     mf->Connect(m_itemAbout->GetId(), wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler(MainFrame::onAbout));
     mf->Connect(m_itemKeyboardShortcuts->GetId(), wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler(MainFrame::onShortcuts));
