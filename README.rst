@@ -17,8 +17,11 @@ If you use the Fibernavigator, please make sure that you quote the following ref
 
 Tutorials
 ---------
-New rs-fMRI and real-time fiber tractography tutorials soon available: `Tutorial Page`_.
-New **video tutorials** of the Fibernavigator are available.
+**NEW**: Updated live demo on how-to use the tractography tools: https://youtu.be/A3KCekqPTok
+
+rs-fMRI and real-time fiber tractography tutorials soon available: `Tutorial Page`_.
+
+ **Video tutorials** of the Fibernavigator are available.
 
 - `Optic radiation`_ : Real-time tractography of the optic radiation using HCP data
 - `Scene navigation`_: how to interact with the 3D view, move planes, etc.
