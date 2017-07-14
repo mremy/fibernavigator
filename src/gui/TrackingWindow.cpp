@@ -318,7 +318,7 @@ TrackingWindow::TrackingWindow( wxWindow *pParent, MainFrame *pMf, wxWindowID id
 	m_pTrackingSizer->Add( pBoxRow10, 0, wxFIXED_MINSIZE | wxEXPAND, 0 );
 
     wxStaticText *m_pTextAxisSeedNb = new wxStaticText( this, wxID_ANY, wxT("Seeds (^3)"), wxDefaultPosition, wxSize(70, -1), wxALIGN_CENTER );
-    RTTrackingHelper::getInstance()->m_pSliderAxisSeedNb = new MySlider( this, wxID_ANY, 0, 1, 15, wxDefaultPosition, wxSize(100, -1), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
+    RTTrackingHelper::getInstance()->m_pSliderAxisSeedNb = new MySlider( this, wxID_ANY, 0, 1, 20, wxDefaultPosition, wxSize(100, -1), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
     RTTrackingHelper::getInstance()->m_pSliderAxisSeedNb->SetValue( 10 );
     Connect( RTTrackingHelper::getInstance()->m_pSliderAxisSeedNb->GetId(), wxEVT_COMMAND_SLIDER_UPDATED, wxCommandEventHandler(TrackingWindow::OnSliderAxisSeedNbMoved) );
     RTTrackingHelper::getInstance()->m_pTxtAxisSeedNbBox = new wxTextCtrl( this, wxID_ANY, wxT("10"), wxDefaultPosition, wxSize(55, -1), wxTE_CENTRE | wxTE_READONLY );
