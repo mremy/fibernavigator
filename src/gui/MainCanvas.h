@@ -55,6 +55,7 @@ public:
     void renderTestRay();
     void renderAxes();
     void renderRulerDisplay();
+    void renderProtractorDisplay();
     void drawOnAnatomy();
     void segment();
     // TODO: Change definition and pass a reference to the vectors instead of pointers
@@ -90,6 +91,7 @@ private:
     hitResult   m_hr;
     Vector      m_hitPts;
     bool        m_isRulerHit;
+    bool        m_isProtractorHit;
     bool        m_isDrawerHit;
 
     GLdouble m_pos1X, m_pos1Y, m_pos1Z;    // point of origin for picking

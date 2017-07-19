@@ -7,6 +7,7 @@
 
 ToolBar::ToolBar(wxToolBar *pToolBar)
 : m_txtRuler( NULL ),
+  m_txtProtractor (NULL),
   m_drawColorIcon(16, 16, true),
   m_pToolBar(pToolBar)
 {
@@ -70,12 +71,14 @@ ToolBar::ToolBar(wxToolBar *pToolBar)
 
     wxImage bmpPointer (MyApp::iconsPath+ wxT("pointer.png"), wxBITMAP_TYPE_PNG);
     wxImage bmpRuler (MyApp::iconsPath+ wxT("rulertool.png"), wxBITMAP_TYPE_PNG);
+    wxImage bmpProtractor (MyApp::iconsPath+ wxT("protractortool.png"), wxBITMAP_TYPE_PNG);
     wxImage bmpDrawer (MyApp::iconsPath+ wxT("drawertool.png"), wxBITMAP_TYPE_PNG);
 
     m_selectNormalPointer = m_pToolBar->AddRadioTool( wxID_ANY, wxT("Pointer" ), bmpPointer, wxNullBitmap, wxT("Pointer"));
 
 #if !_USE_LIGHT_GUI
     m_selectRuler = m_pToolBar->AddRadioTool( wxID_ANY, wxT("Ruler" ), bmpRuler, wxNullBitmap, wxT("Ruler"));
+    m_selectProtractor = m_pToolBar->AddRadioTool( wxID_ANY, wxT("Protractor" ), bmpProtractor, wxNullBitmap, wxT("Protractor"));
 #endif
 
     m_selectDrawer = m_pToolBar->AddRadioTool( wxID_ANY, wxT("Drawer" ), bmpDrawer, wxNullBitmap, wxT("Drawer"));
@@ -90,6 +93,15 @@ ToolBar::ToolBar(wxToolBar *pToolBar)
     font.SetWeight(wxBOLD);
     m_txtRuler->SetFont(font);
     m_pToolBar->AddControl(m_txtRuler);
+
+    m_txtProtractor = new wxTextCtrl(m_pToolBar, wxID_ANY,wxT("0­ deg."), wxDefaultPosition, wxSize( 160, 24 ), wxTE_LEFT | wxTE_READONLY);
+    m_txtProtractor->SetForegroundColour(wxColour(wxT("#222222")));
+    m_txtProtractor->SetBackgroundColour(*wxWHITE);
+    wxFont font2 = m_txtProtractor->GetFont();
+    font2.SetPointSize(10);
+    font2.SetWeight(wxBOLD);
+    m_txtProtractor->SetFont(font2);
+    m_pToolBar->AddControl(m_txtProtractor);
 #endif
 
     //no wxImage, it will show the selected color
@@ -138,6 +150,7 @@ void ToolBar::connectToolsEvents( MainFrame *mf )
 
 #if !_USE_LIGHT_GUI
     mf->Connect(m_selectRuler->GetId(), wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler(MainFrame::onSelectRuler)); 
+    mf->Connect(m_selectProtractor->GetId(), wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler(MainFrame::onSelectProtractor)); 
 #endif
     
     mf->Connect(m_selectDrawer->GetId(), wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler(MainFrame::onSelectDrawer)); 
@@ -191,10 +204,11 @@ void ToolBar::updateToolBar( MainFrame *mf )
 #endif
     
     m_pToolBar->ToggleTool( m_toggleClearToBlack->GetId(), SceneManager::getInstance()->getClearToBlack() );
-    m_pToolBar->ToggleTool( m_selectNormalPointer->GetId(), SceneManager::getInstance()->isRulerActive() && mf->isDrawerToolActive() );
+    m_pToolBar->ToggleTool( m_selectNormalPointer->GetId(), SceneManager::getInstance()->isRulerActive() && mf->isDrawerToolActive() && SceneManager::getInstance()->isProtractorActive());
 
 #if !_USE_LIGHT_GUI
     m_pToolBar->ToggleTool( m_selectRuler->GetId(), SceneManager::getInstance()->isRulerActive() );
+    m_pToolBar->ToggleTool( m_selectProtractor->GetId(), SceneManager::getInstance()->isProtractorActive() );
 #endif
     
     m_pToolBar->ToggleTool( m_selectDrawer->GetId(), mf->isDrawerToolActive() );
@@ -215,6 +229,11 @@ void ToolBar::updateDrawerToolBar( const bool drawingActive )
     if( m_txtRuler != NULL )
     {
         m_txtRuler->Disable();
+    }
+
+    if( m_txtProtractor != NULL )
+    {
+        m_txtProtractor->Disable();
     }
      
      m_pToolBar->EnableTool( m_toggleDrawRound->GetId(), drawingActive );

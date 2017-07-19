@@ -903,6 +903,7 @@ void MainFrame::onSwitchDrawer( wxCommandEvent& event )
 void MainFrame::updateDrawerToolbar()
 {
     SceneManager::getInstance()->setRulerActive( false );
+    SceneManager::getInstance()->setProtractorActive( false );
     
     m_pToolBar->updateDrawerToolBar( m_isDrawerToolActive );
     
@@ -1687,6 +1688,7 @@ void MainFrame::onClearToBlack( wxCommandEvent& WXUNUSED(event) )
 void MainFrame::onSelectNormalPointer( wxCommandEvent& WXUNUSED(event) )
 {
     SceneManager::getInstance()->setRulerActive( false );
+    SceneManager::getInstance()->setProtractorActive( false );
     m_isDrawerToolActive = false;
 
     m_pToolBar->updateDrawerToolBar( false );
@@ -1696,9 +1698,46 @@ void MainFrame::onSelectNormalPointer( wxCommandEvent& WXUNUSED(event) )
 void MainFrame::onSelectRuler( wxCommandEvent& WXUNUSED(event) )
 {
     SceneManager::getInstance()->setRulerActive( true );
+    SceneManager::getInstance()->setProtractorActive( false );
     m_isDrawerToolActive = false;
 
     m_pToolBar->updateDrawerToolBar( false );
+    refreshAllGLWidgets();
+}
+
+void MainFrame::onSelectProtractor( wxCommandEvent& WXUNUSED(event) )
+{
+    SceneManager::getInstance()->setProtractorActive( true );
+    SceneManager::getInstance()->setRulerActive( false );
+    m_isDrawerToolActive = false;
+
+    m_pToolBar->updateDrawerToolBar( false );
+    refreshAllGLWidgets();
+}
+
+void MainFrame::onProtractorToolClear( wxCommandEvent& WXUNUSED(event) )
+{
+    SceneManager::getInstance()->getProtractorPts().clear();
+    refreshAllGLWidgets();
+}
+
+void MainFrame::onProtractorToolAdd( wxCommandEvent& WXUNUSED(event) )
+{
+    vector< Vector > v = SceneManager::getInstance()->getProtractorPts();
+    
+    if( SceneManager::getInstance()->isProtractorActive() && !v.empty() )
+    {
+        v.push_back( v.back() );
+    }
+    refreshAllGLWidgets();
+}
+
+void MainFrame::onProtractorToolDel( wxCommandEvent& WXUNUSED(event) )
+{
+    if( SceneManager::getInstance()->isProtractorActive() && !SceneManager::getInstance()->getProtractorPts().empty() )
+    {
+        SceneManager::getInstance()->getProtractorPts().pop_back();
+    }
     refreshAllGLWidgets();
 }
 
@@ -1983,6 +2022,16 @@ void MainFrame::refreshAllGLWidgets()
             m_pToolBar->m_txtRuler->SetValue(sbString1);
         }
     }
+    else if( SceneManager::getInstance()->isProtractorActive() )
+    {
+        wxString sbString1 = wxString::Format( wxT( "%.1f deg" ), SceneManager::getInstance()->getProtractorAngle() );
+        
+        // Need to check to avoid crash when using the light weight version.
+        if( m_pToolBar->m_txtProtractor != NULL )
+        {
+            m_pToolBar->m_txtProtractor->SetValue(sbString1);
+        }
+    }
 }
 
 void MainFrame::refreshViews()
@@ -2057,9 +2106,9 @@ void MainFrame::updateStatusBar()
                 value = (* ( pAnat->getEqualizedDataset() ) )[ind];
             }
         }
+        GetStatusBar()->SetStatusText( wxString::Format(wxT("Pos: %d  %d  %d Value %.2f" ), m_pXSlider->GetValue(), m_pYSlider->GetValue(),m_pZSlider->GetValue(), value ), 0 );
     }
-	
-    GetStatusBar()->SetStatusText( wxString::Format(wxT("Pos: %d  %d  %d Value %.2f" ), m_pXSlider->GetValue(), m_pYSlider->GetValue(),m_pZSlider->GetValue(), value ), 0 );
+	 
     Logger::getInstance()->printIfGLError( wxT( "MainFrame::updateStatusBar" ) );
 }
 

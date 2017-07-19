@@ -80,6 +80,7 @@ const wxPoint& i_pos,const wxSize & i_size, long i_style, const wxString& i_name
     m_orthoModY = 0;
     m_hitPts =Vector(0,0,0);
     m_isRulerHit = false;
+    m_isProtractorHit = false;
     m_isDrawerHit = false;
     m_isSlizesLocked = false;
     m_isSceneLocked = false;
@@ -240,7 +241,7 @@ void MainCanvas::processLeftMouseDown( int clickX, int clickY, wxMouseEvent &evt
                 m_hr = pick(evt.GetPosition(), true);
                 drawOnAnatomy();
             }
-            else if( SceneManager::getInstance()->isRulerActive() )
+            else if( SceneManager::getInstance()->isRulerActive() ||  SceneManager::getInstance()->isProtractorActive())
             {
                 m_hr = pick(evt.GetPosition(), true);
             }
@@ -320,7 +321,7 @@ void MainCanvas::processMiddleMouseDown( wxMouseEvent &evt, int clickX, int clic
 {
     if ( !m_ismDragging)
     {             
-        if( SceneManager::getInstance()->isRulerActive() )
+        if( SceneManager::getInstance()->isRulerActive() || SceneManager::getInstance()->isProtractorActive() )
         {                        
             m_hr = pick( evt.GetPosition(), true );
         }
@@ -543,10 +544,11 @@ hitResult MainCanvas::pick( wxPoint click, bool isRulerOrDrawer)
         {
             tpicked = hr.tmin;
             picked = AXIAL;
-            if( SceneManager::getInstance()->isRulerActive() || SceneManager::getInstance()->isSegmentActive() )
+            if( SceneManager::getInstance()->isRulerActive() || SceneManager::getInstance()->isSegmentActive() || SceneManager::getInstance()->isProtractorActive())
             {
                 m_hitPts = bb->hitCoordinate(ray,CORONAL);
                 m_isRulerHit = isRulerOrDrawer;
+                m_isProtractorHit = isRulerOrDrawer;
                 SceneManager::getInstance()->setSegmentActive( false );
                 //m_pDatasetHelper->m_isSegmentActive = false;
             }
@@ -571,10 +573,11 @@ hitResult MainCanvas::pick( wxPoint click, bool isRulerOrDrawer)
             {
                 picked = CORONAL;
                 tpicked = hr.tmin;
-                if( SceneManager::getInstance()->isRulerActive() || SceneManager::getInstance()->isSegmentActive() )
+                if( SceneManager::getInstance()->isRulerActive() || SceneManager::getInstance()->isSegmentActive() || SceneManager::getInstance()->isProtractorActive())
                 {
                     m_hitPts = bb->hitCoordinate(ray,AXIAL);
                     m_isRulerHit = isRulerOrDrawer;
+                    m_isProtractorHit = isRulerOrDrawer;
                     SceneManager::getInstance()->setSegmentActive( false );
                 }
                 else if( MyApp::frame->isDrawerToolActive() )
@@ -599,10 +602,11 @@ hitResult MainCanvas::pick( wxPoint click, bool isRulerOrDrawer)
             {
                 picked = SAGITTAL;
                 tpicked = hr.tmin;
-                if( SceneManager::getInstance()->isRulerActive() || SceneManager::getInstance()->isSegmentActive() )
+                if( SceneManager::getInstance()->isRulerActive() || SceneManager::getInstance()->isSegmentActive() || SceneManager::getInstance()->isProtractorActive() )
                 {
                     m_hitPts = bb->hitCoordinate(ray,SAGITTAL);
                     m_isRulerHit = isRulerOrDrawer;
+                    m_isProtractorHit = isRulerOrDrawer;
                     SceneManager::getInstance()->setSegmentActive( false );
                 }
                 else if( MyApp::frame->isDrawerToolActive() )
@@ -758,6 +762,27 @@ void MainCanvas::render()
                     }
                     m_isRulerHit = false;
                 }
+                else if( SceneManager::getInstance()->isProtractorActive() && !m_ismDragging && m_isProtractorHit && (m_hr.picked == AXIAL || m_hr.picked == CORONAL || m_hr.picked == SAGITTAL))
+                {
+                    vector< Vector > &v = SceneManager::getInstance()->getProtractorPts();
+                    if( v.size() < 3 && !v.empty() )
+                    {
+                        Vector lastPts = v.back();
+                        if( lastPts != m_hitPts)
+                        {
+                            v.push_back( m_hitPts );
+                        }
+                    }
+                    else if(v.empty())
+                    {
+                        v.push_back( m_hitPts );
+                    }
+                    else
+                    {
+                        v.clear();
+                    }
+                    m_isProtractorHit = false;
+                }
                 else if( MyApp::frame->isDrawerToolActive() && m_isDrawerHit && (m_hr.picked == AXIAL || m_hr.picked == CORONAL || m_hr.picked == SAGITTAL))
                 {
                     m_isDrawerHit = false;
@@ -768,7 +793,10 @@ void MainCanvas::render()
                 {
                     renderAxes();
                 }
-
+                if( SceneManager::getInstance()->isProtractorActive() )
+                {
+                    renderProtractorDisplay();
+                }
                 if( SceneManager::getInstance()->isRulerActive() )
                 {
                     renderRulerDisplay();
@@ -861,6 +889,55 @@ void MainCanvas::renderRulerDisplay()
 //             lastPts = pts;
 //         }
     }
+    glLineWidth (1);
+}
+
+void MainCanvas::renderProtractorDisplay()
+{
+    glColor3f( 0.95f, 0.2f, 0.0f );
+    glLineWidth (5);    
+    float sphereSize = 0.35f;
+    vector< Vector > v = SceneManager::getInstance()->getProtractorPts();
+    int angle = 0;
+    if( !v.empty() )
+    {        
+        Vector pts;
+        Vector lastPts = v[0];
+        for( vector<Vector>::const_iterator it = v.begin(); it != v.end(); ++it )
+        {
+            if( it == --v.end() )
+            {
+                glColor3f( 1.0f, 0.0f, 0.0f );
+                sphereSize = 0.4f;
+            }
+
+            pts = *it;
+
+            glBegin( GL_LINES );
+                glVertex3f( lastPts.x, lastPts.y, lastPts.z );
+                glVertex3f( pts.x, pts.y, pts.z );
+            glEnd();
+
+            SceneManager::getInstance()->getScene()->drawSphere( pts.x, pts.y, pts.z, sphereSize );
+
+           
+            lastPts = pts;
+        }
+    }
+
+    if(v.size() == 3)
+    {
+        Vector A = (v[0] - v[1]);
+        Vector B = (v[2] - v[1]);
+        A.normalize();
+        B.normalize();
+        //Angle value
+        float dot = A.Dot(B);
+        float acos = std::acos( dot );
+        angle = 180 * acos / M_PI;
+    }
+
+    SceneManager::getInstance()->setProtractorAngle(angle);
     glLineWidth (1);
 }
 

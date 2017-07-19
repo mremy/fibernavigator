@@ -141,13 +141,18 @@ public:
     SelectionTree& getSelectionTree()       { return *m_pSelTree; }
 
     std::vector< Vector > & getRulerPts()   { return m_rulerPts; }
+    std::vector < Vector > & getProtractorPts() { return m_protractorPts;}
     bool   isRulerActive() const            { return m_isRulerActive; }
+    bool   isProtractorActive() const       { return m_isProtractorActive; }
     double getRulerFullLength() const       { return m_rulerFullLength; }
     double getRulerPartialLenth() const     { return m_rulerPartialLength; }
+    double getProtractorAngle() const       { return m_protractorAngle;}
 
     void   setRulerActive( const bool active )          { m_isRulerActive = active; }
+    void   setProtractorActive( const bool active )     { m_isProtractorActive = active; }
     void   setRulerFullLength( const double length )    { m_rulerFullLength = length; }
     void   setRulerPartialLength( const double length ) { m_rulerPartialLength = length; }
+    void   setProtractorAngle (const int angle ) {m_protractorAngle = angle;}
 
 public:
     float m_frustum[6][4];
@@ -230,7 +235,14 @@ private:
     std::vector< Vector >   m_rulerPts;
     bool                    m_isRulerActive;
     double                  m_rulerFullLength;
+    int                  m_protractorAngle;
     double                  m_rulerPartialLength;
+
+    // Protractor
+    std::vector< Vector >   m_protractorPts;
+    bool                    m_isProtractorActive;
 };
+
+
 
 #endif //SCENEMANAGER_H_

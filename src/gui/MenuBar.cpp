@@ -99,6 +99,13 @@ MenuBar::MenuBar()
     m_itemRulerAdd = m_menuRuler->Append(wxID_ANY, wxT("Add New Point"));
     m_itemRulerRemove = m_menuRuler->Append(wxID_ANY, wxT("Remove Last Point"));
     m_menuOptions->AppendSubMenu(m_menuRuler, wxT("Ruler"));
+
+    m_menuProtractor = new wxMenu();
+    m_itemToggleProtractor = m_menuProtractor->AppendCheckItem(wxID_ANY, wxT("Activate Protractor"));
+    m_itemProtractorClear = m_menuProtractor->Append(wxID_ANY, wxT("Clear Points"));
+    m_itemProtractorAdd = m_menuProtractor->Append(wxID_ANY, wxT("Add New Point"));
+    m_itemProtractorRemove = m_menuProtractor->Append(wxID_ANY, wxT("Remove Last Point"));
+    m_menuOptions->AppendSubMenu(m_menuProtractor, wxT("Protractor"));
 #endif
 
     m_menuDrawer = new wxMenu();
@@ -228,6 +235,12 @@ void MenuBar::initMenuBar( MainFrame *mf )
     mf->Connect(m_itemRulerAdd->GetId(), wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler(MainFrame::onRulerToolAdd));
     mf->Connect(m_itemRulerRemove->GetId(), wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler(MainFrame::onRulerToolDel));
     
+
+    mf->Connect(m_itemToggleProtractor->GetId(), wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler(MainFrame::onSelectProtractor));
+    mf->Connect(m_itemProtractorClear->GetId(), wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler(MainFrame::onProtractorToolClear));
+    mf->Connect(m_itemProtractorAdd->GetId(), wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler(MainFrame::onProtractorToolAdd));
+    mf->Connect(m_itemProtractorRemove->GetId(), wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler(MainFrame::onProtractorToolDel));
+
     mf->Connect(m_itemToggleDrawPoints->GetId(), wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler(MainFrame::onToggleDrawPointsMode));
     mf->Connect(m_itemToggleDrawVectors->GetId(), wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler(MainFrame::onToggleDrawVectors));
     
@@ -273,6 +286,7 @@ void MenuBar::updateMenuBar( MainFrame *mf )
 
 #if !_USE_LIGHT_GUI
     m_itemToggleRuler->Check( SceneManager::getInstance()->isRulerActive() );
+    m_itemToggleProtractor->Check( SceneManager::getInstance()->isProtractorActive() );
 #endif
 
     bool isFiberSelected( false );
