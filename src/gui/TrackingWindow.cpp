@@ -39,73 +39,85 @@ TrackingWindow::TrackingWindow( wxWindow *pParent, MainFrame *pMf, wxWindowID id
 
     //Content of RTT panel
     /********************************/
-
+#if !_USE_ZOOM_GUI
+int zoomS = 100;
+int zoomH = 30;
+int slider1 = 70;
+int slider2 = 100;
+int slider3 = 55;
+#else
+int zoomS = 300;
+int zoomH = 60;
+int slider1 = 200;
+int slider2 = 250;
+int slider3 = 150;
+#endif
     
 
-    m_pBtnSelectFile = new wxButton( this, wxID_ANY,wxT("DTI not selected"), wxPoint(30,0), wxSize(100, -1) );
+    m_pBtnSelectFile = new wxButton( this, wxID_ANY,wxT("DTI not selected"), wxDefaultPosition, wxSize(zoomS, -1) );
     Connect( m_pBtnSelectFile->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(TrackingWindow::OnSelectFileDTI) );
     m_pBtnSelectFile->SetBackgroundColour(wxColour( 255, 147, 147 ));
 
-    m_pBtnStart = new wxToggleButton( this, wxID_ANY,wxT("Start tracking"), wxPoint(130,0), wxSize(100, -1) );
+    m_pBtnStart = new wxToggleButton( this, wxID_ANY,wxT("Start tracking"), wxDefaultPosition, wxSize(zoomS, -1) );
     Connect( m_pBtnStart->GetId(), wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler(TrackingWindow::OnStartTracking) );
     m_pBtnStart->Enable(false);
 
-	m_pBtnSelectShell = new wxButton( this, wxID_ANY,wxT("Shell not selected"), wxPoint(30,30), wxSize(100, -1) );
+	m_pBtnSelectShell = new wxButton( this, wxID_ANY,wxT("Shell not selected"), wxDefaultPosition, wxSize(zoomS, -1) );
     Connect( m_pBtnSelectShell->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(TrackingWindow::OnSelectShell) );
 
-    m_pToggleShell = new wxToggleButton( this, wxID_ANY,wxT("Shell seed OFF"), wxPoint(130,30), wxSize(100, -1) );
+    m_pToggleShell = new wxToggleButton( this, wxID_ANY,wxT("Shell seed OFF"), wxDefaultPosition, wxSize(zoomS, -1) );
     Connect( m_pToggleShell->GetId(), wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler(TrackingWindow::OnShellSeeding) );
 	m_pToggleShell->Enable(false);
 
-    m_pTextFA = new wxStaticText( this, wxID_ANY, wxT("Min FA"), wxPoint(0,60), wxSize(60, -1), wxALIGN_CENTER );
-    m_pSliderFA = new MySlider( this, wxID_ANY, 0, 1, 50, wxPoint(60,60), wxSize(130, -1), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
+    m_pTextFA = new wxStaticText( this, wxID_ANY, wxT("Min FA"), wxDefaultPosition, wxSize(zoomH*2, -1), wxALIGN_CENTER );
+    m_pSliderFA = new MySlider( this, wxID_ANY, 0, 1, 50, wxDefaultPosition, wxSize(slider2, -1), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
     m_pSliderFA->SetValue( 20 );
     Connect( m_pSliderFA->GetId(), wxEVT_COMMAND_SLIDER_UPDATED, wxCommandEventHandler(TrackingWindow::OnSliderFAMoved) );
-    m_pTxtFABox = new wxTextCtrl( this, wxID_ANY, wxT("0.20"), wxPoint(190,60), wxSize(55, -1), wxTE_CENTRE | wxTE_READONLY );
+    m_pTxtFABox = new wxTextCtrl( this, wxID_ANY, wxT("0.20"), wxDefaultPosition, wxSize(slider3, -1), wxTE_CENTRE | wxTE_READONLY );
     
-    wxStaticText *m_pTextAngle = new wxStaticText( this, wxID_ANY, wxT("Max angle"), wxPoint(0,90), wxSize(60, -1), wxALIGN_CENTER );
-    m_pSliderAngle = new MySlider( this, wxID_ANY, 0, 1, 90, wxPoint(60,90), wxSize(130, -1), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
+    wxStaticText *m_pTextAngle = new wxStaticText( this, wxID_ANY, wxT("Max angle"), wxDefaultPosition, wxSize(zoomH*2, -1), wxALIGN_CENTER );
+    m_pSliderAngle = new MySlider( this, wxID_ANY, 0, 1, 90, wxDefaultPosition, wxSize(slider2, -1), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
     m_pSliderAngle->SetValue( 60 );
     Connect( m_pSliderAngle->GetId(), wxEVT_COMMAND_SLIDER_UPDATED, wxCommandEventHandler(TrackingWindow::OnSliderAngleMoved) );
-    m_pTxtAngleBox = new wxTextCtrl( this, wxID_ANY, wxT("60.0 "), wxPoint(190,90), wxSize(55, -1), wxTE_CENTRE | wxTE_READONLY );
+    m_pTxtAngleBox = new wxTextCtrl( this, wxID_ANY, wxT("60.0 "), wxDefaultPosition, wxSize(slider3, -1), wxTE_CENTRE | wxTE_READONLY );
 
-    wxStaticText *m_pTextStep = new wxStaticText( this, wxID_ANY, wxT("Step"), wxPoint(0,120), wxSize(60, -1), wxALIGN_CENTER );
-    m_pSliderStep = new MySlider( this, wxID_ANY, 0, 5, 20, wxPoint(60,120), wxSize(130, -1), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
+    wxStaticText *m_pTextStep = new wxStaticText( this, wxID_ANY, wxT("Step"), wxDefaultPosition, wxSize(zoomH*2, -1), wxALIGN_CENTER );
+    m_pSliderStep = new MySlider( this, wxID_ANY, 0, 5, 20, wxDefaultPosition, wxSize(slider2, -1), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
     m_pSliderStep->SetValue( 10 );
     Connect( m_pSliderStep->GetId(), wxEVT_COMMAND_SLIDER_UPDATED, wxCommandEventHandler(TrackingWindow::OnSliderStepMoved) );
-    m_pTxtStepBox = new wxTextCtrl( this, wxID_ANY, wxT("1.0 mm"), wxPoint(190,120), wxSize(55, -1), wxTE_CENTRE | wxTE_READONLY );
+    m_pTxtStepBox = new wxTextCtrl( this, wxID_ANY, wxT("1.0 mm"), wxDefaultPosition, wxSize(slider3, -1), wxTE_CENTRE | wxTE_READONLY );
 
-    wxStaticText *m_pTextPuncture = new wxStaticText( this, wxID_ANY, wxT("Vin-Vout"), wxPoint(0,150), wxSize(60, -1), wxALIGN_CENTER );
-    m_pSliderPuncture = new MySlider( this, wxID_ANY, 0, 0, 10, wxPoint(60,150), wxSize(130, -1), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
+    wxStaticText *m_pTextPuncture = new wxStaticText( this, wxID_ANY, wxT("Vin-Vout"), wxDefaultPosition, wxSize(zoomH*2, -1), wxALIGN_CENTER );
+    m_pSliderPuncture = new MySlider( this, wxID_ANY, 0, 0, 10, wxDefaultPosition, wxSize(slider2, -1), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
     m_pSliderPuncture->SetValue( 2 );
     Connect( m_pSliderPuncture->GetId(), wxEVT_COMMAND_SLIDER_UPDATED, wxCommandEventHandler(TrackingWindow::OnSliderPunctureMoved) );
-    m_pTxtPunctureBox = new wxTextCtrl( this, wxID_ANY, wxT("0.2"), wxPoint(190,150), wxSize(55, -1), wxTE_CENTRE | wxTE_READONLY );
+    m_pTxtPunctureBox = new wxTextCtrl( this, wxID_ANY, wxT("0.2"), wxDefaultPosition, wxSize(slider3, -1), wxTE_CENTRE | wxTE_READONLY );
 
-    wxStaticText *m_pTextMinLength = new wxStaticText( this, wxID_ANY, wxT("Min length"), wxPoint(0,180), wxSize(60, -1), wxALIGN_CENTER );
-    m_pSliderMinLength = new MySlider( this, wxID_ANY, 0, 0, 400, wxPoint(60,180), wxSize(130, -1), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
+    wxStaticText *m_pTextMinLength = new wxStaticText( this, wxID_ANY, wxT("Min length"), wxDefaultPosition, wxSize(zoomH*2, -1), wxALIGN_CENTER );
+    m_pSliderMinLength = new MySlider( this, wxID_ANY, 0, 0, 400, wxDefaultPosition, wxSize(slider2, -1), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
     m_pSliderMinLength->SetValue( 60 );
     Connect( m_pSliderMinLength->GetId(), wxEVT_COMMAND_SLIDER_UPDATED, wxCommandEventHandler(TrackingWindow::OnSliderMinLengthMoved) );
-    m_pTxtMinLengthBox = new wxTextCtrl( this, wxID_ANY, wxT("60 mm"), wxPoint(190,180), wxSize(55, -1), wxTE_CENTRE | wxTE_READONLY );
+    m_pTxtMinLengthBox = new wxTextCtrl( this, wxID_ANY, wxT("60 mm"), wxDefaultPosition, wxSize(slider3, -1), wxTE_CENTRE | wxTE_READONLY );
 
-    wxStaticText *m_pTextMaxLength = new wxStaticText( this, wxID_ANY, wxT("Max length"), wxPoint(0,210), wxSize(60, -1), wxALIGN_CENTER );
-    m_pSliderMaxLength = new MySlider( this, wxID_ANY, 0, 0, 300, wxPoint(60,210), wxSize(130, -1), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
+    wxStaticText *m_pTextMaxLength = new wxStaticText( this, wxID_ANY, wxT("Max length"), wxDefaultPosition, wxSize(zoomH*2, -1), wxALIGN_CENTER );
+    m_pSliderMaxLength = new MySlider( this, wxID_ANY, 0, 0, 300, wxDefaultPosition, wxSize(slider2, -1), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
     m_pSliderMaxLength->SetValue( 200 );
     Connect( m_pSliderMaxLength->GetId(), wxEVT_COMMAND_SLIDER_UPDATED, wxCommandEventHandler(TrackingWindow::OnSliderMaxLengthMoved) );
-    m_pTxtMaxLengthBox = new wxTextCtrl( this, wxID_ANY, wxT("200 mm"), wxPoint(190,210), wxSize(55, -1), wxTE_CENTRE | wxTE_READONLY );
+    m_pTxtMaxLengthBox = new wxTextCtrl( this, wxID_ANY, wxT("200 mm"), wxDefaultPosition, wxSize(slider3, -1), wxTE_CENTRE | wxTE_READONLY );
 
-    wxStaticText *m_pTextAxisSeedNb = new wxStaticText( this, wxID_ANY, wxT("Seed/axis"), wxPoint(0,240), wxSize(60, -1), wxALIGN_CENTER );
-	RTTrackingHelper::getInstance()->m_pSliderAxisSeedNb = new MySlider( this, wxID_ANY, 0, 1, 15, wxPoint(60,240), wxSize(130, -1), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
+    wxStaticText *m_pTextAxisSeedNb = new wxStaticText( this, wxID_ANY, wxT("Seed/axis"), wxDefaultPosition, wxSize(zoomH*2, -1), wxALIGN_CENTER );
+	RTTrackingHelper::getInstance()->m_pSliderAxisSeedNb = new MySlider( this, wxID_ANY, 0, 1, 15, wxDefaultPosition, wxSize(130, -1), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
     RTTrackingHelper::getInstance()->m_pSliderAxisSeedNb->SetValue( 10 );
     Connect( RTTrackingHelper::getInstance()->m_pSliderAxisSeedNb->GetId(), wxEVT_COMMAND_SLIDER_UPDATED, wxCommandEventHandler(TrackingWindow::OnSliderAxisSeedNbMoved) );
-    RTTrackingHelper::getInstance()->m_pTxtAxisSeedNbBox = new wxTextCtrl( this, wxID_ANY, wxT("10"), wxPoint(190,240), wxSize(55, -1), wxTE_CENTRE | wxTE_READONLY );
+    RTTrackingHelper::getInstance()->m_pTxtAxisSeedNbBox = new wxTextCtrl( this, wxID_ANY, wxT("10"), wxDefaultPosition, wxSize(slider3, -1), wxTE_CENTRE | wxTE_READONLY );
 
-    wxStaticText *m_pTextTotalSeedNb = new wxStaticText( this, wxID_ANY, wxT("Number of current seeds"), wxPoint(7,270), wxSize(150, -1), wxALIGN_LEFT );
-    RTTrackingHelper::getInstance()->m_pTxtTotalSeedNbBox = new wxTextCtrl( this, wxID_ANY, wxT("1000"), wxPoint(190,270), wxSize(55, -1), wxTE_CENTRE | wxTE_READONLY );
+    wxStaticText *m_pTextTotalSeedNb = new wxStaticText( this, wxID_ANY, wxT("Number of current seeds"), wxDefaultPosition, wxSize(150, -1), wxALIGN_LEFT );
+    RTTrackingHelper::getInstance()->m_pTxtTotalSeedNbBox = new wxTextCtrl( this, wxID_ANY, wxT("1000"), wxDefaultPosition, wxSize(slider3, -1), wxTE_CENTRE | wxTE_READONLY );
 
-	m_pBtnConvert = new wxButton( this, wxID_ANY,wxT("Convert Fibers"), wxPoint(50,300), wxSize(140, 30) );
+	m_pBtnConvert = new wxButton( this, wxID_ANY,wxT("Convert Fibers"), wxDefaultPosition, wxSize(140, 30) );
 	Connect( m_pBtnConvert->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(TrackingWindow::OnConvertToFibers) );
 
-    wxTextCtrl *deprecated = new wxTextCtrl( this, wxID_ANY, wxT("Not maintained anymore."), wxPoint(10,330), wxSize(230, -1), wxTE_CENTER | wxTE_READONLY );
+    wxTextCtrl *deprecated = new wxTextCtrl( this, wxID_ANY, wxT("Not maintained anymore."), wxDefaultPosition, wxSize(230, -1), wxTE_CENTER | wxTE_READONLY );
     deprecated->SetBackgroundColour( *wxLIGHT_GREY );
     wxFont deprec_font = deprecated->GetFont();
     deprec_font.SetPointSize( 10 );
@@ -125,12 +137,25 @@ TrackingWindow::TrackingWindow( wxWindow *pParent, MainFrame *pMf, wxWindowID id
 
     //Content of RTT panel
     /********************************/
+#if !_USE_ZOOM_GUI
+int zoomS = 115;
+int zoomH = 30;
+int slider1 = 70;
+int slider2 = 100;
+int slider3 = 55;
+#else
+int zoomS = 300;
+int zoomH = 60;
+int slider1 = 200;
+int slider2 = 250;
+int slider3 = 150;
+#endif
 
-    m_pBtnSelectFile = new wxButton( this, wxID_ANY,wxT("Peaks not selected"), wxDefaultPosition, wxSize(115, -1) );
+    m_pBtnSelectFile = new wxButton( this, wxID_ANY,wxT("Select Peaks"), wxDefaultPosition, wxSize(zoomS, -1) );
     Connect( m_pBtnSelectFile->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(TrackingWindow::OnSelectFileHARDI) );
     m_pBtnSelectFile->SetBackgroundColour(wxColour( 255, 147, 147 ));
 
-    m_pBtnStart = new wxToggleButton( this, wxID_ANY,wxT("Start tracking"), wxDefaultPosition, wxSize(115, -1) );
+    m_pBtnStart = new wxToggleButton( this, wxID_ANY,wxT("Start tracking"), wxDefaultPosition, wxSize(zoomS, -1));
     Connect( m_pBtnStart->GetId(), wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler(TrackingWindow::OnStartTracking) );
     m_pBtnStart->Enable(false);
 
@@ -139,7 +164,7 @@ TrackingWindow::TrackingWindow( wxWindow *pParent, MainFrame *pMf, wxWindowID id
     pBoxRow1->Add( m_pBtnStart,   0, wxALIGN_CENTER_HORIZONTAL | wxALL, 1);
 	m_pTrackingSizer->Add( pBoxRow1, 0, wxFIXED_MINSIZE | wxALL, 2 );
 
-    m_pBtnSelectMap = new wxButton( this, wxID_ANY,wxT("Mask (e.g. WM, FA, etc) not selected"), wxDefaultPosition, wxSize(230, -1) );
+    m_pBtnSelectMap = new wxButton( this, wxID_ANY,wxT("Mask (e.g. WM, FA, etc) not selected"), wxDefaultPosition, wxSize(zoomS*2, -1) );
     Connect( m_pBtnSelectMap->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(TrackingWindow::OnSelectMask) );
     m_pBtnSelectMap->SetBackgroundColour(wxColour( 255, 147, 147 ));
 
@@ -147,10 +172,10 @@ TrackingWindow::TrackingWindow( wxWindow *pParent, MainFrame *pMf, wxWindowID id
     pBoxRow4->Add( m_pBtnSelectMap, 0, wxALIGN_CENTER | wxALL, 1 );
 	m_pTrackingSizer->Add( pBoxRow4, 0, wxFIXED_MINSIZE | wxALL, 2 );
 
-    m_pBtnSelectGM = new wxButton( this, wxID_ANY,wxT("GM not selected"), wxDefaultPosition, wxSize(115, -1) );
+    m_pBtnSelectGM = new wxButton( this, wxID_ANY,wxT("GM mask?"), wxDefaultPosition, wxSize(zoomS, -1) );
     Connect( m_pBtnSelectGM->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(TrackingWindow::OnSelectGM) );
 
-    m_pToggleGMmap = new wxToggleButton( this, wxID_ANY,wxT("GM Map OFF"), wxDefaultPosition, wxSize(115, -1) );
+    m_pToggleGMmap = new wxToggleButton( this, wxID_ANY,wxT("GM Map OFF"), wxDefaultPosition, wxSize(zoomS, -1) );
     Connect( m_pToggleGMmap->GetId(), wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler(TrackingWindow::OnToggleGM) );
 	m_pToggleGMmap->Enable(false);
 
@@ -159,10 +184,10 @@ TrackingWindow::TrackingWindow( wxWindow *pParent, MainFrame *pMf, wxWindowID id
     pBoxRowGM->Add( m_pToggleGMmap,   0, wxALIGN_CENTER | wxALL, 1);
 	m_pTrackingSizer->Add( pBoxRowGM, 0, wxFIXED_MINSIZE | wxALL, 2 );
 
-	m_pBtnSelectSeed = new wxButton( this, wxID_ANY,wxT("Seed not selected"), wxDefaultPosition, wxSize(115, -1) );
+	m_pBtnSelectSeed = new wxButton( this, wxID_ANY,wxT("Seed map?"), wxDefaultPosition, wxSize(zoomS, -1) );
     Connect( m_pBtnSelectSeed->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(TrackingWindow::OnSelectSeedMap) );
 
-    m_pToggleSeedMap = new wxToggleButton( this, wxID_ANY,wxT("Seed Map OFF"), wxDefaultPosition, wxSize(115, -1) );
+    m_pToggleSeedMap = new wxToggleButton( this, wxID_ANY,wxT("Seed Map OFF"), wxDefaultPosition, wxSize(zoomS, -1) );
     Connect( m_pToggleSeedMap->GetId(), wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler(TrackingWindow::OnMapSeeding) );
 
 	m_pToggleSeedMap->Enable(false);
@@ -172,10 +197,10 @@ TrackingWindow::TrackingWindow( wxWindow *pParent, MainFrame *pMf, wxWindowID id
     pBoxRow3->Add( m_pToggleSeedMap,   0, wxALIGN_CENTER | wxALL, 1);
 	m_pTrackingSizer->Add( pBoxRow3, 0, wxFIXED_MINSIZE | wxALL, 2 );
 
-    m_pBtnSelectShell = new wxButton( this, wxID_ANY,wxT("Shell not selected"), wxDefaultPosition, wxSize(115, -1) );
+    m_pBtnSelectShell = new wxButton( this, wxID_ANY,wxT("Shell seeding?"), wxDefaultPosition, wxSize(zoomS, -1) );
     Connect( m_pBtnSelectShell->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(TrackingWindow::OnSelectShell) );
 
-    m_pToggleShell = new wxToggleButton( this, wxID_ANY,wxT("Shell seed OFF"), wxDefaultPosition, wxSize(115, -1) );
+    m_pToggleShell = new wxToggleButton( this, wxID_ANY,wxT("Shell seed OFF"), wxDefaultPosition, wxSize(zoomS, -1) );
     Connect( m_pToggleShell->GetId(), wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler(TrackingWindow::OnShellSeeding) );
 	m_pToggleShell->Enable(false);
 
@@ -184,10 +209,10 @@ TrackingWindow::TrackingWindow( wxWindow *pParent, MainFrame *pMf, wxWindowID id
     pBoxRow2->Add( m_pToggleShell,   0, wxALIGN_CENTER | wxALL, 1);
 	m_pTrackingSizer->Add( pBoxRow2, 0, wxFIXED_MINSIZE | wxALL, 2 );  
 
-	m_pBtnSelectNotMap = new wxButton( this, wxID_ANY,wxT("NOT not selected"), wxDefaultPosition, wxSize(115, -1) );
+	m_pBtnSelectNotMap = new wxButton( this, wxID_ANY,wxT("NOT map?"), wxDefaultPosition, wxSize(zoomS, -1) );
     Connect( m_pBtnSelectNotMap->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(TrackingWindow::OnSelectExclusion) );
 
-    m_pToggleNotMap = new wxToggleButton( this, wxID_ANY,wxT("NOT Map OFF"), wxDefaultPosition, wxSize(115, -1) );
+    m_pToggleNotMap = new wxToggleButton( this, wxID_ANY,wxT("NOT Map OFF"), wxDefaultPosition, wxSize(zoomS, -1) );
     Connect( m_pToggleNotMap->GetId(), wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler(TrackingWindow::OnToggleNotMap) );
 	m_pToggleGMmap->Enable(false);
 
@@ -196,10 +221,10 @@ TrackingWindow::TrackingWindow( wxWindow *pParent, MainFrame *pMf, wxWindowID id
     pBoxRowEx->Add( m_pToggleNotMap,   0, wxALIGN_CENTER | wxALL, 1);
 	m_pTrackingSizer->Add( pBoxRowEx, 0, wxFIXED_MINSIZE | wxALL, 2 );
 
-    m_pBtnSelectAndMap = new wxButton( this, wxID_ANY,wxT("AND not selected"), wxDefaultPosition, wxSize(115, -1) );
+    m_pBtnSelectAndMap = new wxButton( this, wxID_ANY,wxT("AND map?"), wxDefaultPosition, wxSize(zoomS, -1) );
     Connect( m_pBtnSelectAndMap->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(TrackingWindow::OnSelectInclusion) );
 
-    m_pToggleAndMap = new wxToggleButton( this, wxID_ANY,wxT("AND Map OFF"), wxDefaultPosition, wxSize(115, -1) );
+    m_pToggleAndMap = new wxToggleButton( this, wxID_ANY,wxT("AND Map OFF"), wxDefaultPosition, wxSize(zoomS, -1));
     Connect( m_pToggleAndMap->GetId(), wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler(TrackingWindow::OnToggleAndMap) );
 	m_pToggleAndMap->Enable(false);
 
@@ -209,7 +234,7 @@ TrackingWindow::TrackingWindow( wxWindow *pParent, MainFrame *pMf, wxWindowID id
 	m_pTrackingSizer->Add( pBoxRowInc, 0, wxFIXED_MINSIZE | wxALL, 2 );
 
 
-    m_pToggleRandomInit = new wxToggleButton( this, wxID_ANY,wxT("Randomly spaced seeds"), wxDefaultPosition, wxSize(230, -1) );
+    m_pToggleRandomInit = new wxToggleButton( this, wxID_ANY,wxT("Randomly spaced seeds"), wxDefaultPosition, wxSize(2*zoomS, -1) );
     Connect( m_pToggleRandomInit->GetId(), wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler(TrackingWindow::OnRandomSeeding) );
 
     wxBoxSizer *pBoxRowRand = new wxBoxSizer( wxHORIZONTAL );
@@ -230,11 +255,11 @@ TrackingWindow::TrackingWindow( wxWindow *pParent, MainFrame *pMf, wxWindowID id
     pBoxFlips->Add( m_pToggleTrackZ, 1, wxEXPAND | wxALL, 1 );
     m_pTrackingSizer->Add( pBoxFlips,0, wxFIXED_MINSIZE | wxEXPAND, 0 );
 
-    m_pTextFA = new wxStaticText( this, wxID_ANY, wxT("Min Mask"), wxDefaultPosition, wxSize(70, -1), wxALIGN_CENTER );
-    m_pSliderFA = new MySlider( this, wxID_ANY, 0, 1, 100, wxDefaultPosition, wxSize(100, -1), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
+    m_pTextFA = new wxStaticText( this, wxID_ANY, wxT("Min Mask"), wxDefaultPosition, wxSize(slider1, -1), wxALIGN_CENTER );
+    m_pSliderFA = new MySlider( this, wxID_ANY, 0, 1, 100, wxDefaultPosition, wxSize(slider2, -1), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
     m_pSliderFA->SetValue( 20 );
     Connect( m_pSliderFA->GetId(), wxEVT_COMMAND_SLIDER_UPDATED, wxCommandEventHandler(TrackingWindow::OnSliderFAMoved) );
-    m_pTxtFABox = new wxTextCtrl( this, wxID_ANY, wxT("0.20"), wxDefaultPosition, wxSize(55, -1), wxTE_CENTRE | wxTE_READONLY );
+    m_pTxtFABox = new wxTextCtrl( this, wxID_ANY, wxT("0.20"), wxDefaultPosition, wxSize(slider3, -1), wxTE_CENTRE | wxTE_READONLY );
     m_pTextFA->Enable(false);
     m_pSliderFA->Enable(false);
     m_pTxtFABox->Enable(false);
@@ -245,11 +270,11 @@ TrackingWindow::TrackingWindow( wxWindow *pParent, MainFrame *pMf, wxWindowID id
 	pBoxRow5->Add( m_pTxtFABox,   0, wxALIGN_LEFT | wxALL, 1);
 	m_pTrackingSizer->Add( pBoxRow5, 0, wxFIXED_MINSIZE | wxEXPAND, 0 );
 
-    wxStaticText *m_pTextAngle = new wxStaticText( this, wxID_ANY, wxT("Max angle"), wxDefaultPosition, wxSize(70, -1), wxALIGN_CENTER );
-    m_pSliderAngle = new MySlider( this, wxID_ANY, 0, 1, 90, wxDefaultPosition, wxSize(100, -1), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
+    wxStaticText *m_pTextAngle = new wxStaticText( this, wxID_ANY, wxT("Max angle"), wxDefaultPosition, wxSize(slider1, -1), wxALIGN_CENTER );
+    m_pSliderAngle = new MySlider( this, wxID_ANY, 0, 1, 90, wxDefaultPosition, wxSize(slider2, -1), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
     m_pSliderAngle->SetValue( 35 );
     Connect( m_pSliderAngle->GetId(), wxEVT_COMMAND_SLIDER_UPDATED, wxCommandEventHandler(TrackingWindow::OnSliderAngleMoved) );
-    m_pTxtAngleBox = new wxTextCtrl( this, wxID_ANY, wxT("35.0 "), wxDefaultPosition, wxSize(55, -1), wxTE_CENTRE | wxTE_READONLY );
+    m_pTxtAngleBox = new wxTextCtrl( this, wxID_ANY, wxT("35.0 "), wxDefaultPosition, wxSize(slider3, -1), wxTE_CENTRE | wxTE_READONLY );
 
 		wxBoxSizer *pBoxRow6 = new wxBoxSizer( wxHORIZONTAL );
     pBoxRow6->Add( m_pTextAngle, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxALL, 1 );
@@ -257,11 +282,11 @@ TrackingWindow::TrackingWindow( wxWindow *pParent, MainFrame *pMf, wxWindowID id
 	pBoxRow6->Add( m_pTxtAngleBox,   0, wxALIGN_LEFT | wxALL, 1);
 	m_pTrackingSizer->Add( pBoxRow6, 0, wxFIXED_MINSIZE | wxEXPAND, 0 );
 
-    wxStaticText *m_pTextStep = new wxStaticText( this, wxID_ANY, wxT("Step"), wxDefaultPosition, wxSize(70, -1), wxALIGN_CENTER );
-    m_pSliderStep = new MySlider( this, wxID_ANY, 0, 1, 20, wxDefaultPosition, wxSize(100, -1), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
+    wxStaticText *m_pTextStep = new wxStaticText( this, wxID_ANY, wxT("Step"), wxDefaultPosition, wxSize(slider1, -1), wxALIGN_CENTER );
+    m_pSliderStep = new MySlider( this, wxID_ANY, 0, 1, 20, wxDefaultPosition, wxSize(slider2, -1), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
     m_pSliderStep->SetValue( 10 );
     Connect( m_pSliderStep->GetId(), wxEVT_COMMAND_SLIDER_UPDATED, wxCommandEventHandler(TrackingWindow::OnSliderStepMoved) );
-    m_pTxtStepBox = new wxTextCtrl( this, wxID_ANY, wxT("1.0 mm"), wxDefaultPosition, wxSize(55, -1), wxTE_CENTRE | wxTE_READONLY );
+    m_pTxtStepBox = new wxTextCtrl( this, wxID_ANY, wxT("1.0 mm"), wxDefaultPosition, wxSize(slider3, -1), wxTE_CENTRE | wxTE_READONLY );
 
 	wxBoxSizer *pBoxRow7 = new wxBoxSizer( wxHORIZONTAL );
     pBoxRow7->Add( m_pTextStep, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxALL, 1 );
@@ -269,11 +294,11 @@ TrackingWindow::TrackingWindow( wxWindow *pParent, MainFrame *pMf, wxWindowID id
 	pBoxRow7->Add( m_pTxtStepBox,   0, wxALIGN_LEFT | wxALL, 1);
 	m_pTrackingSizer->Add( pBoxRow7, 0, wxFIXED_MINSIZE | wxEXPAND, 0 );
 
-    wxStaticText *m_pTextPuncture = new wxStaticText( this, wxID_ANY, wxT("g (weight)"), wxDefaultPosition, wxSize(70, -1), wxALIGN_CENTER );
-    m_pSliderPuncture = new MySlider( this, wxID_ANY, 0, 40, 100, wxDefaultPosition, wxSize(100, -1), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
+    wxStaticText *m_pTextPuncture = new wxStaticText( this, wxID_ANY, wxT("g (weight)"), wxDefaultPosition, wxSize(slider1, -1), wxALIGN_CENTER );
+    m_pSliderPuncture = new MySlider( this, wxID_ANY, 0, 40, 100, wxDefaultPosition, wxSize(slider2, -1), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
     m_pSliderPuncture->SetValue( 60 );
     Connect( m_pSliderPuncture->GetId(), wxEVT_COMMAND_SLIDER_UPDATED, wxCommandEventHandler(TrackingWindow::OnSliderPunctureMoved) );
-    m_pTxtPunctureBox = new wxTextCtrl( this, wxID_ANY, wxT("0.60"), wxDefaultPosition, wxSize(55, -1), wxTE_CENTRE | wxTE_READONLY );
+    m_pTxtPunctureBox = new wxTextCtrl( this, wxID_ANY, wxT("0.60"), wxDefaultPosition, wxSize(slider3, -1), wxTE_CENTRE | wxTE_READONLY );
 
 	wxBoxSizer *pBoxRow8 = new wxBoxSizer( wxHORIZONTAL );
     pBoxRow8->Add( m_pTextPuncture, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxALL, 1 );
@@ -281,11 +306,11 @@ TrackingWindow::TrackingWindow( wxWindow *pParent, MainFrame *pMf, wxWindowID id
 	pBoxRow8->Add( m_pTxtPunctureBox,   0, wxALIGN_LEFT | wxALL, 1);
 	m_pTrackingSizer->Add( pBoxRow8, 0, wxFIXED_MINSIZE | wxEXPAND, 0 );
 
-    wxStaticText *m_pTextGMStep = new wxStaticText( this, wxID_ANY, wxT("GM steps"), wxDefaultPosition, wxSize(70, -1), wxALIGN_CENTER );
-    m_pSliderGMStep = new MySlider( this, wxID_ANY, 0, 0, 300, wxDefaultPosition, wxSize(100, -1), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
+    wxStaticText *m_pTextGMStep = new wxStaticText( this, wxID_ANY, wxT("GM steps"), wxDefaultPosition, wxSize(slider1, -1), wxALIGN_CENTER );
+    m_pSliderGMStep = new MySlider( this, wxID_ANY, 0, 0, 300, wxDefaultPosition, wxSize(slider2, -1), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
     m_pSliderGMStep->SetValue( 5 );
     Connect( m_pSliderGMStep->GetId(), wxEVT_COMMAND_SLIDER_UPDATED, wxCommandEventHandler(TrackingWindow::OnSliderGMStepMoved) );
-    m_pTxtGMStepBox = new wxTextCtrl( this, wxID_ANY, wxT("5"), wxDefaultPosition, wxSize(55, -1), wxTE_CENTRE | wxTE_READONLY );
+    m_pTxtGMStepBox = new wxTextCtrl( this, wxID_ANY, wxT("5"), wxDefaultPosition, wxSize(slider3, -1), wxTE_CENTRE | wxTE_READONLY );
 
 	wxBoxSizer *pBoxRowGMstep = new wxBoxSizer( wxHORIZONTAL );
     pBoxRowGMstep->Add( m_pTextGMStep, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxALL, 1 );
@@ -293,11 +318,11 @@ TrackingWindow::TrackingWindow( wxWindow *pParent, MainFrame *pMf, wxWindowID id
 	pBoxRowGMstep->Add( m_pTxtGMStepBox,   0, wxALIGN_LEFT | wxALL, 1);
 	m_pTrackingSizer->Add( pBoxRowGMstep, 0, wxFIXED_MINSIZE | wxEXPAND, 0 );
 
-    wxStaticText *m_pTextMinLength = new wxStaticText( this, wxID_ANY, wxT("Min length"), wxDefaultPosition, wxSize(70, -1), wxALIGN_CENTER );
-    m_pSliderMinLength = new MySlider( this, wxID_ANY, 0, 0, 400, wxPoint(60,240), wxSize(100, -1), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
+    wxStaticText *m_pTextMinLength = new wxStaticText( this, wxID_ANY, wxT("Min length"), wxDefaultPosition, wxSize(slider1, -1), wxALIGN_CENTER );
+    m_pSliderMinLength = new MySlider( this, wxID_ANY, 0, 0, 400, wxPoint(60,240), wxSize(slider2, -1), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
     m_pSliderMinLength->SetValue( 60 );
     Connect( m_pSliderMinLength->GetId(), wxEVT_COMMAND_SLIDER_UPDATED, wxCommandEventHandler(TrackingWindow::OnSliderMinLengthMoved) );
-    m_pTxtMinLengthBox = new wxTextCtrl( this, wxID_ANY, wxT("60 mm"), wxDefaultPosition, wxSize(55, -1), wxTE_CENTRE | wxTE_READONLY );
+    m_pTxtMinLengthBox = new wxTextCtrl( this, wxID_ANY, wxT("60 mm"), wxDefaultPosition, wxSize(slider3, -1), wxTE_CENTRE | wxTE_READONLY );
 
 	wxBoxSizer *pBoxRow9 = new wxBoxSizer( wxHORIZONTAL );
     pBoxRow9->Add( m_pTextMinLength, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxALL, 1 );
@@ -305,11 +330,11 @@ TrackingWindow::TrackingWindow( wxWindow *pParent, MainFrame *pMf, wxWindowID id
 	pBoxRow9->Add( m_pTxtMinLengthBox,   0, wxALIGN_LEFT | wxALL, 1);
 	m_pTrackingSizer->Add( pBoxRow9, 0, wxFIXED_MINSIZE | wxEXPAND, 0 );
 
-    wxStaticText *m_pTextMaxLength = new wxStaticText( this, wxID_ANY, wxT("Max length"), wxDefaultPosition, wxSize(70, -1), wxALIGN_CENTER );
-    m_pSliderMaxLength = new MySlider( this, wxID_ANY, 0, 0, 300, wxDefaultPosition, wxSize(100, -1), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
+    wxStaticText *m_pTextMaxLength = new wxStaticText( this, wxID_ANY, wxT("Max length"), wxDefaultPosition, wxSize(slider1, -1), wxALIGN_CENTER );
+    m_pSliderMaxLength = new MySlider( this, wxID_ANY, 0, 0, 300, wxDefaultPosition, wxSize(slider2, -1), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
     m_pSliderMaxLength->SetValue( 200 );
     Connect( m_pSliderMaxLength->GetId(), wxEVT_COMMAND_SLIDER_UPDATED, wxCommandEventHandler(TrackingWindow::OnSliderMaxLengthMoved) );
-    m_pTxtMaxLengthBox = new wxTextCtrl( this, wxID_ANY, wxT("200 mm"), wxDefaultPosition, wxSize(55, -1), wxTE_CENTRE | wxTE_READONLY );
+    m_pTxtMaxLengthBox = new wxTextCtrl( this, wxID_ANY, wxT("200 mm"), wxDefaultPosition, wxSize(slider3, -1), wxTE_CENTRE | wxTE_READONLY );
 
 	wxBoxSizer *pBoxRow10 = new wxBoxSizer( wxHORIZONTAL );
     pBoxRow10->Add( m_pTextMaxLength, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxALL, 1 );
@@ -317,11 +342,11 @@ TrackingWindow::TrackingWindow( wxWindow *pParent, MainFrame *pMf, wxWindowID id
 	pBoxRow10->Add( m_pTxtMaxLengthBox,   0, wxALIGN_LEFT | wxALL, 1);
 	m_pTrackingSizer->Add( pBoxRow10, 0, wxFIXED_MINSIZE | wxEXPAND, 0 );
 
-    wxStaticText *m_pTextAxisSeedNb = new wxStaticText( this, wxID_ANY, wxT("Seeds (^3)"), wxDefaultPosition, wxSize(70, -1), wxALIGN_CENTER );
-    RTTrackingHelper::getInstance()->m_pSliderAxisSeedNb = new MySlider( this, wxID_ANY, 0, 1, 20, wxDefaultPosition, wxSize(100, -1), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
+    wxStaticText *m_pTextAxisSeedNb = new wxStaticText( this, wxID_ANY, wxT("Seeds (^3)"), wxDefaultPosition, wxSize(slider1, -1), wxALIGN_CENTER );
+    RTTrackingHelper::getInstance()->m_pSliderAxisSeedNb = new MySlider( this, wxID_ANY, 0, 1, 20, wxDefaultPosition, wxSize(slider2, -1), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
     RTTrackingHelper::getInstance()->m_pSliderAxisSeedNb->SetValue( 10 );
     Connect( RTTrackingHelper::getInstance()->m_pSliderAxisSeedNb->GetId(), wxEVT_COMMAND_SLIDER_UPDATED, wxCommandEventHandler(TrackingWindow::OnSliderAxisSeedNbMoved) );
-    RTTrackingHelper::getInstance()->m_pTxtAxisSeedNbBox = new wxTextCtrl( this, wxID_ANY, wxT("10"), wxDefaultPosition, wxSize(55, -1), wxTE_CENTRE | wxTE_READONLY );
+    RTTrackingHelper::getInstance()->m_pTxtAxisSeedNbBox = new wxTextCtrl( this, wxID_ANY, wxT("10"), wxDefaultPosition, wxSize(slider3, -1), wxTE_CENTRE | wxTE_READONLY );
 
 	wxBoxSizer *pBoxRow11 = new wxBoxSizer( wxHORIZONTAL );
     pBoxRow11->Add( m_pTextAxisSeedNb, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxALL, 1 );
@@ -329,19 +354,19 @@ TrackingWindow::TrackingWindow( wxWindow *pParent, MainFrame *pMf, wxWindowID id
 	pBoxRow11->Add( RTTrackingHelper::getInstance()->m_pTxtAxisSeedNbBox,   0, wxALIGN_LEFT | wxALL, 1);
 	m_pTrackingSizer->Add( pBoxRow11, 0, wxFIXED_MINSIZE | wxEXPAND, 0 );
 
-    wxStaticText *m_pTextTotalSeedNb = new wxStaticText( this, wxID_ANY, wxT("Number of current seeds"), wxDefaultPosition, wxSize(170, -1), wxALIGN_LEFT );
-    RTTrackingHelper::getInstance()->m_pTxtTotalSeedNbBox = new wxTextCtrl( this, wxID_ANY, wxT("1000"), wxDefaultPosition, wxSize(60, -1), wxTE_CENTRE | wxTE_READONLY );
+    wxStaticText *m_pTextTotalSeedNb = new wxStaticText( this, wxID_ANY, wxT("Number of current seeds"), wxDefaultPosition, wxSize(slider1+slider2, -1), wxALIGN_LEFT );
+    RTTrackingHelper::getInstance()->m_pTxtTotalSeedNbBox = new wxTextCtrl( this, wxID_ANY, wxT("1000"), wxDefaultPosition, wxSize(slider3, -1), wxTE_CENTRE | wxTE_READONLY );
 
 	wxBoxSizer *pBoxRow12 = new wxBoxSizer( wxHORIZONTAL );
     pBoxRow12->Add( m_pTextTotalSeedNb, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxALL, 1 );
 	pBoxRow12->Add( RTTrackingHelper::getInstance()->m_pTxtTotalSeedNbBox,   0, wxALIGN_LEFT | wxALL, 1);
 	m_pTrackingSizer->Add( pBoxRow12, 0, wxFIXED_MINSIZE | wxEXPAND, 0 );
 
-	wxStaticText *m_pTextOpacity = new wxStaticText( this, wxID_ANY, wxT("Opacity"), wxDefaultPosition, wxSize(70, -1), wxALIGN_CENTER );
-    m_pSliderOpacity = new MySlider( this, wxID_ANY, 0, 0, 100, wxDefaultPosition, wxSize(100, -1), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
+	wxStaticText *m_pTextOpacity = new wxStaticText( this, wxID_ANY, wxT("Opacity"), wxDefaultPosition, wxSize(slider1, -1), wxALIGN_CENTER );
+    m_pSliderOpacity = new MySlider( this, wxID_ANY, 0, 0, 100, wxDefaultPosition, wxSize(slider2, -1), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
     m_pSliderOpacity->SetValue( 100 );
     Connect( m_pSliderOpacity->GetId(), wxEVT_COMMAND_SLIDER_UPDATED, wxCommandEventHandler(TrackingWindow::OnSliderOpacityMoved) );
-    m_pTxtOpacityBox = new wxTextCtrl( this, wxID_ANY, wxT("1.0"), wxDefaultPosition, wxSize(55, -1), wxTE_CENTRE | wxTE_READONLY );
+    m_pTxtOpacityBox = new wxTextCtrl( this, wxID_ANY, wxT("1.0"), wxDefaultPosition, wxSize(slider3, -1), wxTE_CENTRE | wxTE_READONLY );
 
 	wxBoxSizer *pBoxRow13 = new wxBoxSizer( wxHORIZONTAL );
     pBoxRow13->Add( m_pTextOpacity, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxALL, 1 );
@@ -349,15 +374,15 @@ TrackingWindow::TrackingWindow( wxWindow *pParent, MainFrame *pMf, wxWindowID id
 	pBoxRow13->Add( m_pTxtOpacityBox,   0, wxALIGN_LEFT | wxALL, 1);
 	m_pTrackingSizer->Add( pBoxRow13, 0, wxFIXED_MINSIZE | wxEXPAND, 0 );
 
-    m_pBtnToggleSrcAlpha= new wxToggleButton( this, wxID_ANY,wxT("Regular Alpha"), wxDefaultPosition, wxSize(230, -1) );
+    m_pBtnToggleSrcAlpha= new wxToggleButton( this, wxID_ANY,wxT("Regular Alpha"), wxDefaultPosition, wxSize(zoomS*2, -1) );
 	Connect( m_pBtnToggleSrcAlpha->GetId(), wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler(TrackingWindow::OnSrcAlpha) );
     m_pTrackingSizer->Add( m_pBtnToggleSrcAlpha, 0, wxALL, 2 );
 
-	RTTrackingHelper::getInstance()->m_pBtnToggleEnableRSN = new wxToggleButton( this, wxID_ANY,wxT("Enable rs-connectivity"), wxDefaultPosition, wxSize(230, 30) );
+	RTTrackingHelper::getInstance()->m_pBtnToggleEnableRSN = new wxToggleButton( this, wxID_ANY,wxT("Enable rs-connectivity"), wxDefaultPosition, wxSize(zoomS*2, zoomH) );
 	Connect( RTTrackingHelper::getInstance()->m_pBtnToggleEnableRSN->GetId(), wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler(TrackingWindow::OnEnableRSN) );
     RTTrackingHelper::getInstance()->m_pBtnToggleEnableRSN->Enable(false);
 
-    m_pBtnConvert = new wxButton( this, wxID_ANY,wxT("Export fibers to scene object"), wxDefaultPosition, wxSize(230, 30) );
+    m_pBtnConvert = new wxButton( this, wxID_ANY,wxT("Export fibers to scene object"), wxDefaultPosition, wxSize(zoomS*2, zoomH) );
 	Connect( m_pBtnConvert->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(TrackingWindow::OnConvertToFibers) );
 
 	m_pTrackingSizer->Add( RTTrackingHelper::getInstance()->m_pBtnToggleEnableRSN, 0, wxALL, 2 );
@@ -397,7 +422,7 @@ TrackingWindow::TrackingWindow( wxWindow *pParent, MainFrame *pMf, wxWindowID id
 
     /*-----------------------MAGNET SECTION-----------------------------------*/
 
-    wxTextCtrl *magnetZone = new wxTextCtrl( this, wxID_ANY, wxT("Magnet tracking"), wxDefaultPosition, wxSize(115, -1), wxTE_CENTER | wxTE_READONLY );
+    wxTextCtrl *magnetZone = new wxTextCtrl( this, wxID_ANY, wxT("Magnet tracking"), wxDefaultPosition, wxSize(zoomS*2, -1), wxTE_CENTER | wxTE_READONLY );
     magnetZone->SetBackgroundColour( *wxLIGHT_GREY );
     wxFont magnet_font = magnetZone->GetFont();
     magnet_font.SetPointSize( 10 );
@@ -408,8 +433,18 @@ TrackingWindow::TrackingWindow( wxWindow *pParent, MainFrame *pMf, wxWindowID id
     pBoxMagnetZone->Add( new wxStaticLine( this, wxID_ANY, wxDefaultPosition, wxSize(230,-1),wxHORIZONTAL,wxT("Separator")), 0, wxALIGN_RIGHT | wxALL, 1 );
 	pBoxMagnetZone->Add( magnetZone,   0, wxALIGN_CENTER | wxALL, 1);
 	m_pTrackingSizer->Add( pBoxMagnetZone, 0, wxFIXED_MINSIZE | wxALL, 2 );
-
-    wxImage bmpMagnetR( MyApp::iconsPath + wxT( "magnet_r.png" ), wxBITMAP_TYPE_PNG );
+#if _USE_ZOOM_GUI
+    wxImage bmpMagnetR( MyApp::iconsPath + wxT( "magnet_r64.png" ), wxBITMAP_TYPE_PNG );
+    wxBitmapButton *m_pBtnPlaceMagnetR = new wxBitmapButton( this, wxID_ANY, bmpMagnetR, wxDefaultPosition, wxSize( 30, -1 ) );
+    Connect( m_pBtnPlaceMagnetR->GetId(),         wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( TrackingWindow::OnPlaceMagnetR ) );
+    wxImage bmpMagnetG( MyApp::iconsPath + wxT( "magnet_g64.png" ), wxBITMAP_TYPE_PNG );
+    wxBitmapButton *m_pBtnPlaceMagnetG = new wxBitmapButton( this, wxID_ANY, bmpMagnetG, wxDefaultPosition, wxSize( 30, -1 ) );
+    Connect( m_pBtnPlaceMagnetG->GetId(),         wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( TrackingWindow::OnPlaceMagnetG ) );
+    wxImage bmpMagnetB( MyApp::iconsPath + wxT( "magnet_b64.png" ), wxBITMAP_TYPE_PNG );
+    wxBitmapButton *m_pBtnPlaceMagnetB = new wxBitmapButton( this, wxID_ANY, bmpMagnetB, wxDefaultPosition, wxSize( 30, -1 ) );
+    Connect( m_pBtnPlaceMagnetB->GetId(),         wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( TrackingWindow::OnPlaceMagnetB ) );
+#else
+	wxImage bmpMagnetR( MyApp::iconsPath + wxT( "magnet_r.png" ), wxBITMAP_TYPE_PNG );
     wxBitmapButton *m_pBtnPlaceMagnetR = new wxBitmapButton( this, wxID_ANY, bmpMagnetR, wxDefaultPosition, wxSize( 30, -1 ) );
     Connect( m_pBtnPlaceMagnetR->GetId(),         wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( TrackingWindow::OnPlaceMagnetR ) );
     wxImage bmpMagnetG( MyApp::iconsPath + wxT( "magnet_g.png" ), wxBITMAP_TYPE_PNG );
@@ -418,8 +453,9 @@ TrackingWindow::TrackingWindow( wxWindow *pParent, MainFrame *pMf, wxWindowID id
     wxImage bmpMagnetB( MyApp::iconsPath + wxT( "magnet_b.png" ), wxBITMAP_TYPE_PNG );
     wxBitmapButton *m_pBtnPlaceMagnetB = new wxBitmapButton( this, wxID_ANY, bmpMagnetB, wxDefaultPosition, wxSize( 30, -1 ) );
     Connect( m_pBtnPlaceMagnetB->GetId(),         wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( TrackingWindow::OnPlaceMagnetB ) );
+#endif
 
-    m_pToggleMagnetMode = new wxToggleButton( this, wxID_ANY,wxT("Start magnet"), wxDefaultPosition, wxSize(115, -1) );
+    m_pToggleMagnetMode = new wxToggleButton( this, wxID_ANY,wxT("Start magnet"), wxDefaultPosition, wxSize(zoomS, -1) );
     Connect( m_pToggleMagnetMode->GetId(), wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler(TrackingWindow::OnToggleMagnetMode) );
 
     wxBoxSizer *pBoxMagnet1 = new wxBoxSizer( wxHORIZONTAL );

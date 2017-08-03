@@ -2093,10 +2093,15 @@ void SelectionObject::createPropertiesSizer( PropertiesWindow *pParent )
         m_meanFiberColorationMode = NORMAL_COLOR;
 
         //////////////////////////////////////////////////////////////////////////
-
-        wxImage bmpDelete(          MyApp::iconsPath + wxT( "delete.png" ),      wxBITMAP_TYPE_PNG );
+#if _USE_ZOOM_GUI
+        wxImage bmpDelete(          MyApp::iconsPath + wxT( "delete64.png" ),      wxBITMAP_TYPE_PNG );
+        wxImage bmpMeanFiberColor(  MyApp::iconsPath + wxT( "colorSelect64.png" ), wxBITMAP_TYPE_PNG );
+        wxImage bmpConvexHullColor( MyApp::iconsPath + wxT( "colorSelect64.png" ), wxBITMAP_TYPE_PNG );
+#else
+		wxImage bmpDelete(          MyApp::iconsPath + wxT( "delete.png" ),      wxBITMAP_TYPE_PNG );
         wxImage bmpMeanFiberColor(  MyApp::iconsPath + wxT( "colorSelect.png" ), wxBITMAP_TYPE_PNG );
         wxImage bmpConvexHullColor( MyApp::iconsPath + wxT( "colorSelect.png" ), wxBITMAP_TYPE_PNG );
+#endif
 
         wxButton *pBtnChangeName          = new wxButton( pParent, wxID_ANY, wxT( "Rename" ), DEF_POS, wxSize( 20, -1 ) );
         wxButton *pBtnSelectColorFibers   = new wxButton( pParent, wxID_ANY, wxT( "Select Fibers Color" ) );
@@ -2348,7 +2353,7 @@ void SelectionObject::createPropertiesSizer( PropertiesWindow *pParent )
 
         //////////////////////////////////////////////////////////////////////////
 
-        wxImage bmpDelete(          MyApp::iconsPath + wxT( "delete.png" ),      wxBITMAP_TYPE_PNG );
+        wxImage bmpDelete(          MyApp::iconsPath + wxT( "delete64.png" ),      wxBITMAP_TYPE_PNG );
         wxButton *pBtnChangeName          = new wxButton( pParent, wxID_ANY, wxT( "Rename" ), DEF_POS, wxSize( 20, -1 ) );
         wxBitmapButton *pBtnDelete      = new wxBitmapButton( pParent, wxID_ANY, bmpDelete, DEF_POS, wxSize( 20, -1 ) );
         m_pToggleVisibility           = new wxToggleButton( pParent, wxID_ANY, wxT( "Visible" ), DEF_POS, wxSize( 20, -1 ) );

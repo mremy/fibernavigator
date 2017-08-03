@@ -1102,10 +1102,14 @@ void Anatomy::createPropertiesSizer( PropertiesWindow *pParent )
     wxBoxSizer *pBoxMain = new wxBoxSizer( wxVERTICAL );
 
     //////////////////////////////////////////////////////////////////////////
-
+#if !_USE_ZOOM_GUI
+	int s = 120;
+#else
+	int s = 400;
+#endif
     // Init widgets
-    m_pLowerEqSlider =       new wxSlider( pParent, wxID_ANY, m_lowerEqThreshold * .2f, 0, 51, wxDefaultPosition, wxSize( 120, -1 ), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
-    m_pUpperEqSlider =       new wxSlider( pParent, wxID_ANY, m_upperEqThreshold * .2f, 0, 51, wxDefaultPosition, wxSize( 120, -1 ), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
+    m_pLowerEqSlider =       new wxSlider( pParent, wxID_ANY, m_lowerEqThreshold * .2f, 0, 51, wxDefaultPosition, wxSize( s, -1 ), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
+    m_pUpperEqSlider =       new wxSlider( pParent, wxID_ANY, m_upperEqThreshold * .2f, 0, 51, wxDefaultPosition, wxSize( s, -1 ), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
     m_pEqualize      = new wxToggleButton( pParent, wxID_ANY, wxT( "Equalize" ),               wxDefaultPosition, wxSize( 140, -1 ) );
 
 #if !_USE_LIGHT_GUI

@@ -96,31 +96,58 @@ namespace
 // Properties to define GUI elements
 #define NOT_DEFINED         -1
 
+#if !_USE_ZOOM_GUI
 #define CANVAS_AXI_WIDTH    175
 #define CANVAS_AXI_HEIGHT   175
 #define CANVAS_COR_WIDTH    175
 #define CANVAS_COR_HEIGHT   175
 #define CANVAS_SAG_WIDTH    175
 #define CANVAS_SAG_HEIGHT   175
+#else
+#define CANVAS_AXI_WIDTH    400
+#define CANVAS_AXI_HEIGHT   400
+#define CANVAS_COR_WIDTH    400
+#define CANVAS_COR_HEIGHT   400
+#define CANVAS_SAG_WIDTH    400
+#define CANVAS_SAG_HEIGHT   400
+#endif
 
+#if !_USE_ZOOM_GUI
 #define LIST_WIDTH          268
 #define LIST_HEIGHT         200
 #define LIST_COL0_WIDTH     34
 #define LIST_COL1_WIDTH     144
 #define LIST_COL2_WIDTH     50
 #define LIST_COL3_WIDTH     20
+#else
+#define LIST_WIDTH          528
+#define LIST_HEIGHT         600
+#define LIST_COL0_WIDTH     64
+#define LIST_COL1_WIDTH     300
+#define LIST_COL2_WIDTH     100
+#define LIST_COL3_WIDTH     64
+#endif
 
+#if !_USE_ZOOM_GUI
 #define PROP_WND_WIDTH      260
 #define PROP_WND_HEIGHT     350
+#else
+#define PROP_WND_WIDTH      600
+#define PROP_WND_HEIGHT     500
+#endif
 
 #define SLIDER_AXI_WIDTH    CANVAS_AXI_WIDTH
-#define SLIDER_AXI_HEIGHT   NOT_DEFINED
+#define SLIDER_AXI_HEIGHT   64
 #define SLIDER_COR_WIDTH    CANVAS_COR_WIDTH
-#define SLIDER_COR_HEIGHT   NOT_DEFINED
+#define SLIDER_COR_HEIGHT   64
 #define SLIDER_SAG_WIDTH    CANVAS_SAG_WIDTH
-#define SLIDER_SAG_HEIGHT   NOT_DEFINED
+#define SLIDER_SAG_HEIGHT   64
 
+#if !_USE_ZOOM_GUI
 #define TREE_WIDTH          268
+#else
+#define TREE_WIDTH          528
+#endif
 #define TREE_HEIGHT         NOT_DEFINED
 
     void initMyTreeCtrl( MyTreeCtrl * &myTreeCtrl )
@@ -128,10 +155,17 @@ namespace
         myTreeCtrl->SetMaxSize( wxSize( TREE_WIDTH, TREE_HEIGHT ) );
         myTreeCtrl->SetMinSize( wxSize( TREE_WIDTH, 100 ) );
 
+#if !_USE_ZOOM_GUI
         wxImageList* tImageList = new wxImageList( 16, 16 );
 
         tImageList->Add( wxImage( MyApp::respath + _T( "icons/delete.png" ), wxBITMAP_TYPE_PNG ) );
         tImageList->Add( wxImage( MyApp::respath + _T( "icons/eyes.png" ),   wxBITMAP_TYPE_PNG ) );
+#else
+		wxImageList* tImageList = new wxImageList( 32, 32 );
+
+        tImageList->Add( wxImage( MyApp::respath + _T( "icons/delete64.png" ), wxBITMAP_TYPE_PNG ) );
+        tImageList->Add( wxImage( MyApp::respath + _T( "icons/eyes64.png" ),   wxBITMAP_TYPE_PNG ) );
+#endif
 
         myTreeCtrl->AssignImageList( tImageList );
     }
@@ -140,13 +174,20 @@ namespace
     {
         lstCtrl->SetMaxSize( wxSize( LIST_WIDTH, LIST_HEIGHT ) );
         lstCtrl->SetMinSize( wxSize( LIST_WIDTH, LIST_HEIGHT ) );
-
+#if !_USE_ZOOM_GUI
         wxImageList* pImageList = new wxImageList( 16, 16 );
 
         pImageList->Add( ( wxImage( MyApp::respath + _T( "icons/eyes.png"   ),      wxBITMAP_TYPE_PNG ) ) );
         pImageList->Add( ( wxImage( MyApp::respath + _T( "icons/eyes_hidden.png" ), wxBITMAP_TYPE_PNG ) ) );
         pImageList->Add( ( wxImage( MyApp::respath + _T( "icons/delete.png" ),      wxBITMAP_TYPE_PNG ) ) );
 
+#else
+		wxImageList* pImageList = new wxImageList( 32, 32 );
+
+        pImageList->Add( ( wxImage( MyApp::respath + _T( "icons/eyes64.png"   ),      wxBITMAP_TYPE_PNG ) ) );
+        pImageList->Add( ( wxImage( MyApp::respath + _T( "icons/eyes_hidden64.png" ), wxBITMAP_TYPE_PNG ) ) );
+        pImageList->Add( ( wxImage( MyApp::respath + _T( "icons/delete64.png" ),      wxBITMAP_TYPE_PNG ) ) );
+#endif
         lstCtrl->AssignImageList(pImageList, wxIMAGE_LIST_SMALL);
 
         wxListItem displayCol, nameCol, thresholdCol, deleteCol;
@@ -271,9 +312,9 @@ void MainFrame::initLayout()
     m_pGL2 = new MainCanvas( sagittal, m_bottomNavWindow, ID_GL_NAV_Z, wxDefaultPosition, wxSize( CANVAS_SAG_WIDTH, CANVAS_SAG_HEIGHT ), 0, _T( "NavGLCanvasZ" ), gl_attrib, m_pMainGL->GetContext() );
 #endif
 
-    m_pGL0->SetMaxSize( wxSize( CANVAS_AXI_WIDTH, CANVAS_AXI_HEIGHT ) );
-    m_pGL1->SetMaxSize( wxSize( CANVAS_COR_WIDTH, CANVAS_COR_HEIGHT ) );
-    m_pGL2->SetMaxSize( wxSize( CANVAS_SAG_WIDTH, CANVAS_SAG_HEIGHT ) );
+    //m_pGL0->SetMaxSize( wxSize( CANVAS_AXI_WIDTH, CANVAS_AXI_HEIGHT ) );
+    //m_pGL1->SetMaxSize( wxSize( CANVAS_COR_WIDTH, CANVAS_COR_HEIGHT ) );
+    //m_pGL2->SetMaxSize( wxSize( CANVAS_SAG_WIDTH, CANVAS_SAG_HEIGHT ) );
 
 //#ifndef __WXMAC__
     SceneManager::getInstance()->getScene()->setMainGLContext( new wxGLContext( m_pMainGL ) );
@@ -337,9 +378,9 @@ void MainFrame::initLayout()
 
     //////////////////////////////////////////////////////////////////////////
     // TrackingWindow initialization for RTT
-    m_pTrackingWindow = new TrackingWindow( m_tab, this, wxID_ANY, wxDefaultPosition, wxSize( PROP_WND_WIDTH, PROP_WND_HEIGHT ) ); // Contains realtime tracking properties
-    m_pTrackingWindow->SetScrollbars( 10, 10, 50, 50 );
-    m_pTrackingWindow->EnableScrolling( false, true );
+    //m_pTrackingWindow = new TrackingWindow( m_tab, this, wxID_ANY, wxDefaultPosition, wxSize( PROP_WND_WIDTH, PROP_WND_HEIGHT ) ); // Contains realtime tracking properties
+    //m_pTrackingWindow->SetScrollbars( 10, 10, 50, 50 );
+    //m_pTrackingWindow->EnableScrolling( false, true );
 
     m_pTrackingWindowHardi = new TrackingWindow( m_tab, this, wxID_ANY, wxDefaultPosition, wxSize( PROP_WND_WIDTH, PROP_WND_HEIGHT ), 1 ); // Contains realtime tracking properties
     m_pTrackingWindowHardi->SetScrollbars( 10, 10, 50, 50 );
@@ -352,7 +393,7 @@ void MainFrame::initLayout()
     m_tab->AddPage( m_pPropertiesWindow, wxT( "Properties" ) );
     m_tab->AddPage( m_pTrackingWindowHardi, wxT( "HARDI tracking" ) );
     m_tab->AddPage( m_pFMRIWindow, wxT( "rsfMRI networks" ) );
-	m_tab->AddPage( m_pTrackingWindow, wxT( "DTI tracking" ) );
+	//m_tab->AddPage( m_pTrackingWindow, wxT( "DTI tracking" ) );
 
     pBoxTab->Add( m_tab, 1, wxEXPAND | wxALL, 2 );
 

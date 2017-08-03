@@ -426,7 +426,7 @@ void ListCtrl::Swap( long i, long j )
 void ListCtrl::update_internal( long index )
 {
     DatasetInfo *pDataset = DatasetManager::getInstance()->getDataset( GetItem( index ) );
-    SetItem( index, 0, wxT( "" ), pDataset->getShow() ? 0 : 2 );
+    SetItem( index, 0, wxT( "" ), pDataset->getShow() ? 0 : 1);
     SetItem( index, 1, pDataset->getName().BeforeFirst('.') + ( pDataset->getShowFS() ? wxT( "" ) : wxT( "*" ) ) );
     SetItem( index, 2, wxString::Format( wxT( "%.2f" ), pDataset->getThreshold() * pDataset->getOldMax() ) );
     SetItem( index, 3, wxT( "" ), 2 );

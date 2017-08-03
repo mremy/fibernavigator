@@ -8,10 +8,130 @@
 ToolBar::ToolBar(wxToolBar *pToolBar)
 : m_txtRuler( NULL ),
   m_txtProtractor (NULL),
+#if !_USE_ZOOM_GUI
   m_drawColorIcon(16, 16, true),
+#else
+  m_drawColorIcon(64, 64, true),
+#endif
   m_pToolBar(pToolBar)
 {
-    wxImage bmpOpen(MyApp::iconsPath+ wxT("fileopen.png" ), wxBITMAP_TYPE_PNG);
+	#if _USE_ZOOM_GUI
+    wxImage bmpOpen(MyApp::iconsPath+ wxT("fileopen64.png" ), wxBITMAP_TYPE_PNG);
+    
+    m_btnOpen = m_pToolBar->AddTool(wxID_ANY, wxT("Open"), bmpOpen );
+    m_pToolBar->AddSeparator();
+     
+    wxImage bmpAxial(MyApp::iconsPath+ wxT("axial64.png"), wxBITMAP_TYPE_PNG);
+    wxImage bmpCor(MyApp::iconsPath+ wxT("cor64.png"), wxBITMAP_TYPE_PNG);
+    wxImage bmpSag(MyApp::iconsPath+ wxT("sag64.png"), wxBITMAP_TYPE_PNG);
+    wxImage bmpAlphaBlend(MyApp::iconsPath+ wxT("alphablend64.png"), wxBITMAP_TYPE_PNG);
+
+    m_toggleShowAxial = m_pToolBar->AddCheckTool( wxID_ANY, wxT("Show Axial"), bmpAxial, wxNullBitmap, wxT("Show Axial"));
+    m_toggleShowCoronal = m_pToolBar->AddCheckTool( wxID_ANY, wxT( "Show Coronal" ), bmpCor, wxNullBitmap, wxT("Show Coronal"));
+    m_toggleShowSagittal = m_pToolBar->AddCheckTool( wxID_ANY, wxT("Show Sagittal"), bmpSag, wxNullBitmap, wxT("Show Sagittal"));
+    m_toggleAlphaBlending = m_pToolBar->AddCheckTool( wxID_ANY, wxT("Toggle Alpha Blending"), bmpAlphaBlend, wxNullBitmap, wxT("Toggle Alpha Blending"));
+    m_pToolBar->AddSeparator();
+
+    wxImage bmpBox(MyApp::iconsPath+ wxT("box64.png"), wxBITMAP_TYPE_PNG);
+    wxImage bmpBoxEyeAll(MyApp::iconsPath+ wxT("box_eye_all64.png"), wxBITMAP_TYPE_PNG);
+    wxImage bmpBoxOffAll(MyApp::iconsPath+ wxT("box_off_all64.png"), wxBITMAP_TYPE_PNG);
+    wxImage bmpBoxNotAll(MyApp::iconsPath+ wxT("box_not_all64.png"), wxBITMAP_TYPE_PNG);
+
+    wxImage bmpEllipsoid(MyApp::iconsPath + wxT("ellipsoid64.png"), wxBITMAP_TYPE_PNG);
+
+    // TODO all the addtools can have some captions.
+    m_btnNewSelectionBox = m_pToolBar->AddTool( wxID_ANY, wxT("New Selection Box"), bmpBox);
+    m_btnNewSelectionEllipsoid = m_pToolBar->AddTool( wxID_ANY, wxT("New Selection Ellipsoid"), bmpEllipsoid );
+
+#if !_USE_LIGHT_GUI
+    m_toggleShowAllSelectionObjects = m_pToolBar->AddCheckTool( wxID_ANY, wxT( "Toggle Show All Selection Object" ), bmpBoxEyeAll, wxNullBitmap, wxT("Toggle Show All Selection Objects"));
+    m_toggleActivateAllSelectionObjects = m_pToolBar->AddCheckTool( wxID_ANY, wxT( "Toggle Activate All Selection Objects" ), bmpBoxOffAll, wxNullBitmap, wxT("Toggle Activate All Selection Objects"));
+    m_toggleInverseSelection = m_pToolBar->AddCheckTool( wxID_ANY, wxT( "Toggle Inverse Fibers Selection" ), bmpBoxNotAll, wxNullBitmap, wxT("Toggle Inverse Fibers Selection"));
+#endif
+
+    m_pToolBar->AddSeparator();
+
+    wxImage bmpGridSpline(MyApp::iconsPath+ wxT("grid_spline64.png"), wxBITMAP_TYPE_PNG);
+    wxImage bmpGrid(MyApp::iconsPath+ wxT("grid64.png"), wxBITMAP_TYPE_PNG);
+    wxImage bmpView1(MyApp::iconsPath+ wxT("view164.png"), wxBITMAP_TYPE_PNG);
+    wxImage bmpView3(MyApp::iconsPath+ wxT("view364.png"), wxBITMAP_TYPE_PNG);
+
+    wxImage bmpLighting(MyApp::iconsPath+ wxT("lightbulb64.png"), wxBITMAP_TYPE_PNG);
+
+#if !_USE_LIGHT_GUI
+    m_toggleLighting = m_pToolBar->AddCheckTool( wxID_ANY, wxT( "Toggle Lighting" ), bmpLighting, wxNullBitmap, wxT("Toggle Lighting"));
+
+    m_pToolBar->AddSeparator();
+
+    wxImage bmpTubes (MyApp::iconsPath+ wxT("tubes64.png"), wxBITMAP_TYPE_PNG);
+
+    m_toggleFakeTubes = m_pToolBar->AddCheckTool( wxID_ANY, wxT("Toggle Tubes"), bmpTubes, wxNullBitmap, wxT("Toggle Tubes"));
+    m_pToolBar->AddSeparator();
+#endif
+
+    wxImage bmpClearColor (MyApp::iconsPath+ wxT("background_color64.png"), wxBITMAP_TYPE_PNG);
+
+    m_toggleClearToBlack = m_pToolBar->AddCheckTool( wxID_ANY, wxT("Clear To Black"), bmpClearColor, wxNullBitmap, wxT("Clear To Black"));
+    m_pToolBar->AddSeparator();
+
+    wxImage bmpPointer (MyApp::iconsPath+ wxT("pointer64.png"), wxBITMAP_TYPE_PNG);
+    wxImage bmpRuler (MyApp::iconsPath+ wxT("rulertool64.png"), wxBITMAP_TYPE_PNG);
+    wxImage bmpProtractor (MyApp::iconsPath+ wxT("protractortool64.png"), wxBITMAP_TYPE_PNG);
+    wxImage bmpDrawer (MyApp::iconsPath+ wxT("drawertool64.png"), wxBITMAP_TYPE_PNG);
+
+    m_selectNormalPointer = m_pToolBar->AddRadioTool( wxID_ANY, wxT("Pointer" ), bmpPointer, wxNullBitmap, wxT("Pointer"));
+
+#if !_USE_LIGHT_GUI
+    m_selectRuler = m_pToolBar->AddRadioTool( wxID_ANY, wxT("Ruler" ), bmpRuler, wxNullBitmap, wxT("Ruler"));
+    m_selectProtractor = m_pToolBar->AddRadioTool( wxID_ANY, wxT("Protractor" ), bmpProtractor, wxNullBitmap, wxT("Protractor"));
+#endif
+
+    m_selectDrawer = m_pToolBar->AddRadioTool( wxID_ANY, wxT("Drawer" ), bmpDrawer, wxNullBitmap, wxT("Drawer"));
+    m_pToolBar->AddSeparator();
+
+#if !_USE_LIGHT_GUI
+    m_txtRuler = new wxTextCtrl(m_pToolBar, wxID_ANY,wxT("0.00mm (0.00mm)"), wxDefaultPosition, wxSize( 160, 24 ), wxTE_LEFT | wxTE_READONLY);
+    m_txtRuler->SetForegroundColour(wxColour(wxT("#222222")));
+    m_txtRuler->SetBackgroundColour(*wxWHITE);
+    wxFont font = m_txtRuler->GetFont();
+    font.SetPointSize(10);
+    font.SetWeight(wxBOLD);
+    m_txtRuler->SetFont(font);
+    m_pToolBar->AddControl(m_txtRuler);
+
+    m_txtProtractor = new wxTextCtrl(m_pToolBar, wxID_ANY,wxT("0­ deg."), wxDefaultPosition, wxSize( 160, 24 ), wxTE_LEFT | wxTE_READONLY);
+    m_txtProtractor->SetForegroundColour(wxColour(wxT("#222222")));
+    m_txtProtractor->SetBackgroundColour(*wxWHITE);
+    wxFont font2 = m_txtProtractor->GetFont();
+    font2.SetPointSize(10);
+    font2.SetWeight(wxBOLD);
+    m_txtProtractor->SetFont(font2);
+    m_pToolBar->AddControl(m_txtProtractor);
+#endif
+
+    //no wxImage, it will show the selected color
+
+    m_selectColorPicker = m_pToolBar->AddTool(wxID_ANY, wxT("Color Picker" ), bmpClearColor, wxNullBitmap, wxITEM_NORMAL, wxT("Color Picker"));
+    m_pToolBar->EnableTool(m_selectColorPicker->GetId(), false);
+
+    wxImage bmpRound (MyApp::iconsPath+ wxT("draw_round64.png"), wxBITMAP_TYPE_PNG);
+    wxImage bmp3d (MyApp::iconsPath+ wxT("draw3D64.png"), wxBITMAP_TYPE_PNG);
+
+    m_toggleDrawRound = m_pToolBar->AddCheckTool( wxID_ANY, wxT( "Round Shape" ), bmpRound, wxNullBitmap, wxT("Round Shape"));
+    m_pToolBar->EnableTool(m_toggleDrawRound->GetId(), false);
+    m_toggleDraw3d = m_pToolBar->AddCheckTool( wxID_ANY, wxT( "Draw in 3d" ), bmp3d, wxNullBitmap, wxT("Draw in 3d"));
+    m_pToolBar->EnableTool(m_toggleDraw3d->GetId(), false);
+    m_pToolBar->AddSeparator();
+
+    wxImage bmpPen (MyApp::iconsPath+ wxT("draw_pen64.png"), wxBITMAP_TYPE_PNG);
+    wxImage bmpEraser (MyApp::iconsPath+ wxT("draw_eraser64.png"), wxBITMAP_TYPE_PNG);
+
+    m_selectPen = m_pToolBar->AddRadioTool( wxID_ANY, wxT("Use Pen" ), bmpPen, wxNullBitmap, wxT("Use Pen"));
+    m_pToolBar->EnableTool(m_selectPen->GetId(), false);
+    m_selectEraser = m_pToolBar->AddRadioTool( wxID_ANY, wxT("Use Eraser" ), bmpEraser, wxNullBitmap, wxT("Use Eraser"));
+    m_pToolBar->EnableTool(m_selectEraser->GetId(), false);
+#else
+wxImage bmpOpen(MyApp::iconsPath+ wxT("fileopen.png" ), wxBITMAP_TYPE_PNG);
     
     m_btnOpen = m_pToolBar->AddTool(wxID_ANY, wxT("Open"), bmpOpen );
     m_pToolBar->AddSeparator();
@@ -125,6 +245,7 @@ ToolBar::ToolBar(wxToolBar *pToolBar)
     m_pToolBar->EnableTool(m_selectPen->GetId(), false);
     m_selectEraser = m_pToolBar->AddRadioTool( wxID_ANY, wxT("Use Eraser" ), bmpEraser, wxNullBitmap, wxT("Use Eraser"));
     m_pToolBar->EnableTool(m_selectEraser->GetId(), false);
+#endif
 }
 
 void ToolBar::connectToolsEvents( MainFrame *mf )
