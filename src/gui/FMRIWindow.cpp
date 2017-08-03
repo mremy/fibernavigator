@@ -92,7 +92,7 @@ int slider3 = 150;
 
 	wxBoxSizer *pBoxRow5 = new wxBoxSizer( wxHORIZONTAL );
     pBoxRow5->Add( m_pTextCorrThreshold, 0, wxALIGN_CENTER | wxALL, 1 );
-    pBoxRow5->Add( m_pSliderCorrThreshold,   0, wxALIGN_CENTER | wxALL, 1);
+    pBoxRow5->Add( m_pSliderCorrThreshold,   0, wxALIGN_CENTER | wxEXPAND | wxALL, 1);
 	pBoxRow5->Add( m_pTxtCorrThreshBox,   0, wxALIGN_CENTER | wxALL, 1);
 	m_pFMRISizer->Add( pBoxRow5, 0, wxFIXED_MINSIZE | wxEXPAND, 0 );
 

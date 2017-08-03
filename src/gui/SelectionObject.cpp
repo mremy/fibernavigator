@@ -2203,7 +2203,14 @@ void SelectionObject::createPropertiesSizer( PropertiesWindow *pParent )
     //     m_pGridFibersInfo->SetRowLabelValue( 7, wxT( "Max C. S. (mm)" ) );
     //     m_pGridFibersInfo->SetRowLabelValue( 10, wxT( "Dispersion" ) );
 
-        m_pGridFibersInfo->SetRowLabelSize( 120 );
+#if !_USE_ZOOM_GUI
+		int lab = 120;
+#else
+		int lab = 300;
+#endif
+        m_pGridFibersInfo->SetRowLabelSize( lab );
+
+
 
         pBoxMain->Add( m_pGridFibersInfo, 0, wxALIGN_CENTER | wxALL, 0 );
 

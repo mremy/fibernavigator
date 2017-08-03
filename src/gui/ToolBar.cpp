@@ -33,9 +33,9 @@ ToolBar::ToolBar(wxToolBar *pToolBar)
     m_pToolBar->AddSeparator();
 
     wxImage bmpBox(MyApp::iconsPath+ wxT("box64.png"), wxBITMAP_TYPE_PNG);
-    wxImage bmpBoxEyeAll(MyApp::iconsPath+ wxT("box_eye_all64.png"), wxBITMAP_TYPE_PNG);
-    wxImage bmpBoxOffAll(MyApp::iconsPath+ wxT("box_off_all64.png"), wxBITMAP_TYPE_PNG);
-    wxImage bmpBoxNotAll(MyApp::iconsPath+ wxT("box_not_all64.png"), wxBITMAP_TYPE_PNG);
+    //wxImage bmpBoxEyeAll(MyApp::iconsPath+ wxT("box_eye_all64.png"), wxBITMAP_TYPE_PNG);
+    //wxImage bmpBoxOffAll(MyApp::iconsPath+ wxT("box_off_all64.png"), wxBITMAP_TYPE_PNG);
+    //wxImage bmpBoxNotAll(MyApp::iconsPath+ wxT("box_not_all64.png"), wxBITMAP_TYPE_PNG);
 
     wxImage bmpEllipsoid(MyApp::iconsPath + wxT("ellipsoid64.png"), wxBITMAP_TYPE_PNG);
 
@@ -43,11 +43,11 @@ ToolBar::ToolBar(wxToolBar *pToolBar)
     m_btnNewSelectionBox = m_pToolBar->AddTool( wxID_ANY, wxT("New Selection Box"), bmpBox);
     m_btnNewSelectionEllipsoid = m_pToolBar->AddTool( wxID_ANY, wxT("New Selection Ellipsoid"), bmpEllipsoid );
 
-#if !_USE_LIGHT_GUI
-    m_toggleShowAllSelectionObjects = m_pToolBar->AddCheckTool( wxID_ANY, wxT( "Toggle Show All Selection Object" ), bmpBoxEyeAll, wxNullBitmap, wxT("Toggle Show All Selection Objects"));
-    m_toggleActivateAllSelectionObjects = m_pToolBar->AddCheckTool( wxID_ANY, wxT( "Toggle Activate All Selection Objects" ), bmpBoxOffAll, wxNullBitmap, wxT("Toggle Activate All Selection Objects"));
-    m_toggleInverseSelection = m_pToolBar->AddCheckTool( wxID_ANY, wxT( "Toggle Inverse Fibers Selection" ), bmpBoxNotAll, wxNullBitmap, wxT("Toggle Inverse Fibers Selection"));
-#endif
+//#if !_USE_LIGHT_GUI
+//    m_toggleShowAllSelectionObjects = m_pToolBar->AddCheckTool( wxID_ANY, wxT( "Toggle Show All Selection Object" ), bmpBoxEyeAll, wxNullBitmap, wxT("Toggle Show All Selection Objects"));
+//    m_toggleActivateAllSelectionObjects = m_pToolBar->AddCheckTool( wxID_ANY, wxT( "Toggle Activate All Selection Objects" ), bmpBoxOffAll, wxNullBitmap, wxT("Toggle Activate All Selection Objects"));
+//    m_toggleInverseSelection = m_pToolBar->AddCheckTool( wxID_ANY, wxT( "Toggle Inverse Fibers Selection" ), bmpBoxNotAll, wxNullBitmap, wxT("Toggle Inverse Fibers Selection"));
+//#endif
 
     m_pToolBar->AddSeparator();
 
@@ -77,7 +77,7 @@ ToolBar::ToolBar(wxToolBar *pToolBar)
     wxImage bmpPointer (MyApp::iconsPath+ wxT("pointer64.png"), wxBITMAP_TYPE_PNG);
     wxImage bmpRuler (MyApp::iconsPath+ wxT("rulertool64.png"), wxBITMAP_TYPE_PNG);
     wxImage bmpProtractor (MyApp::iconsPath+ wxT("protractortool64.png"), wxBITMAP_TYPE_PNG);
-    wxImage bmpDrawer (MyApp::iconsPath+ wxT("drawertool64.png"), wxBITMAP_TYPE_PNG);
+    wxImage bmpDrawer (MyApp::iconsPath+ wxT("colorSelect64.png"), wxBITMAP_TYPE_PNG);
 
     m_selectNormalPointer = m_pToolBar->AddRadioTool( wxID_ANY, wxT("Pointer" ), bmpPointer, wxNullBitmap, wxT("Pointer"));
 
@@ -90,7 +90,14 @@ ToolBar::ToolBar(wxToolBar *pToolBar)
     m_pToolBar->AddSeparator();
 
 #if !_USE_LIGHT_GUI
-    m_txtRuler = new wxTextCtrl(m_pToolBar, wxID_ANY,wxT("0.00mm (0.00mm)"), wxDefaultPosition, wxSize( 160, 24 ), wxTE_LEFT | wxTE_READONLY);
+#if !_USE_ZOOM_GUI
+	int w = 160
+	int h = 24;
+#else
+	int w = 300;
+	int h = 48;
+#endif
+    m_txtRuler = new wxTextCtrl(m_pToolBar, wxID_ANY,wxT("0.00mm (0.00mm)"), wxDefaultPosition, wxSize( w, h ), wxTE_LEFT | wxTE_READONLY);
     m_txtRuler->SetForegroundColour(wxColour(wxT("#222222")));
     m_txtRuler->SetBackgroundColour(*wxWHITE);
     wxFont font = m_txtRuler->GetFont();
@@ -99,7 +106,7 @@ ToolBar::ToolBar(wxToolBar *pToolBar)
     m_txtRuler->SetFont(font);
     m_pToolBar->AddControl(m_txtRuler);
 
-    m_txtProtractor = new wxTextCtrl(m_pToolBar, wxID_ANY,wxT("0­ deg."), wxDefaultPosition, wxSize( 160, 24 ), wxTE_LEFT | wxTE_READONLY);
+    m_txtProtractor = new wxTextCtrl(m_pToolBar, wxID_ANY,wxT("0­ deg."), wxDefaultPosition, wxSize( w, h ), wxTE_LEFT | wxTE_READONLY);
     m_txtProtractor->SetForegroundColour(wxColour(wxT("#222222")));
     m_txtProtractor->SetBackgroundColour(*wxWHITE);
     wxFont font2 = m_txtProtractor->GetFont();
@@ -148,9 +155,9 @@ wxImage bmpOpen(MyApp::iconsPath+ wxT("fileopen.png" ), wxBITMAP_TYPE_PNG);
     m_pToolBar->AddSeparator();
 
     wxImage bmpBox(MyApp::iconsPath+ wxT("box.png"), wxBITMAP_TYPE_PNG);
-    wxImage bmpBoxEyeAll(MyApp::iconsPath+ wxT("box_eye_all.png"), wxBITMAP_TYPE_PNG);
-    wxImage bmpBoxOffAll(MyApp::iconsPath+ wxT("box_off_all.png"), wxBITMAP_TYPE_PNG);
-    wxImage bmpBoxNotAll(MyApp::iconsPath+ wxT("box_not_all.png"), wxBITMAP_TYPE_PNG);
+    //wxImage bmpBoxEyeAll(MyApp::iconsPath+ wxT("box_eye_all.png"), wxBITMAP_TYPE_PNG);
+    //wxImage bmpBoxOffAll(MyApp::iconsPath+ wxT("box_off_all.png"), wxBITMAP_TYPE_PNG);
+    //wxImage bmpBoxNotAll(MyApp::iconsPath+ wxT("box_not_all.png"), wxBITMAP_TYPE_PNG);
 
     wxImage bmpEllipsoid(MyApp::iconsPath + wxT("ellipsoid.png"), wxBITMAP_TYPE_PNG);
 
@@ -158,11 +165,11 @@ wxImage bmpOpen(MyApp::iconsPath+ wxT("fileopen.png" ), wxBITMAP_TYPE_PNG);
     m_btnNewSelectionBox = m_pToolBar->AddTool( wxID_ANY, wxT("New Selection Box"), bmpBox);
     m_btnNewSelectionEllipsoid = m_pToolBar->AddTool( wxID_ANY, wxT("New Selection Ellipsoid"), bmpEllipsoid );
 
-#if !_USE_LIGHT_GUI
-    m_toggleShowAllSelectionObjects = m_pToolBar->AddCheckTool( wxID_ANY, wxT( "Toggle Show All Selection Object" ), bmpBoxEyeAll, wxNullBitmap, wxT("Toggle Show All Selection Objects"));
-    m_toggleActivateAllSelectionObjects = m_pToolBar->AddCheckTool( wxID_ANY, wxT( "Toggle Activate All Selection Objects" ), bmpBoxOffAll, wxNullBitmap, wxT("Toggle Activate All Selection Objects"));
-    m_toggleInverseSelection = m_pToolBar->AddCheckTool( wxID_ANY, wxT( "Toggle Inverse Fibers Selection" ), bmpBoxNotAll, wxNullBitmap, wxT("Toggle Inverse Fibers Selection"));
-#endif
+//#if !_USE_LIGHT_GUI
+//    m_toggleShowAllSelectionObjects = m_pToolBar->AddCheckTool( wxID_ANY, wxT( "Toggle Show All Selection Object" ), bmpBoxEyeAll, wxNullBitmap, wxT("Toggle Show All Selection Objects"));
+//    m_toggleActivateAllSelectionObjects = m_pToolBar->AddCheckTool( wxID_ANY, wxT( "Toggle Activate All Selection Objects" ), bmpBoxOffAll, wxNullBitmap, wxT("Toggle Activate All Selection Objects"));
+//    m_toggleInverseSelection = m_pToolBar->AddCheckTool( wxID_ANY, wxT( "Toggle Inverse Fibers Selection" ), bmpBoxNotAll, wxNullBitmap, wxT("Toggle Inverse Fibers Selection"));
+//#endif
 
     m_pToolBar->AddSeparator();
 
@@ -192,7 +199,7 @@ wxImage bmpOpen(MyApp::iconsPath+ wxT("fileopen.png" ), wxBITMAP_TYPE_PNG);
     wxImage bmpPointer (MyApp::iconsPath+ wxT("pointer.png"), wxBITMAP_TYPE_PNG);
     wxImage bmpRuler (MyApp::iconsPath+ wxT("rulertool.png"), wxBITMAP_TYPE_PNG);
     wxImage bmpProtractor (MyApp::iconsPath+ wxT("protractortool.png"), wxBITMAP_TYPE_PNG);
-    wxImage bmpDrawer (MyApp::iconsPath+ wxT("drawertool.png"), wxBITMAP_TYPE_PNG);
+    wxImage bmpDrawer (MyApp::iconsPath+ wxT("colorSelect.png"), wxBITMAP_TYPE_PNG);
 
     m_selectNormalPointer = m_pToolBar->AddRadioTool( wxID_ANY, wxT("Pointer" ), bmpPointer, wxNullBitmap, wxT("Pointer"));
 
@@ -259,9 +266,9 @@ void ToolBar::connectToolsEvents( MainFrame *mf )
     mf->Connect(m_btnNewSelectionEllipsoid->GetId(), wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler(MainFrame::onNewSelectionEllipsoid));
     
 #if !_USE_LIGHT_GUI
-    mf->Connect(m_toggleShowAllSelectionObjects->GetId(), wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler(MainFrame::onHideSelectionObjects));
-    mf->Connect(m_toggleInverseSelection->GetId(), wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler(MainFrame::onInvertFibers));
-    mf->Connect(m_toggleActivateAllSelectionObjects->GetId(), wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler(MainFrame::onActivateSelectionObjects));    
+    //mf->Connect(m_toggleShowAllSelectionObjects->GetId(), wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler(MainFrame::onHideSelectionObjects));
+    //mf->Connect(m_toggleInverseSelection->GetId(), wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler(MainFrame::onInvertFibers));
+    //mf->Connect(m_toggleActivateAllSelectionObjects->GetId(), wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler(MainFrame::onActivateSelectionObjects));    
     mf->Connect(m_toggleLighting->GetId(), wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler(MainFrame::onToggleLighting));    
     mf->Connect(m_toggleFakeTubes->GetId(), wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler(MainFrame::onUseFakeTubes));
 #endif
@@ -295,8 +302,8 @@ void ToolBar::updateToolBar( MainFrame *mf )
 
 #if !_USE_LIGHT_GUI
     m_pToolBar->ToggleTool( m_toggleLighting->GetId(),      SceneManager::getInstance()->isLightingActive() );
-    m_pToolBar->ToggleTool( m_toggleShowAllSelectionObjects->GetId(), SceneManager::getInstance()->getShowAllSelObj() );
-    m_pToolBar->ToggleTool( m_toggleActivateAllSelectionObjects->GetId(), !SceneManager::getInstance()->getActivateAllSelObj() );
+    //m_pToolBar->ToggleTool( m_toggleShowAllSelectionObjects->GetId(), SceneManager::getInstance()->getShowAllSelObj() );
+    //m_pToolBar->ToggleTool( m_toggleActivateAllSelectionObjects->GetId(), !SceneManager::getInstance()->getActivateAllSelObj() );
 #endif
 
     bool isFiberSelected = false;
@@ -321,7 +328,7 @@ void ToolBar::updateToolBar( MainFrame *mf )
 #if !_USE_LIGHT_GUI
     m_pToolBar->ToggleTool( m_toggleFakeTubes->GetId(), isFiberSelected && isFiberUsingFakeTubes);
     
-    m_pToolBar->ToggleTool( m_toggleInverseSelection->GetId(), isFiberSelected && isFiberInverted);
+    //m_pToolBar->ToggleTool( m_toggleInverseSelection->GetId(), isFiberSelected && isFiberInverted);
 #endif
     
     m_pToolBar->ToggleTool( m_toggleClearToBlack->GetId(), SceneManager::getInstance()->getClearToBlack() );
@@ -366,7 +373,11 @@ void ToolBar::updateDrawerToolBar( const bool drawingActive )
 
 void ToolBar::setColorPickerColor( const wxColour &color )
 {
+#if !_USE_ZOOM_GUI
     wxRect fullImage(0, 0, 16, 16); //this is valid as long as toolbar items use 16x16 icons
+#else
+	wxRect fullImage(0, 0, 64, 64);
+#endif
     m_drawColorIcon.SetRGB( fullImage,
                             color.Red(),
                             color.Green(),
