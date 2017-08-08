@@ -438,9 +438,11 @@ void Mesh::draw()
 void Mesh::createPropertiesSizer( PropertiesWindow *pParent )
 {
     DatasetInfo::createPropertiesSizer( pParent );
-
-    wxImage bmpColor( MyApp::iconsPath + wxT( "colorSelect.png" ), wxBITMAP_TYPE_PNG );
-
+#if _USE_ZOOM_GUI
+    wxImage bmpColor( MyApp::iconsPath + wxT( "colorSelect64.png" ), wxBITMAP_TYPE_PNG );
+#else
+	wxImage bmpColor( MyApp::iconsPath + wxT( "colorSelect.png" ), wxBITMAP_TYPE_PNG );
+#endif
     //////////////////////////////////////////////////////////////////////////
 
     m_pToggleCutFrontSector = new wxToggleButton( pParent, wxID_ANY, wxT( "Cut Front Sector" ) );

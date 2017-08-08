@@ -79,6 +79,11 @@ public:
             wxMenuItem  *m_itemRulerClear;
             wxMenuItem  *m_itemRulerAdd;
             wxMenuItem  *m_itemRulerRemove;
+        wxMenu      *m_menuProtractor;
+            wxMenuItem  *m_itemToggleProtractor;
+            wxMenuItem  *m_itemProtractorClear;
+            wxMenuItem  *m_itemProtractorAdd;
+            wxMenuItem  *m_itemProtractorRemove;
         wxMenu      *m_menuDrawer;
             wxMenuItem  *m_itemToggleDrawer;
             wxMenuItem  *m_itemToggleDrawRound;
@@ -102,6 +107,7 @@ public:
             wxMenuItem  *m_itemRedYellow;
             wxMenuItem  *m_itemBlueLightblue;
 			wxMenuItem  *m_itemCoolIron;
+            wxMenuItem  *m_itemRedIron;
 			wxMenuItem  *m_itemCustom;
 
         wxMenuItem  *m_itemToggleDrawPoints;

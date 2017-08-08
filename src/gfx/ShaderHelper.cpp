@@ -376,11 +376,50 @@ void ShaderHelper::setFiberShaderVars()
     m_pFibersShader->setUniFloat( "threshold", threshold );
 }
 
+void ShaderHelper::setGeomShaderVars()
+{
+    m_pCrossingFibersShader->setUniInt( "dimX", DatasetManager::getInstance()->getColumns() );
+    m_pCrossingFibersShader->setUniInt( "dimY", DatasetManager::getInstance()->getRows() );
+    m_pCrossingFibersShader->setUniInt( "dimZ", DatasetManager::getInstance()->getFrames() );
+    m_pCrossingFibersShader->setUniFloat( "voxX", DatasetManager::getInstance()->getVoxelX() );
+    m_pCrossingFibersShader->setUniFloat( "voxY", DatasetManager::getInstance()->getVoxelY() );
+    m_pCrossingFibersShader->setUniFloat( "voxZ", DatasetManager::getInstance()->getVoxelZ() );
+
+    int tex = 0;
+    int show = 0;
+    float threshold = 0;
+    int type = 0;
+
+    int c = 0;
+    for ( int i = 0; i < MyApp::frame->m_pListCtrl->GetItemCount(); ++i )
+    {
+        DatasetInfo* pInfo = DatasetManager::getInstance()->getDataset( MyApp::frame->m_pListCtrl->GetItem( i ) );
+        if ( pInfo->getType() < MESH )
+        {
+            if ( ( pInfo->getType() == OVERLAY ) && pInfo->getShow() )
+            {
+                tex = c;
+                show = pInfo->getShow();
+                threshold = pInfo->getThreshold();
+                type = pInfo->getType();
+                break;
+            }
+            ++c;
+        }
+        if ( c == 10 )
+            break;
+    }
+
+    m_pCrossingFibersShader->setUniInt( "tex", tex );
+    m_pCrossingFibersShader->setUniInt( "type", type );
+    m_pCrossingFibersShader->setUniFloat( "threshold", threshold );
+}
+
 ShaderHelper::~ShaderHelper()
 {
     Logger::getInstance()->print( wxT( "Executing ShaderHelper destructor" ), LOGLEVEL_DEBUG );
     delete m_pAnatomyShader;
-//    delete m_pCrossingFibersShader;
+    delete m_pCrossingFibersShader;
     delete m_pFakeTubesShader;
     delete m_pFibersShader;
     delete m_pGraphShader;

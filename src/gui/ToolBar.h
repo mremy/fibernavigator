@@ -20,6 +20,7 @@ public:
 
 public:
     wxTextCtrl        *m_txtRuler;
+    wxTextCtrl        *m_txtProtractor;
     
 private:    // Private UI controls
     wxToolBarToolBase *m_btnOpen;
@@ -37,6 +38,7 @@ private:    // Private UI controls
     wxToolBarToolBase *m_toggleClearToBlack;
     wxToolBarToolBase *m_selectNormalPointer;
     wxToolBarToolBase *m_selectRuler;
+    wxToolBarToolBase *m_selectProtractor;
     wxToolBarToolBase *m_selectDrawer;
     wxToolBarToolBase *m_selectColorPicker;
     wxToolBarToolBase *m_toggleDrawRound;

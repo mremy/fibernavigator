@@ -317,8 +317,11 @@ void SelectionVOI::createPropertiesSizer( PropertiesWindow *pParent )
     m_pPropertiesSizer->Add( pBoxSizer, 0, wxALIGN_CENTER );
 
     //// 
-    
-    wxImage bmpColor( MyApp::iconsPath + wxT( "colorSelect.png" ), wxBITMAP_TYPE_PNG );
+#if _USE_ZOOM_GUI
+    wxImage bmpColor( MyApp::iconsPath + wxT( "colorSelect64.png" ), wxBITMAP_TYPE_PNG );
+#else
+	wxImage bmpColor( MyApp::iconsPath + wxT( "colorSelect.png" ), wxBITMAP_TYPE_PNG );
+#endif
     
     wxBitmapButton *pBtnSelectColor = new wxBitmapButton( pParent, wxID_ANY, bmpColor );
     

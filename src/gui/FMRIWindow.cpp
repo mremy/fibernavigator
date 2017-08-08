@@ -34,12 +34,22 @@ FMRIWindow::FMRIWindow( wxWindow *pParent, MainFrame *pMf, wxWindowID id, const 
     m_pFMRISizer = new wxBoxSizer( wxVERTICAL );
     SetSizer( m_pFMRISizer );
     SetAutoLayout( true );
-
-    m_pBtnSelectFMRI = new wxButton( this, wxID_ANY,wxT("Load resting-state"), wxDefaultPosition, wxSize(230, -1) );
+#if !_USE_ZOOM_GUI
+	int w = 230;
+	int slider1 = 70;
+int slider2 = 100;
+int slider3 = 55;
+#else
+	int w = 600;
+	int slider1 = 200;
+int slider2 = 250;
+int slider3 = 150;
+#endif
+    m_pBtnSelectFMRI = new wxButton( this, wxID_ANY,wxT("Load resting-state"), wxDefaultPosition, wxSize(w, -1) );
 	pMf->Connect( m_pBtnSelectFMRI->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(MainFrame::onLoadAsRestingState) );
     m_pBtnSelectFMRI->SetBackgroundColour(wxColour( 255, 147, 147 ));
 
-	m_pBtnStart = new wxToggleButton( this, wxID_ANY,wxT("Start correlation"), wxDefaultPosition, wxSize(230, 50) );
+	m_pBtnStart = new wxToggleButton( this, wxID_ANY,wxT("Start correlation"), wxDefaultPosition, wxSize(w, 50) );
     Connect( m_pBtnStart->GetId(), wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler(FMRIWindow::OnStartRTFMRI) );
     m_pBtnStart->Enable(false);
 
@@ -48,10 +58,10 @@ FMRIWindow::FMRIWindow( wxWindow *pParent, MainFrame *pMf, wxWindowID id, const 
 	pBoxRow1->Add( m_pBtnStart, 0, wxALIGN_CENTER | wxALL, 1 );
 	m_pFMRISizer->Add( pBoxRow1, 0, wxFIXED_MINSIZE | wxEXPAND, 0 );
 
-	m_pTextDisplayMode = new wxStaticText( this, wxID_ANY, wxT( "Display:" ), wxDefaultPosition, wxSize(200, -1) );
-    m_pRadShowRawData = new wxRadioButton( this,  wxID_ANY, wxT( "Raw Data" ), wxDefaultPosition, wxSize(160, -1) );
+	m_pTextDisplayMode = new wxStaticText( this, wxID_ANY, wxT( "Display:" ), wxDefaultPosition, wxSize(w, -1) );
+    m_pRadShowRawData = new wxRadioButton( this,  wxID_ANY, wxT( "Raw Data" ), wxDefaultPosition, wxSize(w*0.5, -1) );
 	m_pRadShowRawData->Disable();
-	m_pRadShowNetwork = new wxRadioButton( this,  wxID_ANY, wxT( "Network" ), wxDefaultPosition, wxSize(160, -1) );
+	m_pRadShowNetwork = new wxRadioButton( this,  wxID_ANY, wxT( "Network" ), wxDefaultPosition, wxSize(w*0.5, -1) );
 	m_pRadShowNetwork->Disable();
 	Connect( m_pRadShowRawData->GetId(), wxEVT_COMMAND_RADIOBUTTON_SELECTED, wxCommandEventHandler( FMRIWindow::onSwitchViewRaw ) );
 	Connect( m_pRadShowNetwork->GetId(), wxEVT_COMMAND_RADIOBUTTON_SELECTED, wxCommandEventHandler( FMRIWindow::onSwitchViewNet ) );
@@ -62,11 +72,11 @@ FMRIWindow::FMRIWindow( wxWindow *pParent, MainFrame *pMf, wxWindowID id, const 
 	pBoxRow2->Add( m_pRadShowNetwork, 0, wxALIGN_CENTER, 1 );
 	m_pFMRISizer->Add( pBoxRow2, 0, wxFIXED_MINSIZE | wxEXPAND, 0 );
 
-	m_pTextVolumeId = new wxStaticText( this, wxID_ANY, wxT("Volume"), wxDefaultPosition, wxSize(70, -1), wxALIGN_CENTER );
-	m_pSliderRest = new MySlider( this, wxID_ANY, 0, 0, 107, wxDefaultPosition, wxSize(100, -1), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
+	m_pTextVolumeId = new wxStaticText( this, wxID_ANY, wxT("Volume"), wxDefaultPosition, wxSize(slider1, -1), wxALIGN_CENTER );
+	m_pSliderRest = new MySlider( this, wxID_ANY, 0, 0, 107, wxDefaultPosition, wxSize(slider2, -1), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
 	m_pSliderRest->Disable();
 	Connect( m_pSliderRest->GetId(), wxEVT_COMMAND_SLIDER_UPDATED, wxCommandEventHandler(FMRIWindow::OnSliderRestMoved) );
-    m_pTxtRestBox = new wxTextCtrl( this, wxID_ANY, wxT("0"), wxDefaultPosition, wxSize(55, -1), wxTE_CENTRE | wxTE_READONLY );
+    m_pTxtRestBox = new wxTextCtrl( this, wxID_ANY, wxT("0"), wxDefaultPosition, wxSize(slider3, -1), wxTE_CENTRE | wxTE_READONLY );
 
 	wxBoxSizer *pBoxRow3 = new wxBoxSizer( wxHORIZONTAL );
     pBoxRow3->Add( m_pTextVolumeId, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxALL, 1 );
@@ -74,23 +84,23 @@ FMRIWindow::FMRIWindow( wxWindow *pParent, MainFrame *pMf, wxWindowID id, const 
 	pBoxRow3->Add( m_pTxtRestBox,   0, wxALIGN_CENTER | wxALL, 1);
 	m_pFMRISizer->Add( pBoxRow3, 0, wxFIXED_MINSIZE | wxEXPAND, 0 );
 
-	m_pTextCorrThreshold = new wxStaticText( this, wxID_ANY, wxT("Z-Threshold"), wxDefaultPosition, wxSize(70, -1), wxALIGN_CENTER );
-	m_pSliderCorrThreshold = new MySlider( this, wxID_ANY, 0, 0, 1000, wxDefaultPosition, wxSize(100, -1), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
+	m_pTextCorrThreshold = new wxStaticText( this, wxID_ANY, wxT("Z-Threshold"), wxDefaultPosition, wxSize(slider1, -1), wxALIGN_CENTER );
+	m_pSliderCorrThreshold = new MySlider( this, wxID_ANY, 0, 0, 1000, wxDefaultPosition, wxSize(slider2, -1), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
 	m_pSliderCorrThreshold->SetValue( 450 );
 	Connect( m_pSliderCorrThreshold->GetId(), wxEVT_COMMAND_SLIDER_UPDATED, wxCommandEventHandler(FMRIWindow::OnSliderCorrThreshMoved) );
-    m_pTxtCorrThreshBox = new wxTextCtrl( this, wxID_ANY, wxT("4.5"), wxDefaultPosition, wxSize(55, -1), wxTE_CENTRE | wxTE_READONLY );
+    m_pTxtCorrThreshBox = new wxTextCtrl( this, wxID_ANY, wxT("4.5"), wxDefaultPosition, wxSize(slider3, -1), wxTE_CENTRE | wxTE_READONLY );
 
 	wxBoxSizer *pBoxRow5 = new wxBoxSizer( wxHORIZONTAL );
     pBoxRow5->Add( m_pTextCorrThreshold, 0, wxALIGN_CENTER | wxALL, 1 );
-    pBoxRow5->Add( m_pSliderCorrThreshold,   0, wxALIGN_CENTER | wxALL, 1);
+    pBoxRow5->Add( m_pSliderCorrThreshold,   0, wxALIGN_CENTER | wxEXPAND | wxALL, 1);
 	pBoxRow5->Add( m_pTxtCorrThreshBox,   0, wxALIGN_CENTER | wxALL, 1);
 	m_pFMRISizer->Add( pBoxRow5, 0, wxFIXED_MINSIZE | wxEXPAND, 0 );
 
-	m_pTextClusterLvl = new wxStaticText( this, wxID_ANY, wxT("Cluster level"), wxDefaultPosition, wxSize(70, -1), wxALIGN_CENTER );
-	m_pSliderClusterLvl = new MySlider( this, wxID_ANY, 0, 0, 40, wxDefaultPosition, wxSize(100, -1), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
+	m_pTextClusterLvl = new wxStaticText( this, wxID_ANY, wxT("Cluster level"), wxDefaultPosition, wxSize(slider1, -1), wxALIGN_CENTER );
+	m_pSliderClusterLvl = new MySlider( this, wxID_ANY, 0, 0, 40, wxDefaultPosition, wxSize(slider2, -1), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
 	m_pSliderClusterLvl->SetValue( 20 );
 	Connect( m_pSliderClusterLvl->GetId(), wxEVT_COMMAND_SLIDER_UPDATED, wxCommandEventHandler(FMRIWindow::OnSliderClusterLevelMoved) );
-    m_pTxtClusterLvlBox = new wxTextCtrl( this, wxID_ANY, wxT("20.0"), wxDefaultPosition, wxSize(55, -1), wxTE_CENTRE | wxTE_READONLY );
+    m_pTxtClusterLvlBox = new wxTextCtrl( this, wxID_ANY, wxT("20.0"), wxDefaultPosition, wxSize(slider3, -1), wxTE_CENTRE | wxTE_READONLY );
 
 	wxBoxSizer *pBoxRow6 = new wxBoxSizer( wxHORIZONTAL );
     pBoxRow6->Add( m_pTextClusterLvl, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxALL, 1 );
@@ -98,11 +108,11 @@ FMRIWindow::FMRIWindow( wxWindow *pParent, MainFrame *pMf, wxWindowID id, const 
 	pBoxRow6->Add( m_pTxtClusterLvlBox,   0, wxALIGN_CENTER | wxALL, 1);
 	m_pFMRISizer->Add( pBoxRow6, 0, wxFIXED_MINSIZE | wxEXPAND, 0 );
 
-	m_pTextSizeP = new wxStaticText( this, wxID_ANY, wxT("Point size"), wxDefaultPosition, wxSize(70, -1), wxALIGN_CENTER );
-	m_pSliderSizeP = new MySlider( this, wxID_ANY, 0, 1, 100, wxDefaultPosition, wxSize(100, -1), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
+	m_pTextSizeP = new wxStaticText( this, wxID_ANY, wxT("Point size"), wxDefaultPosition, wxSize(slider1, -1), wxALIGN_CENTER );
+	m_pSliderSizeP = new MySlider( this, wxID_ANY, 0, 1, 100, wxDefaultPosition, wxSize(slider2, -1), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
 	m_pSliderSizeP->SetValue( 2 );
 	Connect( m_pSliderSizeP->GetId(), wxEVT_COMMAND_SLIDER_UPDATED, wxCommandEventHandler(FMRIWindow::OnSliderSizePMoved) );
-    m_pTxtSizePBox = new wxTextCtrl( this, wxID_ANY, wxT("2.0"), wxDefaultPosition, wxSize(55, -1), wxTE_CENTRE | wxTE_READONLY );
+    m_pTxtSizePBox = new wxTextCtrl( this, wxID_ANY, wxT("2.0"), wxDefaultPosition, wxSize(slider3, -1), wxTE_CENTRE | wxTE_READONLY );
 
 	wxBoxSizer *pBoxRow7 = new wxBoxSizer( wxHORIZONTAL );
     pBoxRow7->Add( m_pTextSizeP, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxALL, 1 );
@@ -110,11 +120,11 @@ FMRIWindow::FMRIWindow( wxWindow *pParent, MainFrame *pMf, wxWindowID id, const 
 	pBoxRow7->Add( m_pTxtSizePBox,   0, wxALIGN_CENTER | wxALL, 1);
 	m_pFMRISizer->Add( pBoxRow7, 0, wxFIXED_MINSIZE | wxEXPAND, 0 );
 
-	m_pTextAlpha = new wxStaticText( this, wxID_ANY, wxT("Alpha blend"), wxDefaultPosition, wxSize(70, -1), wxALIGN_CENTER );
-	m_pSliderAlpha = new MySlider( this, wxID_ANY, 0, 0, 100, wxDefaultPosition, wxSize(100, -1), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
+	m_pTextAlpha = new wxStaticText( this, wxID_ANY, wxT("Alpha blend"), wxDefaultPosition, wxSize(slider1, -1), wxALIGN_CENTER );
+	m_pSliderAlpha = new MySlider( this, wxID_ANY, 0, 0, 100, wxDefaultPosition, wxSize(slider2, -1), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
 	m_pSliderAlpha->SetValue( 50 );
 	Connect( m_pSliderAlpha->GetId(), wxEVT_COMMAND_SLIDER_UPDATED, wxCommandEventHandler(FMRIWindow::OnSliderAlphaMoved) );
-    m_pTxtAlphaBox = new wxTextCtrl( this, wxID_ANY, wxT("0.5"), wxDefaultPosition, wxSize(55, -1), wxTE_CENTRE | wxTE_READONLY );
+    m_pTxtAlphaBox = new wxTextCtrl( this, wxID_ANY, wxT("0.5"), wxDefaultPosition, wxSize(slider3, -1), wxTE_CENTRE | wxTE_READONLY );
 
 	wxBoxSizer *pBoxRow8 = new wxBoxSizer( wxHORIZONTAL );
     pBoxRow8->Add( m_pTextAlpha, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxALL, 1 );
@@ -122,13 +132,13 @@ FMRIWindow::FMRIWindow( wxWindow *pParent, MainFrame *pMf, wxWindowID id, const 
 	pBoxRow8->Add( m_pTxtAlphaBox,   0, wxALIGN_CENTER | wxALL, 1);
 	m_pFMRISizer->Add( pBoxRow8, 0, wxFIXED_MINSIZE | wxEXPAND, 0 );
 
-	m_pBtnConvertFMRI = new wxButton( this, wxID_ANY,wxT("Generate map"), wxDefaultPosition, wxSize(230, -1) );
+	m_pBtnConvertFMRI = new wxButton( this, wxID_ANY,wxT("Generate map"), wxDefaultPosition, wxSize(w, -1) );
 	Connect( m_pBtnConvertFMRI->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(FMRIWindow::onConvertRestingState) );
 
-    m_pBtnGenerateClusters = new wxButton( this, wxID_ANY,wxT("Generate clusters"), wxDefaultPosition, wxSize(230, -1) );
+    m_pBtnGenerateClusters = new wxButton( this, wxID_ANY,wxT("Generate clusters"), wxDefaultPosition, wxSize(w, -1) );
 	Connect( m_pBtnGenerateClusters->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(FMRIWindow::onGenerateClusters) );
 
-	m_pBtnTractofMRI = new wxToggleButton( this, wxID_ANY,wxT("Enable tractography"), wxDefaultPosition, wxSize(230, -1) );
+	m_pBtnTractofMRI = new wxToggleButton( this, wxID_ANY,wxT("Enable tractography"), wxDefaultPosition, wxSize(w, -1) );
 	Connect( m_pBtnTractofMRI->GetId(), wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler(FMRIWindow::onInitiateTractography) );
 	m_pBtnTractofMRI->Enable(false);
 

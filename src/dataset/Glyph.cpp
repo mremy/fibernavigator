@@ -693,16 +693,20 @@ void Glyph::createPropertiesSizer( PropertiesWindow *pParent )
     wxBoxSizer *pBoxMain = new wxBoxSizer( wxVERTICAL );
 
     //////////////////////////////////////////////////////////////////////////
-
+#if !_USE_ZOOM_GUI
+	int w = 150;
+#else
+	int w = 450;
+#endif
 #if !_USE_LIGHT_GUI
-    m_pSliderMinHue       = new wxSlider( pParent, wxID_ANY,  0,    0, 100, DEF_POS, wxSize( 150, -1 ) );
-    m_pSliderMaxHue       = new wxSlider( pParent, wxID_ANY,  0,    0, 100 );
-    m_pSliderSaturation   = new wxSlider( pParent, wxID_ANY,  0,    0, 100 );
-    m_pSliderLuminance    = new wxSlider( pParent, wxID_ANY,  0,    0, 100 );
-    m_pSliderLightAttenuation  = new wxSlider( pParent, wxID_ANY,  0,    0, 100 );
-    m_pSliderLightXPosition    = new wxSlider( pParent, wxID_ANY,  0, -100, 100 );
-    m_pSliderLightYPosition    = new wxSlider( pParent, wxID_ANY,  0, -100, 100 );
-    m_pSliderLightZPosition    = new wxSlider( pParent, wxID_ANY,  0, -100, 100 );
+    m_pSliderMinHue       = new wxSlider( pParent, wxID_ANY,  0,    0, 100, DEF_POS, wxSize( w, -1 ) );
+    m_pSliderMaxHue       = new wxSlider( pParent, wxID_ANY,  0,    0, 100, DEF_POS, wxSize( w, -1 ) );
+    m_pSliderSaturation   = new wxSlider( pParent, wxID_ANY,  0,    0, 100, DEF_POS, wxSize( w, -1 ) );
+    m_pSliderLuminance    = new wxSlider( pParent, wxID_ANY,  0,    0, 100, DEF_POS, wxSize( w, -1 ) );
+    m_pSliderLightAttenuation  = new wxSlider( pParent, wxID_ANY,  0,    0, 100, DEF_POS, wxSize( w, -1 ) );
+    m_pSliderLightXPosition    = new wxSlider( pParent, wxID_ANY,  0, -100, 100, DEF_POS, wxSize( w, -1 ) );
+    m_pSliderLightYPosition    = new wxSlider( pParent, wxID_ANY,  0, -100, 100, DEF_POS, wxSize( w, -1 ) );
+    m_pSliderLightZPosition    = new wxSlider( pParent, wxID_ANY,  0, -100, 100, DEF_POS, wxSize( w, -1 ) );
 #endif
     
     // Need to track it to be able to hide it for Maximas.

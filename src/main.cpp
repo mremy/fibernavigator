@@ -121,7 +121,11 @@ bool MyApp::OnInit( void )
         Logger::getInstance()->print( wxString::Format( wxT( "shader: %s" ), shaderPath.c_str() ), LOGLEVEL_DEBUG );
 
         // Create the main frame window
-        frame = new MainFrame( wxT("Fiber Navigator"), wxPoint( 50, 50 ), wxSize( 800, 600 ) );
+#if !_USE_ZOOM_GUI
+		frame = new MainFrame( wxT("Fiber Navigator"), wxPoint( 50, 50 ), wxSize( 800, 600 ) );
+#else
+        frame = new MainFrame( wxT("Fiber Navigator"), wxPoint( 50, 50 ), wxSize( 1600, 1200 ) );
+#endif
         SceneManager::getInstance()->setMainFrame( frame );
         SceneManager::getInstance()->setTreeCtrl( frame->m_pTreeWidget );
 
@@ -130,8 +134,13 @@ bool MyApp::OnInit( void )
         frame->SetIcon( wxIcon( _T( "sashtest_icn" ) ) );
 #endif
 
+#if !_USE_ZOOM_GUI
         frame->SetMinSize( wxSize( 800, 600 ) );
         frame->SetSize( wxSize( 1024, 768 ) );
+#else
+        frame->SetMinSize( wxSize( 1600, 1200 ) );
+        frame->SetSize( wxSize( 1920, 1080 ) );
+#endif
 
         frame->Show( true );
         SetTopWindow( frame );

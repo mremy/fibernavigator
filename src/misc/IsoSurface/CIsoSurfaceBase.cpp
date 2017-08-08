@@ -1150,7 +1150,11 @@ void CIsoSurfaceBase::createPropertiesSizer(PropertiesWindow *parent)
     
     wxSizer *l_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_ptoggleUseColoring = new wxToggleButton(parent, wxID_ANY,wxT("Use Coloring"),wxDefaultPosition, wxSize(100,-1));
-    wxImage bmpColor(MyApp::iconsPath+ wxT("colorSelect.png" ), wxBITMAP_TYPE_PNG);
+#if _USE_ZOOM_GUI
+    wxImage bmpColor(MyApp::iconsPath+ wxT("colorSelect64.png" ), wxBITMAP_TYPE_PNG);
+#else
+	wxImage bmpColor(MyApp::iconsPath+ wxT("colorSelect.png" ), wxBITMAP_TYPE_PNG);
+#endif
     m_pbtnSelectColor = new wxBitmapButton(parent, wxID_ANY, bmpColor, wxDefaultPosition, wxSize(40,-1));
     l_sizer->Add(m_ptoggleUseColoring,0,wxALIGN_CENTER);
     l_sizer->Add(m_pbtnSelectColor,0,wxALIGN_CENTER);

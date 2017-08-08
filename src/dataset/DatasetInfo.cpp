@@ -64,9 +64,15 @@ void DatasetInfo::createPropertiesSizer( PropertiesWindow *pParent )
     //////////////////////////////////////////////////////////////////////////
 
     wxBoxSizer *pBoxMove = new wxBoxSizer( wxHORIZONTAL );
-    wxImage bmpUp    ( MyApp::iconsPath + wxT( "view4.png" ),  wxBITMAP_TYPE_PNG );
+#if _USE_ZOOM_GUI
+    wxImage bmpUp    ( MyApp::iconsPath + wxT( "view464.png" ),  wxBITMAP_TYPE_PNG );
+    wxImage bmpDown  ( MyApp::iconsPath + wxT( "view264.png" ),  wxBITMAP_TYPE_PNG );
+    wxImage bmpDelete( MyApp::iconsPath + wxT( "delete64.png" ), wxBITMAP_TYPE_PNG );
+#else
+	wxImage bmpUp    ( MyApp::iconsPath + wxT( "view4.png" ),  wxBITMAP_TYPE_PNG );
     wxImage bmpDown  ( MyApp::iconsPath + wxT( "view2.png" ),  wxBITMAP_TYPE_PNG );
     wxImage bmpDelete( MyApp::iconsPath + wxT( "delete.png" ), wxBITMAP_TYPE_PNG );
+#endif
     m_pBtnUp     = new wxBitmapButton( pParent, wxID_ANY, bmpUp,     wxDefaultPosition, wxSize( 60, -1 ) );
     m_pBtnDown   = new wxBitmapButton( pParent, wxID_ANY, bmpDown,   wxDefaultPosition, wxSize( 60, -1 ) );
     m_pBtnDelete = new wxBitmapButton( pParent, wxID_ANY, bmpDelete, wxDefaultPosition, wxSize( 60, -1 ) );
@@ -103,12 +109,17 @@ void DatasetInfo::createPropertiesSizer( PropertiesWindow *pParent )
     //////////////////////////////////////////////////////////////////////////
     
     wxFlexGridSizer *pGridSliders = new wxFlexGridSizer( 2 );
-    m_pSliderThresholdIntensity = new MySlider( pParent, wxID_ANY,(int)( getThreshold() * 100 ), 0, 100, wxDefaultPosition, wxSize( 160, -1 ), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
+#if !_USE_ZOOM_GUI
+	int s = 160;
+#else
+	int s = 500;
+#endif
+    m_pSliderThresholdIntensity = new MySlider( pParent, wxID_ANY,(int)( getThreshold() * 100 ), 0, 100, wxDefaultPosition, wxSize( s, -1 ), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
     m_pIntensityText = new wxStaticText( pParent, wxID_ANY, wxT( "Intensity" ) );
     pGridSliders->Add( m_pIntensityText,            0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxALL, 1 );
     pGridSliders->Add( m_pSliderThresholdIntensity, 0, wxALIGN_CENTER_HORIZONTAL | wxEXPAND | wxALL,    1 );
 
-    m_pSliderOpacity = new MySlider( pParent, wxID_ANY, (int)( getAlpha() * 100 ), 0, 100, wxDefaultPosition, wxDefaultSize, wxSL_HORIZONTAL | wxSL_AUTOTICKS );
+    m_pSliderOpacity = new MySlider( pParent, wxID_ANY, (int)( getAlpha() * 100 ), 0, 100, wxDefaultPosition, wxSize( s, -1 ), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
     m_pOpacityText = new wxStaticText( pParent, wxID_ANY, wxT( "Opacity" ) );
     pGridSliders->Add( m_pOpacityText,   0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxALL, 1 );
     pGridSliders->Add( m_pSliderOpacity, 0, wxALIGN_CENTER_HORIZONTAL | wxEXPAND | wxALL,    1 );

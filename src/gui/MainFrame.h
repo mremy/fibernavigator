@@ -154,9 +154,13 @@ private:
     void onClearToBlack                     ( wxCommandEvent& evt );
     void onSelectNormalPointer              ( wxCommandEvent& evt );
     void onSelectRuler                      ( wxCommandEvent& evt );
+    void onSelectProtractor                 ( wxCommandEvent& evt );
     void onRulerToolClear                   ( wxCommandEvent& evt );
     void onRulerToolAdd                     ( wxCommandEvent& evt );
     void onRulerToolDel                     ( wxCommandEvent& evt );
+    void onProtractorToolClear                   ( wxCommandEvent& evt );
+    void onProtractorToolAdd                     ( wxCommandEvent& evt );
+    void onProtractorToolDel                     ( wxCommandEvent& evt );
     void onToggleTextureFiltering           ( wxCommandEvent& evt );
     void onToggleBlendTexOnMesh             ( wxCommandEvent& evt );
     void onToggleFilterIso                  ( wxCommandEvent& evt );    
@@ -167,6 +171,7 @@ private:
     void onSetCMap4                         ( wxCommandEvent& evt );
     void onSetCMap5                         ( wxCommandEvent& evt );
 	void onSetCMap6                         ( wxCommandEvent& evt );
+    void onSetCMap7                         ( wxCommandEvent& evt );
     void onSetCMapNo                        ( wxCommandEvent& evt );
     void onToggleNormal                     ( wxCommandEvent& evt );
     void onToggleDrawVectors                ( wxCommandEvent& evt );

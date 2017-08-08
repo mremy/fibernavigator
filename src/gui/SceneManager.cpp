@@ -78,6 +78,8 @@ SceneManager::SceneManager(void)
     m_pSelTree( NULL ),
     m_selBoxChanged( true ),
     m_isRulerActive( false ),
+    m_isProtractorActive( false ),
+    m_protractorAngle (0),
     m_rulerFullLength( 0.0 ),
     m_rulerPartialLength( 0.0 )
 {

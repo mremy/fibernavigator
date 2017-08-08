@@ -736,7 +736,7 @@ DatasetIndex DatasetManager::loadMesh( const wxString &filename, const wxString 
     {
         result = pMesh->loadMesh( filename );
     }
-    else if( wxT( "surf" ) )
+    else if( wxT( "surf" ) == extension )
     {
         result = pMesh->loadSurf( filename );
     }
