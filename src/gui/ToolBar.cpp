@@ -18,7 +18,7 @@ ToolBar::ToolBar(wxToolBar *pToolBar)
 	#if _USE_ZOOM_GUI
     wxImage bmpOpen(MyApp::iconsPath+ wxT("fileopen64.png" ), wxBITMAP_TYPE_PNG);
     
-    m_btnOpen = m_pToolBar->AddTool(wxID_ANY, wxT("Open"), bmpOpen );
+    m_btnOpen = m_pToolBar->AddTool(wxID_ANY, wxT("Open"), bmpOpen, wxT("Open")  );
     m_pToolBar->AddSeparator();
      
     wxImage bmpAxial(MyApp::iconsPath+ wxT("axial64.png"), wxBITMAP_TYPE_PNG);
@@ -40,8 +40,8 @@ ToolBar::ToolBar(wxToolBar *pToolBar)
     wxImage bmpEllipsoid(MyApp::iconsPath + wxT("ellipsoid64.png"), wxBITMAP_TYPE_PNG);
 
     // TODO all the addtools can have some captions.
-    m_btnNewSelectionBox = m_pToolBar->AddTool( wxID_ANY, wxT("New Selection Box"), bmpBox);
-    m_btnNewSelectionEllipsoid = m_pToolBar->AddTool( wxID_ANY, wxT("New Selection Ellipsoid"), bmpEllipsoid );
+    m_btnNewSelectionBox = m_pToolBar->AddTool( wxID_ANY, wxT("New Selection Box"), bmpBox, wxT("New Selection Box"));
+    m_btnNewSelectionEllipsoid = m_pToolBar->AddTool( wxID_ANY, wxT("New Selection Ellipsoid"), bmpEllipsoid, wxT("New Selection Ellipsoid") );
 
 //#if !_USE_LIGHT_GUI
 //    m_toggleShowAllSelectionObjects = m_pToolBar->AddCheckTool( wxID_ANY, wxT( "Toggle Show All Selection Object" ), bmpBoxEyeAll, wxNullBitmap, wxT("Toggle Show All Selection Objects"));
@@ -140,7 +140,7 @@ ToolBar::ToolBar(wxToolBar *pToolBar)
 #else
 wxImage bmpOpen(MyApp::iconsPath+ wxT("fileopen.png" ), wxBITMAP_TYPE_PNG);
     
-    m_btnOpen = m_pToolBar->AddTool(wxID_ANY, wxT("Open"), bmpOpen );
+    m_btnOpen = m_pToolBar->AddTool(wxID_ANY, wxT("Open"), bmpOpen, wxT("Open") );
     m_pToolBar->AddSeparator();
      
     wxImage bmpAxial(MyApp::iconsPath+ wxT("axial.png"), wxBITMAP_TYPE_PNG);
@@ -162,8 +162,8 @@ wxImage bmpOpen(MyApp::iconsPath+ wxT("fileopen.png" ), wxBITMAP_TYPE_PNG);
     wxImage bmpEllipsoid(MyApp::iconsPath + wxT("ellipsoid.png"), wxBITMAP_TYPE_PNG);
 
     // TODO all the addtools can have some captions.
-    m_btnNewSelectionBox = m_pToolBar->AddTool( wxID_ANY, wxT("New Selection Box"), bmpBox);
-    m_btnNewSelectionEllipsoid = m_pToolBar->AddTool( wxID_ANY, wxT("New Selection Ellipsoid"), bmpEllipsoid );
+    m_btnNewSelectionBox = m_pToolBar->AddTool( wxID_ANY, wxT("New Selection Box"), bmpBox, wxT("New Selection Box"));
+    m_btnNewSelectionEllipsoid = m_pToolBar->AddTool( wxID_ANY, wxT("New Selection Ellipsoid"), bmpEllipsoid, wxT("New Selection Ellipsoid") );
 
 //#if !_USE_LIGHT_GUI
 //    m_toggleShowAllSelectionObjects = m_pToolBar->AddCheckTool( wxID_ANY, wxT( "Toggle Show All Selection Object" ), bmpBoxEyeAll, wxNullBitmap, wxT("Toggle Show All Selection Objects"));
