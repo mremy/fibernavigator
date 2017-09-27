@@ -611,9 +611,9 @@ void PropertiesWindow::OnNewVoiFromOverlay( wxCommandEvent& WXUNUSED(event) )
             pAnatomy = (Anatomy*)m_pMainFrame->m_pCurrentSceneObject;
             float trs = pAnatomy->getThreshold();
             if( trs == 0.0 )
-                trs = 0.01f;
+                //trs = 0.01f;
             
-            pSelectionObject = new SelectionVOI( pAnatomy, trs, THRESHOLD_GREATER_EQUAL );
+            pSelectionObject = new SelectionVOI( pAnatomy, trs, THRESHOLD_GREATER );
         }
         else
         {
