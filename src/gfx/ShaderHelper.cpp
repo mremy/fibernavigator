@@ -58,6 +58,7 @@ void ShaderHelper::loadShaders( bool geometryShadersSupported )
     //delete m_pSplineSurfShader;
     delete m_pTensorsShader;
     //delete m_pVectorShader;
+	delete m_pRTTShader;
 
     m_pAnatomyShader = new ShaderProgram( wxT( "anatomy" ) );
     m_pMeshShader = new ShaderProgram( wxT( "mesh" ) );
@@ -376,6 +377,36 @@ void ShaderHelper::setFiberShaderVars()
     m_pFibersShader->setUniFloat( "threshold", threshold );
 }
 
+void ShaderHelper::setRTTShaderVars()
+{
+    int tex = 0;
+    int show = 0;
+    float threshold = 0;
+    int type = 0;
+
+    int c = 0;
+    for ( int i = 0; i < MyApp::frame->m_pListCtrl->GetItemCount(); ++i )
+    {
+        DatasetInfo* pInfo = DatasetManager::getInstance()->getDataset( MyApp::frame->m_pListCtrl->GetItem( i ) );
+        if ( pInfo->getType() < MESH )
+        {
+            if ( ( pInfo->getType() == OVERLAY ) && pInfo->getShow() )
+            {
+                tex = c;
+                show = pInfo->getShow();
+                threshold = pInfo->getThreshold();
+                type = pInfo->getType();
+                break;
+            }
+            ++c;
+        }
+        if ( c == 10 )
+            break;
+    }
+
+    m_pRTTShader->setUniFloat( "threshold", threshold );
+}
+
 void ShaderHelper::setGeomShaderVars()
 {
     m_pCrossingFibersShader->setUniInt( "dimX", DatasetManager::getInstance()->getColumns() );
@@ -429,6 +460,7 @@ ShaderHelper::~ShaderHelper()
     delete m_pSplineSurfShader;
     delete m_pTensorsShader;
     delete m_pVectorShader;
+	delete m_pRTTShader;
 
     m_pInstance = NULL;
     Logger::getInstance()->print( wxT( "ShaderHelper destructor done" ), LOGLEVEL_DEBUG );

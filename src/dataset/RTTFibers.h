@@ -6,6 +6,7 @@
 #ifndef RTT_FIBERS_H_
 #define RTT_FIBERS_H_
 
+#include "DatasetInfo.h"
 #include "../misc/Fantom/FArray.h"
 #include "../misc/Fantom/FMatrix.h"
 #include "../misc/IsoSurface/Vector.h"
@@ -16,11 +17,20 @@
 #include <GL/glew.h>
 #include <vector>
 
-class RTTFibers 
+class RTTFibers : public DatasetInfo
 {
 public:
     RTTFibers(); //Constructor
 	~RTTFibers(); //Destructor
+
+	void    drawVectors()      {};
+    void    generateTexture()  {};
+    void    generateGeometry() {};
+    void    smooth()           {};
+	void draw() {};
+	void flipAxis(AxisType i_axe) {};
+	GLuint getGLuint(){return 0;};
+	void initializeBuffer(){};
 
     //RTT functions
     void seed();
@@ -34,7 +44,7 @@ public:
     Vector generateRandomSeed( const Vector &min, const Vector &max );
     FMatrix trilinearInterp( float fx, float fy, float fz );
     Vector advecIntegrate( Vector vin, const FMatrix &tensor, Vector e1, Vector e2, Vector e3, float tensorNumber );
-    Vector advecIntegrateHARDI( Vector vin, const std::vector<float> &sticks, float peaksNumber, Vector pos );
+    Vector advecIntegrateHARDI( Vector vin, const std::vector<float> &sticks, float peaksNumber, Vector pos, float& amp );
     Vector magneticField( Vector vin, const std::vector<float> &sticks, float peaksNumber, Vector pos, Vector& vOut, float& F, float& G);
     
     void clearFibersRTT();

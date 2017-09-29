@@ -378,6 +378,10 @@ int slider3 = 150;
 	Connect( m_pBtnToggleSrcAlpha->GetId(), wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler(TrackingWindow::OnSrcAlpha) );
     m_pTrackingSizer->Add( m_pBtnToggleSrcAlpha, 0, wxALL, 2 );
 
+	m_pBtnToggleColorWithOverlay= new wxToggleButton( this, wxID_ANY,wxT("Color with amplitude"), wxDefaultPosition, wxSize(zoomS*2, -1) );
+	Connect( m_pBtnToggleColorWithOverlay->GetId(), wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler(TrackingWindow::OnColorWithAmplitude) );
+    m_pTrackingSizer->Add( m_pBtnToggleColorWithOverlay, 0, wxALL, 2 );
+
 	RTTrackingHelper::getInstance()->m_pBtnToggleEnableRSN = new wxToggleButton( this, wxID_ANY,wxT("Enable rs-connectivity"), wxDefaultPosition, wxSize(zoomS*2, zoomH) );
 	Connect( RTTrackingHelper::getInstance()->m_pBtnToggleEnableRSN->GetId(), wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler(TrackingWindow::OnEnableRSN) );
     RTTrackingHelper::getInstance()->m_pBtnToggleEnableRSN->Enable(false);
@@ -1069,7 +1073,15 @@ void TrackingWindow::OnSrcAlpha( wxCommandEvent& event )
     }
     RTTrackingHelper::getInstance()->setRTTDirty( true );
 }
+ void TrackingWindow::OnColorWithAmplitude( wxCommandEvent& event )
+ {
+	 
+	 DatasetInfo* pInfo = SceneManager::getInstance()->getScene()->getRTTfibers();
+	 pInfo->toggleUseTex();
+	 pInfo->toggleShowFS();
+	 RTTrackingHelper::getInstance()->setRTTDirty( true );
 
+ }
 void TrackingWindow::OnEnableRSN( wxCommandEvent& WXUNUSED(event) )
 {
     RTTrackingHelper::getInstance()->toogleTractoDrivenRSN();

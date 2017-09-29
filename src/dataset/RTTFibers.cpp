@@ -588,6 +588,15 @@ void RTTFibers::seed()
 ///////////////////////////////////////////////////////////////////////////
 void RTTFibers::renderRTTFibers(bool bindBuffers, bool isAnimate, bool changeAlpha)
 {
+	DatasetInfo *pDsInfo = (DatasetInfo*) this;
+	if ( !m_useTex )
+	{
+		ShaderHelper::getInstance()->getRTTShader()->bind();
+		ShaderHelper::getInstance()->setRTTShaderVars();
+		ShaderHelper::getInstance()->getRTTShader()->setUniInt( "useAmp", !pDsInfo->getUseTex() );
+		ShaderHelper::getInstance()->getRTTShader()->setUniInt( "useColorMap", SceneManager::getInstance()->getColorMap() );
+	}
+
     if(m_streamlinesPoints.size() != 0)
     {
         if(changeAlpha)
@@ -663,6 +672,8 @@ void RTTFibers::renderRTTFibers(bool bindBuffers, bool isAnimate, bool changeAlp
         glDisableClientState( GL_COLOR_ARRAY );
         glDisableClientState( GL_NORMAL_ARRAY );
     }
+
+	ShaderHelper::getInstance()->getRTTShader()->release();
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -803,7 +814,7 @@ Vector RTTFibers::advecIntegrate( Vector vin, const FMatrix &tensor, Vector e1, 
     return vprop;
 }
 
-Vector RTTFibers::advecIntegrateHARDI( Vector vin, const std::vector<float> &sticks, float s_number, Vector pos ) 
+Vector RTTFibers::advecIntegrateHARDI( Vector vin, const std::vector<float> &sticks, float s_number, Vector pos, float &amp ) 
 {
     Vector vOut(0,0,0);
     Vector vMagnet(0,0,0);
@@ -832,6 +843,7 @@ Vector RTTFibers::advecIntegrateHARDI( Vector vin, const std::vector<float> &sti
         for(unsigned int i=0; i < sticks.size()/3; i++)
         {
             Vector v1(sticks[i*3],sticks[i*3+1], sticks[i*3+2]);
+			float amp1 = v1.getLength();
             
             if(v1.normalizeAndReturn() != 0)
             {
@@ -850,6 +862,7 @@ Vector RTTFibers::advecIntegrateHARDI( Vector vin, const std::vector<float> &sti
                 {
                     angleMin = angle;
                     vOut = v1;
+					amp = amp1;
                 } 
             }
         }
@@ -1521,6 +1534,12 @@ void RTTFibers::performHARDIRTT(Vector seed, int bwdfwd, vector<float>& points, 
             currDirection.y = flippedAxes.y * sticks[1];
             currDirection.z = flippedAxes.z * sticks[2];
 
+			float amp;
+			if(!m_useTex)
+			{
+				amp = currDirection.getLength();
+			}
+
             //Direction for seeding (forward or backward)
             currDirection.normalize();
             currDirection *= bwdfwd;
@@ -1554,7 +1573,7 @@ void RTTFibers::performHARDIRTT(Vector seed, int bwdfwd, vector<float>& points, 
                     sticks[8] *= flippedAxes.z;
 
                     //Advection next direction
-                    nextDirection = advecIntegrateHARDI( currDirection, sticks, sticksNumber, nextPosition );
+                    nextDirection = advecIntegrateHARDI( currDirection, sticks, sticksNumber, nextPosition, amp );
 
                     //Direction of seeding
                     nextDirection *= bwdfwd;
@@ -1581,10 +1600,21 @@ void RTTFibers::performHARDIRTT(Vector seed, int bwdfwd, vector<float>& points, 
                         points.push_back( currPosition.x );
                         points.push_back( currPosition.y );
                         points.push_back( currPosition.z );
-                        color.push_back( std::abs(currDirection.x) );
-                        color.push_back( std::abs(currDirection.y) );
-                        color.push_back( std::abs(currDirection.z) );
-                        color.push_back( m_alpha );
+						if(m_useTex)
+						{
+							color.push_back( std::abs(currDirection.x) );
+							color.push_back( std::abs(currDirection.y) );
+							color.push_back( std::abs(currDirection.z) );
+							color.push_back( m_alpha );
+						}
+						else
+						{
+							color.push_back( amp );
+							color.push_back( amp );
+							color.push_back( amp );
+							color.push_back( m_alpha );
+						}
+                        
 
                         //Advance
                         currPosition = nextPosition;
@@ -1621,7 +1651,7 @@ void RTTFibers::performHARDIRTT(Vector seed, int bwdfwd, vector<float>& points, 
                             sticks[8] *= flippedAxes.z;
 
                             //Advection next direction
-                            nextDirection = advecIntegrateHARDI( currDirection, sticks, sticksNumber, nextPosition );
+                            nextDirection = advecIntegrateHARDI( currDirection, sticks, sticksNumber, nextPosition, amp );
 
                             //Direction of seeding (backward of forward)
                             nextDirection *= bwdfwd;
