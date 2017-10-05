@@ -127,7 +127,7 @@ protected:
                                           float                 i_scalingFactor,
                                           std::vector< float > &o_spherePoints  );    
     void            getSlidersPositions ( int o_slidersPos[3] );
-    void            getVoxelOffset      ( int i_zVoxelIndex, int i_yVoxelIndex, int i_xVoxelIndex, float o_offset[3] );
+    void            getVoxelOffset      ( int i_zVoxelIndex, int i_yVoxelIndex, int i_xVoxelIndex, float o_offset[3], AxisType i_axis );
     virtual void    loadBuffer          ();
     virtual void    sliderPosChanged    ( AxisType i_axis ) {};
     void            swap                ( Glyph &g );

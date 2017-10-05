@@ -3521,12 +3521,20 @@ void Fibers::drawSortedLines()
                 alphaValue = 1.0f;
 
 			//glColor4f(  normalVector.x, normalVector.y, normalVector.z,   alphaValue );
-            glColor4f( m_normalArray[idx3+0], m_normalArray[idx3 + 1],  m_normalArray[idx3 + 2], alphaValue );
+			if(m_fiberColorationMode != CONSTANT_COLOR)
+				glColor4f( m_normalArray[idx3+0], m_normalArray[idx3 + 1],  m_normalArray[idx3 + 2], alphaValue );
+			else
+				glColor4f(pNormals[idx3+0], pNormals[idx3+1], pNormals[idx3+2], alphaValue);
+
             glNormal3f( pNormals[idx3 + 0],      pNormals[idx3 + 1],      pNormals[idx3 + 2] );
             glVertex3f( m_pointArray[idx3 + 0],  m_pointArray[idx3 + 1],  m_pointArray[idx3 + 2] );
 
 			//glColor4f(  normalVector.x, normalVector.y, normalVector.z,   alphaValue );
-            glColor4f( m_normalArray[idx3+0], m_normalArray[idx3 + 1],  m_normalArray[idx3 + 2], alphaValue );
+            if(m_fiberColorationMode != CONSTANT_COLOR)
+				glColor4f( m_normalArray[idx3+0], m_normalArray[idx3 + 1],  m_normalArray[idx3 + 2], alphaValue );
+			else
+				glColor4f(pNormals[idx3+0], pNormals[idx3+1], pNormals[idx3+2], alphaValue);
+
             glNormal3f( pNormals[id23 + 0],      pNormals[id23 + 1],      pNormals[id23 + 2] );
             glVertex3f( m_pointArray[id23 + 0],  m_pointArray[id23 + 1],  m_pointArray[id23 + 2] );
         }

@@ -378,13 +378,28 @@ bool Glyph::isAxisFlipped( AxisType i_axisType )
 // i_xVoxelIndex        : The X index of the voxel.
 // o_offset             : The output vector containing the offset values.
 ///////////////////////////////////////////////////////////////////////////
-void Glyph::getVoxelOffset( int i_zVoxelIndex, int i_yVoxelIndex, int i_xVoxelIndex, float o_offset[3] )
+void Glyph::getVoxelOffset( int i_zVoxelIndex, int i_yVoxelIndex, int i_xVoxelIndex, float o_offset[3], AxisType i_axis )
 {
     // The offset values is to return the points in the pixel world and not in the voxel world.
     // The + 0.5f is because we want to place the glyph in the middle of its voxel.
-    o_offset[2] = ( i_zVoxelIndex + 0.5f ) * m_voxelSizeZ;
-    o_offset[1] = ( i_yVoxelIndex + 0.5f ) * m_voxelSizeY;
-    o_offset[0] = ( i_xVoxelIndex + 0.5f ) * m_voxelSizeX;
+	float off = 0.5f;
+	o_offset[2] = ( i_zVoxelIndex + off ) * m_voxelSizeZ;
+    o_offset[1] = ( i_yVoxelIndex + off ) * m_voxelSizeY;
+    o_offset[0] = ( i_xVoxelIndex + off ) * m_voxelSizeX;
+
+	if(i_axis == 0)
+	{
+		o_offset[0] = ( i_xVoxelIndex + 1.5f ) * m_voxelSizeX;
+	}
+	else if(i_axis == 1)
+	{
+		o_offset[1] = ( i_yVoxelIndex + 1.5f ) * m_voxelSizeY;
+	}
+	else
+	{
+		o_offset[2] = ( i_zVoxelIndex + 1.5f ) * m_voxelSizeZ;
+	}
+    
 }
 
 ///////////////////////////////////////////////////////////////////////////

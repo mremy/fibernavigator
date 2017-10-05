@@ -595,7 +595,7 @@ void ODFs::drawGlyph( int i_zVoxel, int i_yVoxel, int i_xVoxel, AxisType i_axis 
  
     // Odf offset.
     GLfloat l_offset[3];
-    getVoxelOffset( i_zVoxel, i_yVoxel, i_xVoxel, l_offset );
+    getVoxelOffset( i_zVoxel, i_yVoxel, i_xVoxel, l_offset, i_axis );
     ShaderHelper::getInstance()->getOdfsShader()->setUni3Float( "offset", l_offset );
 
     // Lets set the min max radii for this odf.

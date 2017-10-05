@@ -337,7 +337,7 @@ void Tensors::drawGlyph( int i_zVoxel, int i_yVoxel, int i_xVoxel, AxisType i_ax
 
     // Lets set the offset of this tensor.
     GLfloat l_offset[3];
-    getVoxelOffset( i_zVoxel, i_yVoxel, i_xVoxel, l_offset );
+    getVoxelOffset( i_zVoxel, i_yVoxel, i_xVoxel, l_offset, i_axis );
     ShaderHelper::getInstance()->getTensorsShader()->setUni3Float( "offset", l_offset );
 
     // Lets set the color to draw this tensor.
