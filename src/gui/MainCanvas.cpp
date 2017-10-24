@@ -703,7 +703,7 @@ void MainCanvas::render()
             {
                 // TODO: Get Max size supported by the Graphic Card and use it instead of default 2048 value
                 // FIXME: Screenshot crashes the GUI
-                int size = 2048;
+                int size = 4096;
 
                 FgeOffscreen fbo( size, size, true );
                 if( SceneManager::getInstance()->getClearToBlack() )

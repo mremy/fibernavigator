@@ -356,6 +356,18 @@ void PropertiesWindow::OnToggleShowFS( wxEvent& WXUNUSED(event) )
     }
 }
 
+void PropertiesWindow::OnToggleShowHalo( wxCommandEvent& WXUNUSED(event) )
+{
+    Logger::getInstance()->print( wxT( "Event triggered - PropertiesWindow::OnToggleShowHalo" ), LOGLEVEL_DEBUG );
+
+    if( NULL != m_pMainFrame->m_pCurrentSceneObject&& -1 != m_pMainFrame->m_currentListIndex )
+    {
+        ((DatasetInfo*)m_pMainFrame->m_pCurrentSceneObject)->toggleShowHalo();
+        m_pListCtrl->UpdateSelected();
+        m_pMainFrame->refreshAllGLWidgets();
+    }
+}
+
 void PropertiesWindow::OnToggleVisibility( wxCommandEvent&  WXUNUSED(event) )
 {
     Logger::getInstance()->print( wxT( "Event triggered - PropertiesWindow::OnToggleVisibility" ), LOGLEVEL_DEBUG );
@@ -429,6 +441,31 @@ void PropertiesWindow::OnSliderOpacityThresholdMoved( wxCommandEvent& WXUNUSED(e
     }
 }
 
+void PropertiesWindow::OnSliderDotMoved( wxCommandEvent& WXUNUSED(event) )
+{
+    Logger::getInstance()->print( wxT( "Event triggered - PropertiesWindow::OnSliderDotMoved" ), LOGLEVEL_DEBUG );
+
+    if( m_pMainFrame->m_pCurrentSceneObject != NULL && m_pMainFrame->m_currentListIndex != -1 )
+    {
+        DatasetInfo* l_current = (DatasetInfo*)m_pMainFrame->m_pCurrentSceneObject;
+		CIsoSurface* l_iso = (CIsoSurface*)m_pMainFrame->m_pCurrentSceneObject;
+		l_current->setDotThresh( (float)l_iso->m_pSliderDotThresh->GetValue() / 100.0f);
+        m_pMainFrame->refreshAllGLWidgets();
+    }
+}
+
+void PropertiesWindow::OnSliderEdgeOpMoved( wxCommandEvent& WXUNUSED(event) )
+{
+    Logger::getInstance()->print( wxT( "Event triggered - PropertiesWindow::OnSliderDotMoved" ), LOGLEVEL_DEBUG );
+
+    if( m_pMainFrame->m_pCurrentSceneObject != NULL && m_pMainFrame->m_currentListIndex != -1 )
+    {
+        DatasetInfo* l_current = (DatasetInfo*)m_pMainFrame->m_pCurrentSceneObject;
+		CIsoSurface* l_iso = (CIsoSurface*)m_pMainFrame->m_pCurrentSceneObject;
+		l_current->setEdgeOpThresh( (float)l_iso->m_pSliderEdgeOpThresh->GetValue() / 100.0f);
+        m_pMainFrame->refreshAllGLWidgets();
+    }
+}
 
 void PropertiesWindow::OnEqualizeDataset( wxEvent& WXUNUSED(event) )
 {
@@ -1005,6 +1042,18 @@ void PropertiesWindow::OnDescoteauxShBasis( wxCommandEvent& WXUNUSED(event) )
     {
         ODFs *pOdfs = (ODFs *)DatasetManager::getInstance()->getDataset( m_pMainFrame->m_pListCtrl->GetItem( index ) );
         pOdfs->changeShBasis( SH_BASIS_DESCOTEAUX );
+    }
+}
+
+void PropertiesWindow::OnToggleRotatePeaks( wxCommandEvent& WXUNUSED(event) )
+{
+    Logger::getInstance()->print( wxT( "Event triggered - PropertiesWindow::OnMaximasDisplaySlice" ), LOGLEVEL_DEBUG );
+
+    long index = m_pMainFrame->getCurrentListIndex();
+    if( -1 != index )
+    {
+        Maximas *pMaximas = (Maximas *)DatasetManager::getInstance()->getDataset( m_pMainFrame->m_pListCtrl->GetItem( index ) );
+        pMaximas->rotatePeaks();
     }
 }
 

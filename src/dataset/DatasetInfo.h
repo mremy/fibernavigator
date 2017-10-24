@@ -77,6 +77,10 @@ public:
     void     setThreshold(float value)           { m_threshold = value;         };
     float    getAlpha() const                    { return m_alpha;              };
     void     setAlpha(float v)                   { m_alpha = v;                 };
+	float    getDotThresh() const                { return m_dot;              };
+    void     setDotThresh(float v)               { m_dot = v;                 };
+	float    getEdgeOpThresh() const                { return m_edgeOp;              };
+    void     setEdgeOpThresh(float v)               { m_edgeOp = v;                 };
     float    getBrightness() const               { return m_brightness;         };
     void     setBrightness( float i_brightness ) { m_brightness = i_brightness; };
 
@@ -91,12 +95,14 @@ public:
     virtual bool     toggleShow()                        { m_show        = !m_show;          return m_show;        };
     bool     toggleShowFS()                      { m_showFS      = !m_showFS;        return m_showFS;      };
     bool     toggleUseTex()                      { m_useTex      = !m_useTex;        return m_useTex;      };
+	bool     toggleShowHalo()					 { m_showHalo    = !m_showHalo;      return m_showHalo;      };
 
     void     setShow       ( bool i_show   )     { m_show        = i_show;   };
     void     setShowFS     ( bool i_show   )     { m_showFS      = i_show;   };
     void     setUseTex     ( bool i_useTex )     { m_useTex      = i_useTex; };
     bool     getShow() const                     { return m_show;            };
     bool     getShowFS() const                   { return m_showFS;          };
+	bool     getShowHalo() const                 { return m_showHalo;          };
     bool     getUseTex() const                   { return m_useTex;          };
     bool     getIsGlyph() const                  { return m_isGlyph;         };
 
@@ -152,6 +158,8 @@ protected:
     wxString    m_fullPath;
     float       m_threshold;
     float       m_alpha;
+	float       m_dot;
+	float       m_edgeOp;
     float       m_brightness;
     float       m_oldMax;
     float       m_newMax;
@@ -162,6 +170,7 @@ protected:
     bool        m_show;
     bool        m_showFS;       // Show front sector for meshs.
     bool        m_useTex;        // Color mesh with textures loaded.
+	bool        m_showHalo;
     
     // If false use colormap on threshold value.
     bool        m_isGlyph;

@@ -1126,6 +1126,17 @@ void CIsoSurface::createPropertiesSizer( PropertiesWindow *pParent )
     wxBitmapButton *pBtnSelectColor = new wxBitmapButton( pParent, wxID_ANY, bmpColor );
     m_pToggleCutFrontSector = new wxToggleButton( pParent, wxID_ANY, wxT( "Cut Front Sector" ) );
     m_pToggleUseColoring    = new wxToggleButton( pParent, wxID_ANY, wxT( "Use Coloring" ) );
+	m_pToggleHalo = new wxToggleButton( pParent, wxID_ANY, wxT( "Toggle Halo" ) );
+
+#if !_USE_ZOOM_GUI
+	int s = 100;
+#else
+	int s = 400;
+#endif
+	m_pSliderDotThresh = new MySlider( pParent, wxID_ANY, (int)( 0), 0, 100, wxDefaultPosition, wxSize( s, -1 ), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
+    wxStaticText *m_pDotText = new wxStaticText( pParent, wxID_ANY, wxT( "Edge intensity" ) ); 
+	m_pSliderEdgeOpThresh = new MySlider( pParent, wxID_ANY, (int)( 1), 0, 100, wxDefaultPosition, wxSize( s, -1 ), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
+    wxStaticText *m_pEdgeOpText = new wxStaticText( pParent, wxID_ANY, wxT( "Edge opacity" ) ); 
 
     //////////////////////////////////////////////////////////////////////////
 
@@ -1136,13 +1147,25 @@ void CIsoSurface::createPropertiesSizer( PropertiesWindow *pParent )
     pGridSizer->Add( m_pToggleUseColoring, 0, wxEXPAND | wxALL, 1 );
     pGridSizer->Add( pBtnSelectColor,      0, wxEXPAND | wxALL, 1 );
 
-    m_pPropertiesSizer->Add( pGridSizer, 1, wxFIXED_MINSIZE | wxEXPAND, 0 );
+	pGridSizer->Add( m_pToggleHalo, 0, wxEXPAND | wxALL, 1 );
+	pGridSizer->Add( new wxStaticText( pParent, wxID_ANY, wxT( " " ) ), 0, wxALIGN_LEFT | wxALL );
+	
+	pGridSizer->Add( m_pDotText,   0, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL | wxALL, 1 );
+    pGridSizer->Add( m_pSliderDotThresh, 0, wxALIGN_CENTER_HORIZONTAL | wxEXPAND | wxALL,    1 );
+
+	pGridSizer->Add( m_pEdgeOpText,   0, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL | wxALL, 1 );
+    pGridSizer->Add( m_pSliderEdgeOpThresh, 0, wxALIGN_CENTER_HORIZONTAL | wxEXPAND | wxALL,    1 );
+	m_pPropertiesSizer->Add( pGridSizer, 1, wxFIXED_MINSIZE | wxEXPAND, 0 );
+    
 
     //////////////////////////////////////////////////////////////////////////
 
     pParent->Connect( m_pToggleCutFrontSector->GetId(), wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxEventHandler( PropertiesWindow::OnToggleShowFS ) );
     pParent->Connect( m_pToggleUseColoring->GetId(),    wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler( PropertiesWindow::OnToggleUseTex ) );
+	pParent->Connect( m_pToggleHalo->GetId(),    wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler( PropertiesWindow::OnToggleShowHalo ) );
     pParent->Connect( pBtnSelectColor->GetId(),         wxEVT_COMMAND_BUTTON_CLICKED,       wxCommandEventHandler( PropertiesWindow::OnAssignColorDataset ) );
+	pParent->Connect( m_pSliderDotThresh->GetId(),            wxEVT_COMMAND_SLIDER_UPDATED,       wxCommandEventHandler( PropertiesWindow::OnSliderDotMoved ) );
+	pParent->Connect( m_pSliderEdgeOpThresh->GetId(),            wxEVT_COMMAND_SLIDER_UPDATED,       wxCommandEventHandler( PropertiesWindow::OnSliderEdgeOpMoved ) );
 }
 
 void CIsoSurface::updatePropertiesSizer()

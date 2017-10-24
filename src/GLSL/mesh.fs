@@ -1,15 +1,19 @@
 #include lighting.fs
 
+varying vec3 viewVec2;
 varying vec4 myColor;
 varying vec4 VaryingTexCoord0;
 
 uniform bool showFS;
+uniform bool showHalo;
 uniform int sector;
 uniform float cutX, cutY, cutZ;
 
 uniform int dimX, dimY, dimZ;
 uniform float voxX, voxY, voxZ;
 uniform float alpha_;
+uniform float dotThresh;
+uniform float edgeOp;
 
 uniform bool useTex;
 uniform bool blendTex;
@@ -104,8 +108,19 @@ void main()
 	    color = color + (ambient * color / 2.0) + (diffuse * color / 2.0) + (specular * color / 2.0);
 	}
 
-	color.a = alpha_;
-	color = clamp(color, 0.0, 1.0);
+    vec3 halo = vec3(1,1,1);
+    if(showHalo)
+        halo = vec3(0,0,0);
 
+	color.a = alpha_;//- abs(dot(normal, -viewVec2);
+    if(abs(dot(normal, -viewVec2)) < dotThresh)
+    {
+	    color.rgb = halo;
+        color.a = edgeOp;
+    }
+    else
+    {
+        color = clamp(color, 0.0, 1.0);
+    }
     gl_FragColor = color;
 }

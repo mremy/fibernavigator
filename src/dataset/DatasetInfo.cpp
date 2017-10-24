@@ -25,6 +25,8 @@ DatasetInfo::DatasetInfo()
 
     m_threshold    ( 0.0f ),
     m_alpha        ( 1.0f ),
+	m_dot          ( 0.0f),
+	m_edgeOp       ( 1.0f),
     m_brightness   ( 1.0f ),
     m_oldMax       ( 1.0 ),
     m_newMax       ( 1.0 ),
@@ -35,7 +37,7 @@ DatasetInfo::DatasetInfo()
     m_show         ( true ),
     m_showFS       ( true ),
     m_useTex       ( true ),
-
+	m_showHalo     ( true ),
     m_isGlyph      ( false ),
     m_bufferObjects( 0 ),
 

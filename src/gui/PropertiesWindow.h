@@ -57,6 +57,8 @@ public:
 
     void OnSliderIntensityThresholdMoved    ( wxCommandEvent& event );
     void OnSliderOpacityThresholdMoved      ( wxCommandEvent& event );
+	void OnSliderDotMoved					( wxCommandEvent& event );
+	void OnSliderEdgeOpMoved				( wxCommandEvent& event );
 
     void OnEqualizeDataset                  ( wxEvent& event );
     void OnEqualizationSliderChange         ( wxCommandEvent& event );
@@ -82,6 +84,7 @@ public:
     void OnFibersFilter                     ( wxCommandEvent& event );
     void OnGenerateFiberVolume              ( wxCommandEvent& event );
     void OnToggleUseTex                     ( wxCommandEvent& event );
+	void OnToggleShowHalo				    ( wxCommandEvent& event );
     void OnListMenuDistance                 ( wxCommandEvent& event );
     void OnListMenuMinDistance              ( wxCommandEvent& event );
     void OnColorWithCurvature               ( wxCommandEvent& event );
@@ -136,6 +139,7 @@ public:
 
     void OnMaximasDisplaySlice              ( wxCommandEvent& event );
     void OnMaximasDisplayWhole              ( wxCommandEvent& event );
+	void OnToggleRotatePeaks				( wxCommandEvent& event );
     
     void OnToggleShowSelectionObject        ( wxCommandEvent& event );
     void OnDeleteTreeItem                   ( wxTreeEvent&    event );

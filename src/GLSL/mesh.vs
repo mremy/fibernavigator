@@ -1,5 +1,7 @@
 #include lighting.vs
 
+uniform vec3 viewVec;
+varying vec3 viewVec2;
 varying vec4 myColor;
 varying vec4 VaryingTexCoord0;
 
@@ -12,6 +14,6 @@ void main()
     VaryingTexCoord0 = gl_Vertex;
 
     prepareLight();
-
+	viewVec2 = viewVec;
     gl_Position = ftransform();
 }

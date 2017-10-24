@@ -8,6 +8,7 @@
 #include "DatasetInfo.h"
 #include "Glyph.h"
 #include "../misc/nifti/nifti1_io.h"
+#include "../misc/Fantom/FMatrix.h"
 
 enum DISPLAY { SLICES, WHOLE };
 
@@ -29,6 +30,7 @@ public:
     
     void changeDisplay( DISPLAY value )                   { m_displayType = value; }
     bool isDisplay( DISPLAY disp )                        { return m_displayType == disp; }
+	void rotatePeaks();
 
     // PropertiesSizer
     virtual void createPropertiesSizer( PropertiesWindow *parent );
@@ -48,6 +50,8 @@ private:
     std::vector< float > l_fileFloatData;
     DISPLAY m_displayType;
     int m_dataType;
+	FMatrix storedRot;
+	bool m_doRotate;
 
 };
 
