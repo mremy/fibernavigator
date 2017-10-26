@@ -406,7 +406,7 @@ void PropertiesWindow::OnSliderIntensityThresholdMoved( wxCommandEvent& WXUNUSED
     if( m_pMainFrame->m_pCurrentSceneObject != NULL && m_pMainFrame->m_currentListIndex != -1 )
     {
         DatasetInfo* l_current = (DatasetInfo*)m_pMainFrame->m_pCurrentSceneObject;
-        float l_threshold = (float)l_current->m_pSliderThresholdIntensity->GetValue() / 100.0f;
+        float l_threshold = (float)l_current->m_pSliderThresholdIntensity->GetValue() / 200.0f;
         l_current->setThreshold( l_threshold );
 
         if( l_current->getType() == ISO_SURFACE && ! l_current->m_pSliderThresholdIntensity->leftDown() )

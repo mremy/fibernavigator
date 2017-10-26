@@ -1135,7 +1135,7 @@ void CIsoSurface::createPropertiesSizer( PropertiesWindow *pParent )
 #endif
 	m_pSliderDotThresh = new MySlider( pParent, wxID_ANY, (int)( 0), 0, 100, wxDefaultPosition, wxSize( s, -1 ), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
     wxStaticText *m_pDotText = new wxStaticText( pParent, wxID_ANY, wxT( "Edge intensity" ) ); 
-	m_pSliderEdgeOpThresh = new MySlider( pParent, wxID_ANY, (int)( 1), 0, 100, wxDefaultPosition, wxSize( s, -1 ), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
+	m_pSliderEdgeOpThresh = new MySlider( pParent, wxID_ANY, 100, 0, 100, wxDefaultPosition, wxSize( s, -1 ), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
     wxStaticText *m_pEdgeOpText = new wxStaticText( pParent, wxID_ANY, wxT( "Edge opacity" ) ); 
 
     //////////////////////////////////////////////////////////////////////////

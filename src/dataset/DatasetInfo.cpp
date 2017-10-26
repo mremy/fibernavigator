@@ -116,7 +116,7 @@ void DatasetInfo::createPropertiesSizer( PropertiesWindow *pParent )
 #else
 	int s = 500;
 #endif
-    m_pSliderThresholdIntensity = new MySlider( pParent, wxID_ANY,(int)( getThreshold() * 100 ), 0, 100, wxDefaultPosition, wxSize( s, -1 ), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
+    m_pSliderThresholdIntensity = new MySlider( pParent, wxID_ANY,(int)( getThreshold() * 100 ), 0, 200, wxDefaultPosition, wxSize( s, -1 ), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
     m_pIntensityText = new wxStaticText( pParent, wxID_ANY, wxT( "Intensity" ) );
     pGridSliders->Add( m_pIntensityText,            0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxALL, 1 );
     pGridSliders->Add( m_pSliderThresholdIntensity, 0, wxALIGN_CENTER_HORIZONTAL | wxEXPAND | wxALL,    1 );
