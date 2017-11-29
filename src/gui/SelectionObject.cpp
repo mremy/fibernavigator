@@ -20,8 +20,8 @@
 #include "../dataset/Fibers.h"
 #include "../dataset/RTTrackingHelper.h"
 #include "../gui/MainFrame.h"
-#include "../misc/Algorithms/ConvexGrahamHull.h"
-#include "../misc/Algorithms/ConvexHullIncremental.h"
+//#include "../misc/Algorithms/ConvexGrahamHull.h"
+//#include "../misc/Algorithms/ConvexHullIncremental.h"
 #include "../misc/Algorithms/Helper.h"
 // TODO selection remove.
 #include "../misc/IsoSurface/CIsoSurface.h"
@@ -1408,117 +1408,117 @@ bool SelectionObject::getMeanMaxMinFiberLength( const vector< int > &selectedFib
 //
 // Returns true if successful, false otherwise.
 ///////////////////////////////////////////////////////////////////////////
-bool SelectionObject::getMeanMaxMinFiberCrossSection( const vector< vector< Vector > > &i_fibersPoints,
-                                                      const vector< Vector >           &i_meanFiberPoints, 
-                                                            float                      &o_meanCrossSection,
-                                                            float                      &o_maxCrossSection,
-                                                            float                      &o_minCrossSection )
-{
-    m_crossSectionsPoints.clear();
-    m_crossSectionsAreas.clear();
-    m_crossSectionsNormals.clear();
-    m_crossSectionsPoints.resize ( i_meanFiberPoints.size() );
-    m_crossSectionsAreas.resize  ( i_meanFiberPoints.size() );
-    m_crossSectionsNormals.resize( i_meanFiberPoints.size() );
-
-    o_meanCrossSection = 0.0f;
-    o_maxCrossSection  = 0.0f;
-
-    // We need at least 3 fibers to get 3 points to be able to calculate a convex hull!
-    if( i_fibersPoints.size() < 3 )
-    {
-        o_minCrossSection  = 0.0f;
-        return false;
-    }
-
-    o_minCrossSection  = numeric_limits<float>::max();
-
-    vector< Vector > l_maxHullPts, l_maxOriginalPts, l_minHullPts, l_minOriginalPts;
-
-    // For each points on the mean fiber we calculate a plane perpendicular with it.
-    for( unsigned int i = 0; i < i_meanFiberPoints.size(); ++i )
-    {        
-        vector < Vector > l_intersectionPoints;
-        Vector l_pointOnPlane, l_planeNormal;
-        l_pointOnPlane = i_meanFiberPoints[i];
-
-        // When we are at the last point of the mean fiber, since i_meanFiberPoints[i + 1] 
-        // will not exist, we calculate the vector with the previous point.
-        if( i == i_meanFiberPoints.size() - 1 )
-            l_planeNormal = i_meanFiberPoints[i] - i_meanFiberPoints[i - 1];
-        else
-            l_planeNormal = i_meanFiberPoints[i + 1] - i_meanFiberPoints[i];
-
-        l_planeNormal.normalize();
-
-        // We get the points intersecting the current plane for all the selectedFibers.
-        for( unsigned int j = 0; j < i_fibersPoints.size(); ++j )
-            getFiberPlaneIntersectionPoint( i_fibersPoints[j], l_pointOnPlane, l_planeNormal, l_intersectionPoints );
-
-        // We need at least 3 points to get a valid cross section.
-
-        if( l_intersectionPoints.size() < 3 )
-            continue;
-
-        vector < Vector > original3Dpts = l_intersectionPoints;
-
-        // Once we have those 3d points, we need to map them to 2d so we can calculate the convex hull.
-        if( ! ( Helper::convert3DPlanePointsTo2D( l_planeNormal, l_intersectionPoints ) ) )
-            continue;
-
-        ConvexGrahamHull hull( l_intersectionPoints );
-       
-        // Let's build the convex hull.
-        vector < Vector > l_hullPoints;
-        if( ! ( hull.buildHull() ) )
-            continue;
-        hull.getHullPoints( l_hullPoints );
-        // Computing the surface area of the hull.
-        double l_hullArea = 0.0f;
-        if( ! ( hull.area( l_hullArea ) ) )
-            continue;
-
-        o_meanCrossSection += l_hullArea;
-
-        // To be able to see the cross section on the screen we save the points in m_crossSectionsPoints
-        // and the area value in m_crossSectionsAreas, we also save the normals of the planes inside
-        // m_crossSectionsNormals to be able to draw the dispersion cone.
-        vector< Vector > tmp;
-        Helper::convert2DPlanePointsTo3D( original3Dpts, l_hullPoints, tmp );
-        m_crossSectionsPoints[i]  = tmp;
-        m_crossSectionsAreas[i]   = l_hullArea;
-        m_crossSectionsNormals[i] = l_planeNormal;
-
-        // Maximum Cross Section.
-        if( l_hullArea > o_maxCrossSection )
-        {
-            o_maxCrossSection = (float)l_hullArea;
-            m_maxCrossSectionIndex = i;
-        }
-
-        // Minimum Cross Section.
-        if( l_hullArea < o_minCrossSection )
-        {
-            o_minCrossSection = (float)l_hullArea;
-            m_minCrossSectionIndex = i;
-        }
-    }
-     
-    o_meanCrossSection /= i_meanFiberPoints.size();
-
-    float voxelX = DatasetManager::getInstance()->getVoxelX();
-    float voxelY = DatasetManager::getInstance()->getVoxelY();
-    float voxelZ = DatasetManager::getInstance()->getVoxelZ();
-
-    // We want to return the values in millimeters so we need to multiply them by the spacing in the anatomy file.
-    float l_spacing = voxelX * voxelY * voxelZ;
-
-    o_maxCrossSection  *= l_spacing;
-    o_minCrossSection  *= l_spacing;
-    o_meanCrossSection *= l_spacing;
-
-    return true;
-}
+//bool SelectionObject::getMeanMaxMinFiberCrossSection( const vector< vector< Vector > > &i_fibersPoints,
+//                                                      const vector< Vector >           &i_meanFiberPoints, 
+//                                                            float                      &o_meanCrossSection,
+//                                                            float                      &o_maxCrossSection,
+//                                                            float                      &o_minCrossSection )
+//{
+//    m_crossSectionsPoints.clear();
+//    m_crossSectionsAreas.clear();
+//    m_crossSectionsNormals.clear();
+//    m_crossSectionsPoints.resize ( i_meanFiberPoints.size() );
+//    m_crossSectionsAreas.resize  ( i_meanFiberPoints.size() );
+//    m_crossSectionsNormals.resize( i_meanFiberPoints.size() );
+//
+//    o_meanCrossSection = 0.0f;
+//    o_maxCrossSection  = 0.0f;
+//
+//    // We need at least 3 fibers to get 3 points to be able to calculate a convex hull!
+//    if( i_fibersPoints.size() < 3 )
+//    {
+//        o_minCrossSection  = 0.0f;
+//        return false;
+//    }
+//
+//    o_minCrossSection  = numeric_limits<float>::max();
+//
+//    vector< Vector > l_maxHullPts, l_maxOriginalPts, l_minHullPts, l_minOriginalPts;
+//
+//    // For each points on the mean fiber we calculate a plane perpendicular with it.
+//    for( unsigned int i = 0; i < i_meanFiberPoints.size(); ++i )
+//    {        
+//        vector < Vector > l_intersectionPoints;
+//        Vector l_pointOnPlane, l_planeNormal;
+//        l_pointOnPlane = i_meanFiberPoints[i];
+//
+//        // When we are at the last point of the mean fiber, since i_meanFiberPoints[i + 1] 
+//        // will not exist, we calculate the vector with the previous point.
+//        if( i == i_meanFiberPoints.size() - 1 )
+//            l_planeNormal = i_meanFiberPoints[i] - i_meanFiberPoints[i - 1];
+//        else
+//            l_planeNormal = i_meanFiberPoints[i + 1] - i_meanFiberPoints[i];
+//
+//        l_planeNormal.normalize();
+//
+//        // We get the points intersecting the current plane for all the selectedFibers.
+//        for( unsigned int j = 0; j < i_fibersPoints.size(); ++j )
+//            getFiberPlaneIntersectionPoint( i_fibersPoints[j], l_pointOnPlane, l_planeNormal, l_intersectionPoints );
+//
+//        // We need at least 3 points to get a valid cross section.
+//
+//        if( l_intersectionPoints.size() < 3 )
+//            continue;
+//
+//        vector < Vector > original3Dpts = l_intersectionPoints;
+//
+//        // Once we have those 3d points, we need to map them to 2d so we can calculate the convex hull.
+//        if( ! ( Helper::convert3DPlanePointsTo2D( l_planeNormal, l_intersectionPoints ) ) )
+//            continue;
+//
+//        ConvexGrahamHull hull( l_intersectionPoints );
+//       
+//        // Let's build the convex hull.
+//        vector < Vector > l_hullPoints;
+//        if( ! ( hull.buildHull() ) )
+//            continue;
+//        hull.getHullPoints( l_hullPoints );
+//        // Computing the surface area of the hull.
+//        double l_hullArea = 0.0f;
+//        if( ! ( hull.area( l_hullArea ) ) )
+//            continue;
+//
+//        o_meanCrossSection += l_hullArea;
+//
+//        // To be able to see the cross section on the screen we save the points in m_crossSectionsPoints
+//        // and the area value in m_crossSectionsAreas, we also save the normals of the planes inside
+//        // m_crossSectionsNormals to be able to draw the dispersion cone.
+//        vector< Vector > tmp;
+//        Helper::convert2DPlanePointsTo3D( original3Dpts, l_hullPoints, tmp );
+//        m_crossSectionsPoints[i]  = tmp;
+//        m_crossSectionsAreas[i]   = l_hullArea;
+//        m_crossSectionsNormals[i] = l_planeNormal;
+//
+//        // Maximum Cross Section.
+//        if( l_hullArea > o_maxCrossSection )
+//        {
+//            o_maxCrossSection = (float)l_hullArea;
+//            m_maxCrossSectionIndex = i;
+//        }
+//
+//        // Minimum Cross Section.
+//        if( l_hullArea < o_minCrossSection )
+//        {
+//            o_minCrossSection = (float)l_hullArea;
+//            m_minCrossSectionIndex = i;
+//        }
+//    }
+//     
+//    o_meanCrossSection /= i_meanFiberPoints.size();
+//
+//    float voxelX = DatasetManager::getInstance()->getVoxelX();
+//    float voxelY = DatasetManager::getInstance()->getVoxelY();
+//    float voxelZ = DatasetManager::getInstance()->getVoxelZ();
+//
+//    // We want to return the values in millimeters so we need to multiply them by the spacing in the anatomy file.
+//    float l_spacing = voxelX * voxelY * voxelZ;
+//
+//    o_maxCrossSection  *= l_spacing;
+//    o_minCrossSection  *= l_spacing;
+//    o_meanCrossSection *= l_spacing;
+//
+//    return true;
+//}
 
 ///////////////////////////////////////////////////////////////////////////
 // Will return the intersection point between a fiber and a plane.
