@@ -14,6 +14,19 @@ enum DISPLAY { SLICES, WHOLE };
 
 class Maximas : public Glyph
 {
+
+	enum AxialOrientation
+    {
+        ORIENTATION_LEFT_TO_RIGHT,
+        ORIENTATION_RIGHT_TO_LEFT,
+        ORIENTATION_UNDEFINED
+    };
+    enum SagOrientation
+    {
+        ORIENTATION_ANT_TO_POST,
+        ORIENTATION_POST_TO_ANT,
+    };
+
 public:
     // Constructor/Destructor
     //Maximas();

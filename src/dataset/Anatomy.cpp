@@ -1004,8 +1004,12 @@ void Anatomy::saveNifti( wxString fileName )
     //Save RAI (example: drew a new anat, on a RAI-based, if load again, it will be flipped for visu. So need to reorient it's data now.)
     if(pImage->qto_xyz.m[0][0] < 0)
     {
-        flipAxis(Y_AXIS);
         flipAxis(X_AXIS);
+    }
+
+	if(pImage->qto_xyz.m[1][1] < 0)
+    {
+        flipAxis(Y_AXIS);
     }
 
     // Prevents copying the whole vector
@@ -1082,8 +1086,11 @@ void Anatomy::saveNifti( wxString fileName )
     //Deflip 
     if(pImage->qto_xyz.m[0][0] < 0)
     {
-        flipAxis(Y_AXIS);
         flipAxis(X_AXIS);
+    }
+	if(pImage->qto_xyz.m[1][1] < 0)
+    {
+        flipAxis(Y_AXIS);
     }
 }
 

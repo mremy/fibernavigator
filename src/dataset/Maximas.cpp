@@ -122,48 +122,48 @@ bool Maximas::load( nifti_image *pHeader, nifti_image *pBody )
     {
         if( pHeader->sto_xyz.m[0][0] < 0.0 )
         {
-            m_originalAxialOrientation = 0;
+            m_originalAxialOrientation = ORIENTATION_RIGHT_TO_LEFT;
         }
         else
         {
-            m_originalAxialOrientation = 1;
+            m_originalAxialOrientation = ORIENTATION_LEFT_TO_RIGHT;
         }
         if( pHeader->sto_xyz.m[1][1] < 0.0 )
         {
-            m_originalSagOrientation = 0;
+            m_originalSagOrientation = ORIENTATION_ANT_TO_POST;
         }
         else
         {
-            m_originalSagOrientation = 1;
+            m_originalSagOrientation = ORIENTATION_POST_TO_ANT;
         }
     }
     else if( pHeader->qform_code > 0 )
     {
         if( pHeader->qto_xyz.m[0][0] < 0.0 )
         {
-            m_originalAxialOrientation = 0;
+            m_originalAxialOrientation = ORIENTATION_RIGHT_TO_LEFT;
         }
         else
         {
-            m_originalAxialOrientation = 1;
+            m_originalAxialOrientation = ORIENTATION_LEFT_TO_RIGHT;
         }
         if( pHeader->qto_xyz.m[1][1] < 0.0 )
         {
-            m_originalSagOrientation = 0;
+            m_originalSagOrientation = ORIENTATION_ANT_TO_POST;
         }
         else
         {
-            m_originalSagOrientation = 1;
+            m_originalSagOrientation = ORIENTATION_POST_TO_ANT;
         }
     }
 
-    if( m_originalAxialOrientation == 0 )
+    if( m_originalAxialOrientation == ORIENTATION_RIGHT_TO_LEFT )
     { 
         flipAxis( X_AXIS, true );
         RTTrackingHelper::getInstance()->setMaximaFlip(Vector(-1,1,1));
         flipAnat( X_AXIS );     
     }
-    if( m_originalSagOrientation == 0 )
+    if( m_originalSagOrientation == ORIENTATION_ANT_TO_POST )
     {
         flipAxis( Y_AXIS, true );
         RTTrackingHelper::getInstance()->setMaximaFlip(Vector(1,-1,1));

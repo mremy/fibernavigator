@@ -86,7 +86,7 @@ Fibers::Fibers()
     m_useIntersectedFibers( false ),
     m_useSliceFibers( false ),
     m_thickness( 2.5f ),
-    m_tubeRadius( 3.175f ),
+    m_tubeRadius( 1.0f ),
     m_xDrawn( 0.0f ),
     m_yDrawn( 0.0f ),
     m_zDrawn( 0.0f ),
@@ -3108,6 +3108,7 @@ void Fibers::draw()
         m_cachedThreshold = m_threshold;
     }
 
+	glLineWidth(m_tubeRadius);
     initializeBuffer();
 
     if( m_useFakeTubes )
@@ -3199,6 +3200,7 @@ void Fibers::draw()
     glDisableClientState( GL_NORMAL_ARRAY );
 
     releaseShader();
+	glLineWidth(1);
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -3561,6 +3563,7 @@ void Fibers::useTransparency()
 
 void Fibers::drawCrossingFibers()
 {
+	glLineWidth (m_tubeRadius);   
     findCrossingFibers();
 
     glEnableClientState( GL_VERTEX_ARRAY );
@@ -3613,6 +3616,7 @@ void Fibers::drawCrossingFibers()
     glDisableClientState( GL_VERTEX_ARRAY );
     glDisableClientState( GL_COLOR_ARRAY );
     glDisableClientState( GL_NORMAL_ARRAY );
+	glLineWidth (1);   
 }
 
 void Fibers::switchNormals( bool positive )
