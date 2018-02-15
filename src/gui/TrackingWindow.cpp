@@ -257,9 +257,9 @@ int slider3 = 150;
 
     m_pTextFA = new wxStaticText( this, wxID_ANY, wxT("Min Mask"), wxDefaultPosition, wxSize(slider1, -1), wxALIGN_CENTER );
     m_pSliderFA = new MySlider( this, wxID_ANY, 0, 1, 100, wxDefaultPosition, wxSize(slider2, -1), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
-    m_pSliderFA->SetValue( 20 );
+    m_pSliderFA->SetValue( 15 );
     Connect( m_pSliderFA->GetId(), wxEVT_COMMAND_SLIDER_UPDATED, wxCommandEventHandler(TrackingWindow::OnSliderFAMoved) );
-    m_pTxtFABox = new wxTextCtrl( this, wxID_ANY, wxT("0.20"), wxDefaultPosition, wxSize(slider3, -1), wxTE_CENTRE | wxTE_READONLY );
+    m_pTxtFABox = new wxTextCtrl( this, wxID_ANY, wxT("0.15"), wxDefaultPosition, wxSize(slider3, -1), wxTE_CENTRE | wxTE_READONLY );
     m_pTextFA->Enable(false);
     m_pSliderFA->Enable(false);
     m_pTxtFABox->Enable(false);
@@ -272,9 +272,9 @@ int slider3 = 150;
 
     wxStaticText *m_pTextAngle = new wxStaticText( this, wxID_ANY, wxT("Max angle"), wxDefaultPosition, wxSize(slider1, -1), wxALIGN_CENTER );
     m_pSliderAngle = new MySlider( this, wxID_ANY, 0, 1, 90, wxDefaultPosition, wxSize(slider2, -1), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
-    m_pSliderAngle->SetValue( 35 );
+    m_pSliderAngle->SetValue( 40 );
     Connect( m_pSliderAngle->GetId(), wxEVT_COMMAND_SLIDER_UPDATED, wxCommandEventHandler(TrackingWindow::OnSliderAngleMoved) );
-    m_pTxtAngleBox = new wxTextCtrl( this, wxID_ANY, wxT("35.0 "), wxDefaultPosition, wxSize(slider3, -1), wxTE_CENTRE | wxTE_READONLY );
+    m_pTxtAngleBox = new wxTextCtrl( this, wxID_ANY, wxT("40.0 "), wxDefaultPosition, wxSize(slider3, -1), wxTE_CENTRE | wxTE_READONLY );
 
 		wxBoxSizer *pBoxRow6 = new wxBoxSizer( wxHORIZONTAL );
     pBoxRow6->Add( m_pTextAngle, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxALL, 1 );
@@ -320,9 +320,9 @@ int slider3 = 150;
 
     wxStaticText *m_pTextMinLength = new wxStaticText( this, wxID_ANY, wxT("Min length"), wxDefaultPosition, wxSize(slider1, -1), wxALIGN_CENTER );
     m_pSliderMinLength = new MySlider( this, wxID_ANY, 0, 0, 400, wxPoint(60,240), wxSize(slider2, -1), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
-    m_pSliderMinLength->SetValue( 60 );
+    m_pSliderMinLength->SetValue( 30 );
     Connect( m_pSliderMinLength->GetId(), wxEVT_COMMAND_SLIDER_UPDATED, wxCommandEventHandler(TrackingWindow::OnSliderMinLengthMoved) );
-    m_pTxtMinLengthBox = new wxTextCtrl( this, wxID_ANY, wxT("60 mm"), wxDefaultPosition, wxSize(slider3, -1), wxTE_CENTRE | wxTE_READONLY );
+    m_pTxtMinLengthBox = new wxTextCtrl( this, wxID_ANY, wxT("30 mm"), wxDefaultPosition, wxSize(slider3, -1), wxTE_CENTRE | wxTE_READONLY );
 
 	wxBoxSizer *pBoxRow9 = new wxBoxSizer( wxHORIZONTAL );
     pBoxRow9->Add( m_pTextMinLength, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxALL, 1 );
@@ -377,6 +377,10 @@ int slider3 = 150;
     m_pBtnToggleSrcAlpha= new wxToggleButton( this, wxID_ANY,wxT("Regular Alpha"), wxDefaultPosition, wxSize(zoomS*2, -1) );
 	Connect( m_pBtnToggleSrcAlpha->GetId(), wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler(TrackingWindow::OnSrcAlpha) );
     m_pTrackingSizer->Add( m_pBtnToggleSrcAlpha, 0, wxALL, 2 );
+
+	m_pBtnToggleColorWithOverlay= new wxToggleButton( this, wxID_ANY,wxT("Color with amplitude"), wxDefaultPosition, wxSize(zoomS*2, -1) );
+	Connect( m_pBtnToggleColorWithOverlay->GetId(), wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler(TrackingWindow::OnColorWithAmplitude) );
+    m_pTrackingSizer->Add( m_pBtnToggleColorWithOverlay, 0, wxALL, 2 );
 
 	RTTrackingHelper::getInstance()->m_pBtnToggleEnableRSN = new wxToggleButton( this, wxID_ANY,wxT("Enable rs-connectivity"), wxDefaultPosition, wxSize(zoomS*2, zoomH) );
 	Connect( RTTrackingHelper::getInstance()->m_pBtnToggleEnableRSN->GetId(), wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler(TrackingWindow::OnEnableRSN) );
@@ -1069,7 +1073,15 @@ void TrackingWindow::OnSrcAlpha( wxCommandEvent& event )
     }
     RTTrackingHelper::getInstance()->setRTTDirty( true );
 }
+ void TrackingWindow::OnColorWithAmplitude( wxCommandEvent& event )
+ {
+	 
+	 DatasetInfo* pInfo = SceneManager::getInstance()->getScene()->getRTTfibers();
+	 pInfo->toggleUseTex();
+	 pInfo->toggleShowFS();
+	 RTTrackingHelper::getInstance()->setRTTDirty( true );
 
+ }
 void TrackingWindow::OnEnableRSN( wxCommandEvent& WXUNUSED(event) )
 {
     RTTrackingHelper::getInstance()->toogleTractoDrivenRSN();

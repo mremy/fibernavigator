@@ -86,7 +86,7 @@ Fibers::Fibers()
     m_useIntersectedFibers( false ),
     m_useSliceFibers( false ),
     m_thickness( 2.5f ),
-    m_tubeRadius( 3.175f ),
+    m_tubeRadius( 1.0f ),
     m_xDrawn( 0.0f ),
     m_yDrawn( 0.0f ),
     m_zDrawn( 0.0f ),
@@ -3108,6 +3108,7 @@ void Fibers::draw()
         m_cachedThreshold = m_threshold;
     }
 
+	glLineWidth(m_tubeRadius);
     initializeBuffer();
 
     if( m_useFakeTubes )
@@ -3199,6 +3200,7 @@ void Fibers::draw()
     glDisableClientState( GL_NORMAL_ARRAY );
 
     releaseShader();
+	glLineWidth(1);
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -3521,12 +3523,20 @@ void Fibers::drawSortedLines()
                 alphaValue = 1.0f;
 
 			//glColor4f(  normalVector.x, normalVector.y, normalVector.z,   alphaValue );
-            glColor4f( m_normalArray[idx3+0], m_normalArray[idx3 + 1],  m_normalArray[idx3 + 2], alphaValue );
+			if(m_fiberColorationMode != CONSTANT_COLOR)
+				glColor4f( m_normalArray[idx3+0], m_normalArray[idx3 + 1],  m_normalArray[idx3 + 2], alphaValue );
+			else
+				glColor4f(pNormals[idx3+0], pNormals[idx3+1], pNormals[idx3+2], alphaValue);
+
             glNormal3f( pNormals[idx3 + 0],      pNormals[idx3 + 1],      pNormals[idx3 + 2] );
             glVertex3f( m_pointArray[idx3 + 0],  m_pointArray[idx3 + 1],  m_pointArray[idx3 + 2] );
 
 			//glColor4f(  normalVector.x, normalVector.y, normalVector.z,   alphaValue );
-            glColor4f( m_normalArray[idx3+0], m_normalArray[idx3 + 1],  m_normalArray[idx3 + 2], alphaValue );
+            if(m_fiberColorationMode != CONSTANT_COLOR)
+				glColor4f( m_normalArray[idx3+0], m_normalArray[idx3 + 1],  m_normalArray[idx3 + 2], alphaValue );
+			else
+				glColor4f(pNormals[idx3+0], pNormals[idx3+1], pNormals[idx3+2], alphaValue);
+
             glNormal3f( pNormals[id23 + 0],      pNormals[id23 + 1],      pNormals[id23 + 2] );
             glVertex3f( m_pointArray[id23 + 0],  m_pointArray[id23 + 1],  m_pointArray[id23 + 2] );
         }
@@ -3553,6 +3563,7 @@ void Fibers::useTransparency()
 
 void Fibers::drawCrossingFibers()
 {
+	glLineWidth (m_tubeRadius);   
     findCrossingFibers();
 
     glEnableClientState( GL_VERTEX_ARRAY );
@@ -3605,6 +3616,7 @@ void Fibers::drawCrossingFibers()
     glDisableClientState( GL_VERTEX_ARRAY );
     glDisableClientState( GL_COLOR_ARRAY );
     glDisableClientState( GL_NORMAL_ARRAY );
+	glLineWidth (1);   
 }
 
 void Fibers::switchNormals( bool positive )
@@ -4450,7 +4462,7 @@ void Fibers::setShader()
         ShaderHelper::getInstance()->getFibersShader()->bind();
         ShaderHelper::getInstance()->setFiberShaderVars();
         ShaderHelper::getInstance()->getFibersShader()->setUniInt( "useTex", !pDsInfo->getUseTex() );
-         ShaderHelper::getInstance()->getFibersShader()->setUniInt( "useColorMap", SceneManager::getInstance()->getColorMap() );
+        ShaderHelper::getInstance()->getFibersShader()->setUniInt( "useColorMap", SceneManager::getInstance()->getColorMap() );
         ShaderHelper::getInstance()->getFibersShader()->setUniInt( "useOverlay", pDsInfo->getShowFS() );
     }
 }

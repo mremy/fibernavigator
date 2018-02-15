@@ -35,7 +35,8 @@ inline bool isnan(double x) {
 Maximas::Maximas( const wxString &filename )
 : Glyph(),
 m_displayType( SLICES ),
-m_dataType( 16 )
+m_dataType( 16 ),
+m_doRotate(false)
 {
     m_fullPath = filename;
     m_scalingFactor = 3.0f;
@@ -121,48 +122,48 @@ bool Maximas::load( nifti_image *pHeader, nifti_image *pBody )
     {
         if( pHeader->sto_xyz.m[0][0] < 0.0 )
         {
-            m_originalAxialOrientation = 0;
+            m_originalAxialOrientation = ORIENTATION_RIGHT_TO_LEFT;
         }
         else
         {
-            m_originalAxialOrientation = 1;
+            m_originalAxialOrientation = ORIENTATION_LEFT_TO_RIGHT;
         }
         if( pHeader->sto_xyz.m[1][1] < 0.0 )
         {
-            m_originalSagOrientation = 0;
+            m_originalSagOrientation = ORIENTATION_ANT_TO_POST;
         }
         else
         {
-            m_originalSagOrientation = 1;
+            m_originalSagOrientation = ORIENTATION_POST_TO_ANT;
         }
     }
     else if( pHeader->qform_code > 0 )
     {
         if( pHeader->qto_xyz.m[0][0] < 0.0 )
         {
-            m_originalAxialOrientation = 0;
+            m_originalAxialOrientation = ORIENTATION_RIGHT_TO_LEFT;
         }
         else
         {
-            m_originalAxialOrientation = 1;
+            m_originalAxialOrientation = ORIENTATION_LEFT_TO_RIGHT;
         }
         if( pHeader->qto_xyz.m[1][1] < 0.0 )
         {
-            m_originalSagOrientation = 0;
+            m_originalSagOrientation = ORIENTATION_ANT_TO_POST;
         }
         else
         {
-            m_originalSagOrientation = 1;
+            m_originalSagOrientation = ORIENTATION_POST_TO_ANT;
         }
     }
 
-    if( m_originalAxialOrientation == 0 )
+    if( m_originalAxialOrientation == ORIENTATION_RIGHT_TO_LEFT )
     { 
         flipAxis( X_AXIS, true );
         RTTrackingHelper::getInstance()->setMaximaFlip(Vector(-1,1,1));
         flipAnat( X_AXIS );     
     }
-    if( m_originalSagOrientation == 0 )
+    if( m_originalSagOrientation == ORIENTATION_ANT_TO_POST )
     {
         flipAxis( Y_AXIS, true );
         RTTrackingHelper::getInstance()->setMaximaFlip(Vector(1,-1,1));
@@ -261,10 +262,65 @@ bool Maximas::createStructure  ( std::vector< float > &i_fileFloatData )
     vector< float >::iterator it;
     int i = 0;
 
+	FMatrix transform = FMatrix( DatasetManager::getInstance()->getNiftiTransform() );
+	FMatrix rotMat( 3, 3 );
+    transform.getSubMatrix( rotMat, 0, 0 );
+	rotMat(0,0) = 1;
+	rotMat(1,1) = 1;
+	rotMat(2,2) = 1;
+	storedRot = rotMat;
+	
+	
+	/*float voxelX = DatasetManager::getInstance()->getVoxelX();
+    float voxelY = DatasetManager::getInstance()->getVoxelY();
+    float voxelZ = DatasetManager::getInstance()->getVoxelZ();
+	FMatrix transform = FMatrix( DatasetManager::getInstance()->getNiftiTransform() );
+	FMatrix rotMat( 3, 3 );
+    transform.getSubMatrix( rotMat, 0, 0 );
+	rotMat(0,0) = 1;
+	rotMat(1,1) = 1;
+	rotMat(2,2) = 1;
+	FMatrix test( rotMat );
+    test = invert(rotMat);
+    rotMat = test;*/
+
     //Fetching the directions
     for( it = i_fileFloatData.begin(), i = 0; it != i_fileFloatData.end(); it += m_bands, ++i )
     { 
         m_mainDirections[i].insert( m_mainDirections[i].end(), it, it + m_bands );
+
+		/*FMatrix p1( 3, 1 );
+		FMatrix p2( 3, 1 );
+		FMatrix p3( 3, 1 );
+        p1( 0, 0 ) = m_mainDirections[i][0];
+        p1( 1, 0 ) = m_mainDirections[i][1];
+        p1( 2, 0 ) = m_mainDirections[i][2];
+
+		p2( 0, 0 ) = m_mainDirections[i][3];
+        p2( 1, 0 ) = m_mainDirections[i][4];
+        p2( 2, 0 ) = m_mainDirections[i][5];
+
+
+		p3( 0, 0 ) = m_mainDirections[i][6];
+        p3( 1, 0 ) = m_mainDirections[i][7];
+        p3( 2, 0 ) = m_mainDirections[i][8];
+
+        FMatrix rotP1 = rotMat  * p1;
+		FMatrix rotP2 = rotMat  * p2;
+		FMatrix rotP3 = rotMat  * p3;
+
+        m_mainDirections[i][0] = rotP1( 0, 0 );
+        m_mainDirections[i][1] = rotP1( 1, 0 );
+        m_mainDirections[i][2] = rotP1( 2, 0 );
+
+		m_mainDirections[i][3] = rotP2( 0, 0 );
+        m_mainDirections[i][4] = rotP2( 1, 0 );
+        m_mainDirections[i][5] = rotP2( 2, 0 );
+
+		m_mainDirections[i][6] = rotP3( 0, 0 );
+        m_mainDirections[i][7] = rotP3( 1, 0 );
+        m_mainDirections[i][8] = rotP3( 2, 0 );*/
+
     }
 
     getSlidersPositions( m_currentSliderPos );
@@ -273,6 +329,58 @@ bool Maximas::createStructure  ( std::vector< float > &i_fileFloatData )
 }
 
 
+void Maximas::rotatePeaks()
+{
+	m_doRotate = !m_doRotate;
+	float voxelX = DatasetManager::getInstance()->getVoxelX();
+    float voxelY = DatasetManager::getInstance()->getVoxelY();
+    float voxelZ = DatasetManager::getInstance()->getVoxelZ();
+
+	FMatrix rot;
+	
+	if(m_doRotate)
+		rot = invert(storedRot);
+	else
+		rot = storedRot;
+
+
+	for( int i = 0; i < m_mainDirections.size(); i++ )
+    { 
+
+		FMatrix p1( 3, 1 );
+		FMatrix p2( 3, 1 );
+		FMatrix p3( 3, 1 );
+        p1( 0, 0 ) = m_mainDirections[i][0];
+        p1( 1, 0 ) = m_mainDirections[i][1];
+        p1( 2, 0 ) = m_mainDirections[i][2];
+
+		p2( 0, 0 ) = m_mainDirections[i][3];
+        p2( 1, 0 ) = m_mainDirections[i][4];
+        p2( 2, 0 ) = m_mainDirections[i][5];
+
+
+		p3( 0, 0 ) = m_mainDirections[i][6];
+        p3( 1, 0 ) = m_mainDirections[i][7];
+        p3( 2, 0 ) = m_mainDirections[i][8];
+
+        FMatrix rotP1 = rot  * p1;
+		FMatrix rotP2 = rot  * p2;
+		FMatrix rotP3 = rot  * p3;
+
+        m_mainDirections[i][0] = rotP1( 0, 0 );
+        m_mainDirections[i][1] = rotP1( 1, 0 );
+        m_mainDirections[i][2] = rotP1( 2, 0 );
+
+		m_mainDirections[i][3] = rotP2( 0, 0 );
+        m_mainDirections[i][4] = rotP2( 1, 0 );
+        m_mainDirections[i][5] = rotP2( 2, 0 );
+
+		m_mainDirections[i][6] = rotP3( 0, 0 );
+        m_mainDirections[i][7] = rotP3( 1, 0 );
+        m_mainDirections[i][8] = rotP3( 2, 0 );
+
+    }
+}
 
 //////////////////////////////////////////////////////////////////////////
 // NOTE: This currently only supports 3 maximas, because when we extract 
@@ -428,7 +536,7 @@ void Maximas::drawGlyph( int i_zVoxel, int i_yVoxel, int i_xVoxel, AxisType i_ax
  
     // Maxima offset..
     GLfloat l_offset[3];
-    getVoxelOffset( i_zVoxel, i_yVoxel, i_xVoxel, l_offset );
+    getVoxelOffset( i_zVoxel, i_yVoxel, i_xVoxel, l_offset, i_axis );
     ShaderHelper::getInstance()->getOdfsShader()->setUni3Float( "offset", l_offset );
 
     GLfloat l_flippedAxes[3];
@@ -472,9 +580,20 @@ void Maximas::drawGlyph( int i_zVoxel, int i_yVoxel, int i_xVoxel, AxisType i_ax
 //////////////////////////////////////////////////////////////////////////
 void Maximas::createPropertiesSizer( PropertiesWindow *pParent )
 {
+#if !_USE_ZOOM_GUI
+int zoomS = 100;
+#else
+int zoomS = 300;
+
+#endif
+
     Glyph::createPropertiesSizer( pParent );
 
     wxBoxSizer *pBoxMain = new wxBoxSizer( wxVERTICAL );
+
+	wxToggleButton *m_pToggleRotPeaks = new wxToggleButton( pParent, wxID_ANY,wxT("Rotate peaks with header"), wxDefaultPosition, wxSize(zoomS*2, -1) );
+    pParent->Connect( m_pToggleRotPeaks->GetId(), wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler(PropertiesWindow::OnToggleRotatePeaks) );
+	pBoxMain->Add( m_pToggleRotPeaks, 0, wxFIXED_MINSIZE | wxEXPAND, 0 );
 
     wxRadioButton *pRadSlices = new wxRadioButton( pParent, wxID_ANY, wxT( "Slices" ), wxDefaultPosition, wxDefaultSize, wxRB_GROUP );
     wxRadioButton *pRadWhole   = new wxRadioButton( pParent, wxID_ANY, wxT( "Whole" ) );

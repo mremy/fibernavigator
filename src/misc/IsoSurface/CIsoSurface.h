@@ -4,6 +4,7 @@
 // Based on code from: Raghavendra Chandrashekara, Paul Bourke and Cory Gene Bloyd
 
 #include "CIsoSurfaceBase.h"
+#include "../../gui/MyListCtrl.h"
 
 #include <wx/wxprec.h>
 
@@ -52,6 +53,8 @@ public:
 
     bool save( wxString filename ) const;
     bool save( wxXmlNode *pNode, const wxString &rootPath ) const;
+	wxSlider *m_pSliderDotThresh;
+	wxSlider *m_pSliderEdgeOpThresh;
 
 protected:
     // The number of vertices which make up the isosurface.
@@ -108,6 +111,7 @@ protected:
     
     bool m_positionsCalculated;
     std::vector<Vector>m_svPositions;
+	
 
 private:
     GLuint getGLuint() {return 0;};
@@ -117,6 +121,8 @@ private:
 
     wxToggleButton *m_pToggleCutFrontSector;
     wxToggleButton *m_pToggleUseColoring;
+	wxToggleButton *m_pToggleHalo;
+	
 };
 #endif // CISOSURFACE_H
 

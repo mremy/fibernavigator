@@ -25,6 +25,8 @@ DatasetInfo::DatasetInfo()
 
     m_threshold    ( 0.0f ),
     m_alpha        ( 1.0f ),
+	m_dot          ( 0.0f),
+	m_edgeOp       ( 1.0f),
     m_brightness   ( 1.0f ),
     m_oldMax       ( 1.0 ),
     m_newMax       ( 1.0 ),
@@ -35,7 +37,7 @@ DatasetInfo::DatasetInfo()
     m_show         ( true ),
     m_showFS       ( true ),
     m_useTex       ( true ),
-
+	m_showHalo     ( true ),
     m_isGlyph      ( false ),
     m_bufferObjects( 0 ),
 
@@ -114,7 +116,7 @@ void DatasetInfo::createPropertiesSizer( PropertiesWindow *pParent )
 #else
 	int s = 500;
 #endif
-    m_pSliderThresholdIntensity = new MySlider( pParent, wxID_ANY,(int)( getThreshold() * 100 ), 0, 100, wxDefaultPosition, wxSize( s, -1 ), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
+    m_pSliderThresholdIntensity = new MySlider( pParent, wxID_ANY,(int)( getThreshold() * 100 ), 0, 200, wxDefaultPosition, wxSize( s, -1 ), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
     m_pIntensityText = new wxStaticText( pParent, wxID_ANY, wxT( "Intensity" ) );
     pGridSliders->Add( m_pIntensityText,            0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxALL, 1 );
     pGridSliders->Add( m_pSliderThresholdIntensity, 0, wxALIGN_CENTER_HORIZONTAL | wxEXPAND | wxALL,    1 );

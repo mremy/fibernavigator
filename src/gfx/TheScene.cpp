@@ -350,8 +350,9 @@ void TheScene::renderScene()
     if( DatasetManager::getInstance()->isTensorsLoaded() )
         renderTensors();
 
+	renderFibers();
     renderMesh();
-    renderFibers();
+    
 
     if( SceneManager::getInstance()->getShowAllSelObj() && m_pRealTimeFibers->getOpacity() < 1)
     {
@@ -597,6 +598,22 @@ void TheScene::renderMesh()
     //Render selection objects
     glColor3f( 1.0f, 0.0f, 0.0f );
 
+	Matrix4fT transform = SceneManager::getInstance()->getTransform();
+    float dots[8];
+    Vector3fT v1 = { { 0, 0, 1 } };
+    Vector3fT v2 = { { 1, 1, 1 } };
+    Vector3fT view;
+
+    Vector3fMultMat4( &view, &v1, &transform );
+    dots[0] = Vector3fDot( &v2, &view );
+	Vector zVector = Vector(view.s.X, view.s.Y, view.s.Z); 
+	zVector.normalize();
+	GLfloat viewVec[3];
+	viewVec[0] = zVector.x;
+	viewVec[1] = zVector.y;
+	viewVec[2] = zVector.z;
+	ShaderHelper::getInstance()->getMeshShader()->setUni3Float( "viewVec", viewVec );
+
     ShaderHelper::getInstance()->getMeshShader()->setUniInt  ( "showFS", true );
     ShaderHelper::getInstance()->getMeshShader()->setUniInt  ( "useTex", false );
     ShaderHelper::getInstance()->getMeshShader()->setUniFloat( "alpha_", 1.0 );
@@ -639,10 +656,13 @@ void TheScene::renderMeshInternal(  DatasetInfo *pDsInfo )
     wxColor color = pDsInfo->getColor();
     glColor3f( (float)color.Red() / 255.0f, (float)color.Green() / 255.0f, (float)color.Blue() / 255.0f );
 
+	ShaderHelper::getInstance()->getMeshShader()->setUniInt  ( "showHalo",pDsInfo->getShowHalo() );
     ShaderHelper::getInstance()->getMeshShader()->setUniInt  ( "showFS",  pDsInfo->getShowFS() );
     ShaderHelper::getInstance()->getMeshShader()->setUniInt  ( "useTex",  pDsInfo->getUseTex() );
     ShaderHelper::getInstance()->getMeshShader()->setUniFloat( "alpha_",  pDsInfo->getAlpha() );
     ShaderHelper::getInstance()->getMeshShader()->setUniInt  ( "isGlyph", pDsInfo->getIsGlyph());
+	ShaderHelper::getInstance()->getMeshShader()->setUniFloat( "dotThresh", pDsInfo->getDotThresh() );
+	ShaderHelper::getInstance()->getMeshShader()->setUniFloat( "edgeOp", pDsInfo->getEdgeOpThresh() );
 
     if( pDsInfo->getAlpha() < 0.99 )
     {

@@ -260,7 +260,11 @@ MainFrame::MainFrame( const wxString     &title,
     this->SetToolBar(pInternalToolbar);
     
     updateMenus();
+#if !_USE_ZOOM_GUI
     int widths[] = { 250, 250, -1 };
+#else
+	int widths[] = { 500, 500, -1 };
+#endif
     CreateStatusBar( 2 );
     GetStatusBar()->SetFieldsCount( WXSIZEOF(widths), widths );
     GetStatusBar()->Show(); 

@@ -106,7 +106,7 @@ ToolBar::ToolBar(wxToolBar *pToolBar)
     m_txtRuler->SetFont(font);
     m_pToolBar->AddControl(m_txtRuler);
 
-    m_txtProtractor = new wxTextCtrl(m_pToolBar, wxID_ANY,wxT("0­ deg."), wxDefaultPosition, wxSize( w, h ), wxTE_LEFT | wxTE_READONLY);
+    m_txtProtractor = new wxTextCtrl(m_pToolBar, wxID_ANY,wxT("0 deg."), wxDefaultPosition, wxSize( w, h ), wxTE_LEFT | wxTE_READONLY);
     m_txtProtractor->SetForegroundColour(wxColour(wxT("#222222")));
     m_txtProtractor->SetBackgroundColour(*wxWHITE);
     wxFont font2 = m_txtProtractor->GetFont();

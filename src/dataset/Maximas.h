@@ -8,11 +8,25 @@
 #include "DatasetInfo.h"
 #include "Glyph.h"
 #include "../misc/nifti/nifti1_io.h"
+#include "../misc/Fantom/FMatrix.h"
 
 enum DISPLAY { SLICES, WHOLE };
 
 class Maximas : public Glyph
 {
+
+	enum AxialOrientation
+    {
+        ORIENTATION_LEFT_TO_RIGHT,
+        ORIENTATION_RIGHT_TO_LEFT,
+        ORIENTATION_UNDEFINED
+    };
+    enum SagOrientation
+    {
+        ORIENTATION_ANT_TO_POST,
+        ORIENTATION_POST_TO_ANT,
+    };
+
 public:
     // Constructor/Destructor
     //Maximas();
@@ -29,6 +43,7 @@ public:
     
     void changeDisplay( DISPLAY value )                   { m_displayType = value; }
     bool isDisplay( DISPLAY disp )                        { return m_displayType == disp; }
+	void rotatePeaks();
 
     // PropertiesSizer
     virtual void createPropertiesSizer( PropertiesWindow *parent );
@@ -48,6 +63,8 @@ private:
     std::vector< float > l_fileFloatData;
     DISPLAY m_displayType;
     int m_dataType;
+	FMatrix storedRot;
+	bool m_doRotate;
 
 };
 
