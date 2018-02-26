@@ -79,6 +79,7 @@ public:
     void OnNewIsoSurface                    ( wxCommandEvent& event ); 
 
     void OnFloodFill                        ( wxCommandEvent& event );
+	void OnKMeans                        ( wxCommandEvent& event );
     void OnSliderFloodMoved                 ( wxCommandEvent& event );
 
     void OnFibersFilter                     ( wxCommandEvent& event );

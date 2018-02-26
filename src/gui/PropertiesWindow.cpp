@@ -706,6 +706,14 @@ void PropertiesWindow::OnFloodFill(wxCommandEvent& WXUNUSED(event))
     ((Anatomy*)m_pMainFrame->m_pCurrentSceneObject)->toggleSegment();
 }
 
+void PropertiesWindow::OnKMeans(wxCommandEvent& WXUNUSED(event))
+{
+    Logger::getInstance()->print( wxT( "Event triggered - PropertiesWindow::OnFloodFill" ), LOGLEVEL_DEBUG );
+
+    SceneManager::getInstance()->setSegmentMethod( KMEANS );
+	m_pMainFrame->m_pMainGL->segment();
+}
+
 void PropertiesWindow::OnSliderFloodMoved( wxCommandEvent& WXUNUSED(event) )
 {
     Logger::getInstance()->print( wxT( "Event triggered - PropertiesWindow::OnSliderFloodMoved" ), LOGLEVEL_DEBUG );
@@ -814,62 +822,6 @@ void PropertiesWindow::OnListMenuMinDistance( wxCommandEvent& WXUNUSED(event))
     }
 }
 
-
-///////////////////////////////////////////////////////////////////////////
-// This function will be triggered when the user click on the color with curvature button
-// button that is located in the m_fibersInfoSizer.
-///////////////////////////////////////////////////////////////////////////
-void PropertiesWindow::OnColorWithCurvature( wxCommandEvent& WXUNUSED(event) )
-{
-    Logger::getInstance()->print( wxT( "Event triggered - PropertiesWindow::OnColorWithCurvature" ), LOGLEVEL_DEBUG );
-
-    long index = MyApp::frame->getCurrentListIndex();
-    if( -1 != index )
-    {
-        Fibers* pFibers = DatasetManager::getInstance()->getSelectedFibers( MyApp::frame->m_pListCtrl->GetItem( index ) );
-        if( pFibers != NULL )
-        {
-            if( pFibers->getColorationMode() != CURVATURE_COLOR )
-            {
-                pFibers->setColorationMode( CURVATURE_COLOR );
-                pFibers->updateFibersColors();
-                pFibers->updateColorationMode();
-            }
-        }
-    }
-    else
-    {
-        Logger::getInstance()->print( wxT( "PropertiesWindow::OnColorWithCurvature - Current index is -1" ), LOGLEVEL_ERROR );
-    }
-}
-
-///////////////////////////////////////////////////////////////////////////
-// This function will be triggered when the user click on the display min/max cross section
-// button that is located in the m_fibersInfoSizer.
-///////////////////////////////////////////////////////////////////////////
-void PropertiesWindow::OnColorWithTorsion( wxCommandEvent& WXUNUSED(event) )
-{
-    Logger::getInstance()->print( wxT( "Event triggered - PropertiesWindow::OnColorWithTorsion" ), LOGLEVEL_DEBUG );
-
-    long index = MyApp::frame->getCurrentListIndex();
-    if( -1 != index )
-    {
-        Fibers* pFibers = DatasetManager::getInstance()->getSelectedFibers( MyApp::frame->m_pListCtrl->GetItem( index ) );
-        if( pFibers != NULL )
-        {
-            if( pFibers->getColorationMode() != TORSION_COLOR )
-            {
-                pFibers->setColorationMode( TORSION_COLOR );
-                pFibers->updateFibersColors();
-                pFibers->updateColorationMode();
-            }
-        }
-    }
-    else
-    {
-        Logger::getInstance()->print( wxT( "PropertiesWindow::OnColorWithTorsion - Current index is -1" ), LOGLEVEL_ERROR );
-    }
-}
 
 void PropertiesWindow::OnNormalColoring( wxCommandEvent& WXUNUSED(event) )
 {

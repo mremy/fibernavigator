@@ -1123,7 +1123,7 @@ void Anatomy::createPropertiesSizer( PropertiesWindow *pParent )
     m_pBtnDilate =           new wxButton( pParent, wxID_ANY, wxT( "Dilate" ),                 wxDefaultPosition, wxSize( 85,  -1 ) );
     m_pBtnErode  =           new wxButton( pParent, wxID_ANY, wxT( "Erode" ),                  wxDefaultPosition, wxSize( 85,  -1 ) );
     m_pBtnCut =              new wxButton( pParent, wxID_ANY, wxT( "Cut (boxes)" ),            wxDefaultPosition, wxSize( 85,  -1 ) );
-    m_pBtnMinimize =         new wxButton( pParent, wxID_ANY, wxT( "Minimize (fibers)" ),      wxDefaultPosition, wxSize( 85,  -1 ) );    
+    //m_pBtnMinimize =         new wxButton( pParent, wxID_ANY, wxT( "Minimize (fibers)" ),      wxDefaultPosition, wxSize( 85,  -1 ) );    
     m_pBtnNewDistanceMap =   new wxButton( pParent, wxID_ANY, wxT( "New Distance Map" ),       wxDefaultPosition, wxSize( 140, -1 ) );
     m_pBtnEdgeDetect =       new wxButton( pParent, wxID_ANY, wxT( "Edge detect" ),            wxDefaultPosition, wxSize( 140, -1 ) );
 #endif
@@ -1154,6 +1154,8 @@ void Anatomy::createPropertiesSizer( PropertiesWindow *pParent )
     //////////////////////////////////////////////////////////////////////////
 
     pBoxMain->Add( m_pEqualize, 0, wxALIGN_CENTER | wxEXPAND | wxRIGHT | wxLEFT, 24 );
+	m_pBtnKmeans = new wxButton(pParent, wxID_ANY, wxT("K-Means"), wxDefaultPosition, wxSize( 85,  -1 ));
+	
 
 #if !_USE_LIGHT_GUI
     wxGridSizer *pGridButtons = new wxGridSizer( 2 );
@@ -1161,7 +1163,7 @@ void Anatomy::createPropertiesSizer( PropertiesWindow *pParent )
     pGridButtons->Add( m_pBtnDilate,   0, wxEXPAND | wxALL, 1 );
     pGridButtons->Add( m_pBtnErode,    0, wxEXPAND | wxALL, 1 );
     pGridButtons->Add( m_pBtnCut,      0, wxEXPAND | wxALL, 1 );
-    pGridButtons->Add( m_pBtnMinimize, 0, wxEXPAND | wxALL, 1 );
+    pGridButtons->Add( m_pBtnKmeans, 0, wxEXPAND | wxALL, 1 );
     pBoxMain->Add( pGridButtons, 0, wxEXPAND | wxALL | wxALIGN_CENTER, 2 );
 
     pBoxMain->Add( m_pBtnNewDistanceMap,   0, wxALIGN_CENTER | wxEXPAND | wxRIGHT | wxLEFT, 24 );
@@ -1199,7 +1201,8 @@ void Anatomy::createPropertiesSizer( PropertiesWindow *pParent )
     pParent->Connect( m_pBtnDilate->GetId(),           wxEVT_COMMAND_BUTTON_CLICKED,       wxCommandEventHandler( PropertiesWindow::OnDilateDataset ) );
     pParent->Connect( m_pBtnErode->GetId(),            wxEVT_COMMAND_BUTTON_CLICKED,       wxCommandEventHandler( PropertiesWindow::OnErodeDataset ) );
     pParent->Connect( m_pBtnCut->GetId(),              wxEVT_COMMAND_BUTTON_CLICKED,       wxCommandEventHandler( PropertiesWindow::OnListItemCutOut ) );
-    pParent->Connect( m_pBtnMinimize->GetId(),         wxEVT_COMMAND_BUTTON_CLICKED,       wxCommandEventHandler( PropertiesWindow::OnMinimizeDataset ) );    
+    //pParent->Connect( m_pBtnMinimize->GetId(),         wxEVT_COMMAND_BUTTON_CLICKED,       wxCommandEventHandler( PropertiesWindow::OnMinimizeDataset ) );    
+	pParent->Connect(m_pBtnKmeans->GetId(),            wxEVT_COMMAND_BUTTON_CLICKED,       wxCommandEventHandler(PropertiesWindow::OnKMeans));
     pParent->Connect( m_pBtnNewDistanceMap->GetId(),   wxEVT_COMMAND_BUTTON_CLICKED,       wxCommandEventHandler( PropertiesWindow::OnNewDistanceMap ) );
     pParent->Connect( m_pBtnEdgeDetect->GetId(),       wxEVT_COMMAND_BUTTON_CLICKED,       wxCommandEventHandler( PropertiesWindow::OnEdgeDetect ) );
 #endif
@@ -1256,11 +1259,7 @@ void Anatomy::createPropertiesSizer( PropertiesWindow *pParent )
 //     m_propertiesSizer->Add(pSizer,0,wxALIGN_CENTER);
 //     pParentWindow->Connect(m_pBtnGraphCut->GetId(),wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(PropertiesWindow::OnbtnGraphCut));
 // 
-//     m_pBtnKmeans = new wxButton(pParentWindow, wxID_ANY, wxT("K-Means"), wxDefaultPosition, wxSize(132,-1));
-//     pSizer = new wxBoxSizer(wxHORIZONTAL);
-//     pSizer->Add(m_pBtnKmeans,0,wxALIGN_CENTER);
-//     m_propertiesSizer->Add(pSizer,0,wxALIGN_CENTER);
-//     pParentWindow->Connect(m_pBtnKmeans->GetId(),wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(PropertiesWindow::OnKmeans));
+
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1274,9 +1273,9 @@ void Anatomy::updatePropertiesSizer()
     m_pEqualize->Enable(      1 == m_bands );
 
 #if !_USE_LIGHT_GUI
-    m_pBtnMinimize->Enable( DatasetManager::getInstance()->isFibersLoaded() );
+    //m_pBtnMinimize->Enable( DatasetManager::getInstance()->isFibersLoaded() );
     m_pBtnCut->Enable(      !SceneManager::getInstance()->getSelectionTree().isEmpty() );
-
+	m_pBtnKmeans->Enable(getType() <= OVERLAY);
     m_pBtnNewDistanceMap->Enable( getType() <= OVERLAY );
     m_pBtnEdgeDetect->Enable( getType() <= OVERLAY );
 #endif
@@ -1285,6 +1284,9 @@ void Anatomy::updatePropertiesSizer()
     m_pBtnNewOffsetSurface->Enable( getType() <= OVERLAY );
     m_pBtnNewIsoSurface->Enable(    getType() <= OVERLAY );
     m_pBtnNewVOI->Enable(           getType() <= OVERLAY );
+	m_pToggleSegment->Enable( getType() <= OVERLAY );
+	m_pBtnErode->Enable( getType() <= OVERLAY );
+	m_pBtnDilate->Enable( getType() <= OVERLAY );
  
     //m_pBtnGraphCut->Enable( m_dh->graphcutReady() );
     

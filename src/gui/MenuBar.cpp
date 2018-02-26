@@ -121,7 +121,7 @@ MenuBar::MenuBar()
         m_itemDrawS5 = m_menuStrokeSize->AppendRadioItem(wxID_ANY, wxT("Size : 5"));
         m_itemDrawS7 = m_menuStrokeSize->AppendRadioItem(wxID_ANY, wxT("Size : 7"));
         m_itemDrawS10 = m_menuStrokeSize->AppendRadioItem(wxID_ANY, wxT("Size : 10"));
-        m_itemDrawS2->Check();
+        m_itemDrawS5->Check();
         m_menuOptions->AppendSubMenu(m_menuStrokeSize, wxT("Stroke Size"));
     m_itemDrawPen = m_menuDrawer->AppendCheckItem(wxID_ANY, wxT("Use Pen"));
     m_itemDrawEraser = m_menuDrawer->AppendCheckItem(wxID_ANY, wxT("Use Eraser"));
@@ -136,7 +136,7 @@ MenuBar::MenuBar()
     m_itemBlueLightblue = m_menuColorMaps->Append(wxID_ANY, wxT("Blue-Lightblue"));
 	m_itemCoolIron = m_menuColorMaps->Append(wxID_ANY, wxT("Cooliron"));
     m_itemRedIron = m_menuColorMaps->Append(wxID_ANY, wxT("Rediron"));
-	m_itemCustom = m_menuColorMaps->Append(wxID_ANY, wxT("Custom"));
+	m_itemCustom = m_menuColorMaps->Append(wxID_ANY, wxT("Heatwave"));
     m_menuOptions->AppendSubMenu(m_menuColorMaps,wxT("Color Maps"));  
 
 #if !_USE_LIGHT_GUI
@@ -147,7 +147,7 @@ MenuBar::MenuBar()
     m_itemToggleLighting = m_menuOptions->AppendCheckItem(wxID_ANY, wxT("Lighting"));
     m_itemToggleClearToBlack = m_menuOptions->AppendCheckItem(wxID_ANY, wxT("Clear to Black"));
     m_itemToggleBlendTextureOnMesh = m_menuOptions->AppendCheckItem(wxID_ANY, wxT("Blend Tex. on Mesh"));
-    m_itemToggleFilterISO = m_menuOptions->AppendCheckItem(wxID_ANY, wxT("Filter Iso"));
+    m_itemToggleFilterISO = m_menuOptions->AppendCheckItem(wxID_ANY, wxT("Filter surface"));
     m_itemToggleNormal = m_menuOptions->AppendCheckItem(wxID_ANY, wxT("Flip Normal"));
 
     m_menuHelp = new wxMenu();
@@ -355,12 +355,15 @@ void MenuBar::updateMenuBar( MainFrame *mf )
 #endif  // _COMPILE_GEO_SHADERS
 #endif  // !_USE_LIGHT_GUI
     
+	m_itemNewAnatomyRGB->Enable(false);
     m_itemToggleShowAxial->Check( SceneManager::getInstance()->isAxialDisplayed() );
     m_itemToggleShowCoronal->Check( SceneManager::getInstance()->isCoronalDisplayed() );
     m_itemToggleShowSagittal->Check( SceneManager::getInstance()->isSagittalDisplayed() );
     m_itemToggleClearToBlack->Check( SceneManager::getInstance()->getClearToBlack() );
     m_itemToggleBlendTextureOnMesh->Check( SceneManager::getInstance()->isTexBlendOnMesh() );
     m_itemToggleFilterISO->Check( SceneManager::getInstance()->isIsoSurfaceFiltered() );
+	m_itemToggleNormal->Enable(false);
+	m_itemToggleDrawVectors->Enable(false);
     
 #if !_USE_LIGHT_GUI
     m_itemToggleShowCrosshair->Check( SceneManager::getInstance()->isCrosshairDisplayed() );

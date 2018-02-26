@@ -1705,15 +1705,7 @@ void Fibers::updateFibersColors()
             pColorData  = &m_normalArray[0];
         }
 
-        if( m_fiberColorationMode == CURVATURE_COLOR )
-        {
-            colorWithCurvature( pColorData );
-        }
-        else if( m_fiberColorationMode == TORSION_COLOR )
-        {
-            colorWithTorsion( pColorData );
-        }
-        else if( m_fiberColorationMode == DISTANCE_COLOR )
+        if( m_fiberColorationMode == DISTANCE_COLOR )
         {
             colorWithDistance( pColorData );
         }
@@ -1733,199 +1725,9 @@ void Fibers::updateFibersColors()
     }
 }
 
-///////////////////////////////////////////////////////////////////////////
-// This function will color the fibers depending on their torsion value.
-//
-// pColorData      : A pointer to the fiber color info.
-///////////////////////////////////////////////////////////////////////////
-void Fibers::colorWithTorsion( float *pColorData )
-{
-    if( pColorData == NULL )
-    {
-        return;
-    }
 
-    int    pc = 0;
-    // TODO remove
-    //Vector firstDerivative, secondDerivative, thirdDerivative;
 
-    // For each fibers.
-    for( int i = 0; i < getLineCount(); ++i )
-    {
-        double color        = 0.0f;
-        int    index        = 0;
-        float  progression  = 0.0f;
-        int    pointPerLine = getPointsPerLine( i );
 
-        // We cannot calculate the torsion for a fiber that as less that 5 points.
-        // So we simply do not cange the color for this fiber
-        if( pointPerLine < 5 )
-        {
-            continue;
-        }
-
-        // For each points of this fiber.
-        for( int j = 0; j < pointPerLine; ++j )
-        {
-            if( j == 0 )
-            {
-                index = 6;                             // For the first point of each fiber.
-                progression = 0.0f;
-            }
-            else if( j == 1 )
-            {
-                index = 6;                             // For the second point of each fiber.
-                progression = 0.25f;
-            }
-            else if( j == pointPerLine - 2 )
-            {
-                index = ( pointPerLine - 2 ) * 3;    // For the before last point of each fiber.
-                progression = 0.75f;
-            }
-            else if( j == pointPerLine - 1 )
-            {
-                index = ( pointPerLine - 2 ) * 3;    // For the last point of each fiber.
-                progression = 1.0f;
-            }
-            else
-            {
-                progression = 0.5f;     // For every other points.
-            }
-
-            Helper::getProgressionTorsion(
-                    Vector( m_pointArray[index - 6], m_pointArray[index - 5], m_pointArray[index - 4] ),
-                    Vector( m_pointArray[index - 3], m_pointArray[index - 2], m_pointArray[index - 1] ),
-                    Vector( m_pointArray[index],     m_pointArray[index + 1], m_pointArray[index + 2] ),
-                    Vector( m_pointArray[index + 3], m_pointArray[index + 4], m_pointArray[index + 5] ),
-                    Vector( m_pointArray[index + 6], m_pointArray[index + 7], m_pointArray[index + 8] ),
-                    progression, color );
-
-            // Lets apply a specific hard coded coloration for the torsion.
-            float realColor;
-
-            if( color <= 0.01f ) // Those points have no torsion so we simply but them pure blue.
-            {
-                pColorData[pc]     = 0.0f;
-                pColorData[pc + 1] = 0.0f;
-                pColorData[pc + 2] = 1.0f;
-            }
-            else if( color < 0.1f )  // The majority of the values are here.
-            {
-                double normalizedValue = ( color - 0.01f ) / ( 0.1f - 0.01f );
-                realColor = ( pow( ( double )2.71828182845904523536, normalizedValue ) ) - 1.0f;
-                pColorData[pc]     = 0.0f;
-                pColorData[pc + 1] = realColor;
-                pColorData[pc + 2] = 1.0f - realColor;
-            }
-            else // All the rest is simply pure green.
-            {
-                pColorData[pc]     = 0.0f;
-                pColorData[pc + 1] = 1.0f;
-                pColorData[pc + 2] = 0.0f;
-            }
-
-            pc    += 3;
-            index += 3;
-        }
-    }
-}
-
-///////////////////////////////////////////////////////////////////////////
-// This function will color the fibers depending on their curvature value.
-//
-// pColorData      : A pointer to the fiber color info.
-///////////////////////////////////////////////////////////////////////////
-void Fibers::colorWithCurvature( float *pColorData )
-{
-    if( pColorData == NULL )
-    {
-        return;
-    }
-
-    int    pc = 0;
-    // TODO remove
-    //Vector firstDerivative, secondDerivative, thirdDerivative;
-
-    // For each fibers.
-    for( int i = 0; i < getLineCount(); ++i )
-    {
-        double color        = 0.0f;
-        int    index        = 0;
-        float  progression  = 0.0f;
-        int    pointPerLine = getPointsPerLine( i );
-
-        // We cannot calculate the curvature for a fiber that as less that 5 points.
-        // So we simply do not cange the color for this fiber
-        if( pointPerLine < 5 )
-        {
-            continue;
-        }
-
-        // For each point of this fiber.
-        for( int j = 0; j < pointPerLine; ++j )
-        {
-            if( j == 0 )
-            {
-                index = 6;                             // For the first point of each fiber.
-                progression = 0.0f;
-            }
-            else if( j == 1 )
-            {
-                index = 6;                             // For the second point of each fiber.
-                progression = 0.25f;
-            }
-            else if( j == pointPerLine - 2 )
-            {
-                index = ( pointPerLine - 2 ) * 3;    // For the before last point of each fiber.
-                progression = 0.75f;
-            }
-            else if( j == pointPerLine - 1 )
-            {
-                index = ( pointPerLine - 2 ) * 3;    // For the last point of each fiber.
-                progression = 1.0f;
-            }
-            else
-            {
-                progression = 0.5f;     // For every other points.
-            }
-
-            Helper::getProgressionCurvature(
-                    Vector( m_pointArray[index - 6], m_pointArray[index - 5], m_pointArray[index - 4] ),
-                    Vector( m_pointArray[index - 3], m_pointArray[index - 2], m_pointArray[index - 1] ),
-                    Vector( m_pointArray[index],     m_pointArray[index + 1], m_pointArray[index + 2] ),
-                    Vector( m_pointArray[index + 3], m_pointArray[index + 4], m_pointArray[index + 5] ),
-                    Vector( m_pointArray[index + 6], m_pointArray[index + 7], m_pointArray[index + 8] ),
-                    progression, color );
-
-            // Lets apply a specific hard coded coloration for the curvature.
-            float realColor;
-
-            if( color <= 0.01f ) // Those points have no curvature so we simply but them pure blue.
-            {
-                pColorData[pc]     = 0.0f;
-                pColorData[pc + 1] = 0.0f;
-                pColorData[pc + 2] = 1.0f;
-            }
-            else if( color < 0.1f )  // The majority of the values are here.
-            {
-                double normalizedValue = ( color - 0.01f ) / ( 0.1f - 0.01f );
-                realColor = ( pow( ( double )2.71828182845904523536, normalizedValue ) ) - 1.0f;
-                pColorData[pc]     = 0.0f;
-                pColorData[pc + 1] = realColor;
-                pColorData[pc + 2] = 1.0f - realColor;
-            }
-            else // All the rest is simply pure green.
-            {
-                pColorData[pc]     = 0.0f;
-                pColorData[pc + 1] = 1.0f;
-                pColorData[pc + 2] = 0.0f;
-            }
-
-            pc    += 3;
-            index += 3;
-        }
-    }
-}
 
 ///////////////////////////////////////////////////////////////////////////
 // This function will color the fibers depending on their distance to the
@@ -4003,47 +3805,7 @@ void Fibers::createPropertiesSizer( PropertiesWindow *pParent )
     
     pBoxMain->Add(pBoxSampling, 0, wxFIXED_MINSIZE | wxEXPAND, 0 );
 
-    wxBoxSizer *pBoxcalpha = new wxBoxSizer( wxHORIZONTAL );
-    pBoxcalpha->Add( new wxStaticText( pParent, wxID_ANY, wxT( "c" ), wxDefaultPosition, wxSize(s, -1), wxALIGN_LEFT ), 0, wxALIGN_LEFT | wxALL, 1 );
-    pBoxcalpha->Add( m_pSliderFibersAlpha, 0, wxALIGN_CENTER | wxALL, 1);
-    pBoxcalpha->Add( m_pTxtAlphaBox,   0, wxALIGN_CENTER | wxALL, 1);
     
-    pBoxMain->Add(pBoxcalpha, 0, wxFIXED_MINSIZE | wxEXPAND, 0 );
-
-    wxBoxSizer *pBoxRowlina = new wxBoxSizer( wxHORIZONTAL );
-    pBoxRowlina->Add( new wxStaticText( pParent, wxID_ANY, wxT( "a" ), wxDefaultPosition, wxSize(s, -1), wxALIGN_LEFT ), 0, wxALIGN_LEFT | wxALL, 1 );
-    pBoxRowlina->Add( m_pSliderFibersLina, 0, wxALIGN_CENTER | wxALL, 1);
-    pBoxRowlina->Add( m_pTxtlina,   0, wxALIGN_CENTER | wxALL, 1);
-    
-    pBoxMain->Add(pBoxRowlina, 0, wxFIXED_MINSIZE | wxEXPAND, 0 );
-
-    wxBoxSizer *pBoxRowlinb = new wxBoxSizer( wxHORIZONTAL );
-    pBoxRowlinb->Add( new wxStaticText( pParent, wxID_ANY, wxT( "b" ), wxDefaultPosition, wxSize(s, -1), wxALIGN_LEFT ), 0, wxALIGN_LEFT | wxALL, 1 );
-    pBoxRowlinb->Add( m_pSliderFibersLinb, 0, wxALIGN_CENTER | wxALL, 1);
-    pBoxRowlinb->Add( m_pTxtlinb,   0, wxALIGN_CENTER | wxALL, 1);
-    
-    pBoxMain->Add(pBoxRowlinb, 0, wxFIXED_MINSIZE | wxEXPAND, 0 );
-
-    wxBoxSizer *pBoxRow1 = new wxBoxSizer( wxHORIZONTAL );
-    pBoxRow1->Add( new wxStaticText( pParent, wxID_ANY, wxT( "Theta" ), wxDefaultPosition, wxSize(s, -1), wxALIGN_LEFT ), 0, wxALIGN_LEFT | wxALL, 1 );
-    pBoxRow1->Add( m_pSliderFibersTheta, 0, wxALIGN_CENTER | wxALL, 1);
-    pBoxRow1->Add( m_pTxtThetaBox,   0, wxALIGN_CENTER | wxALL, 1);
-    
-    pBoxMain->Add(pBoxRow1, 0, wxFIXED_MINSIZE | wxEXPAND, 0 );
-
-    wxBoxSizer *pBoxRow2 = new wxBoxSizer( wxHORIZONTAL );
-    pBoxRow2->Add( new wxStaticText( pParent, wxID_ANY, wxT( "Phi" ), wxDefaultPosition, wxSize(s, -1), wxALIGN_LEFT ), 0, wxALIGN_LEFT | wxALL, 1 );
-    pBoxRow2->Add( m_pSliderFibersPhi, 0, wxALIGN_CENTER | wxALL, 1);
-    pBoxRow2->Add( m_pTxtPhiBox,   0, wxALIGN_CENTER | wxALL, 1);
-    
-    pBoxMain->Add(pBoxRow2, 0, wxFIXED_MINSIZE | wxEXPAND, 0 );
-
-    wxBoxSizer *pBoxcl = new wxBoxSizer( wxHORIZONTAL );
-    pBoxcl->Add( new wxStaticText( pParent, wxID_ANY, wxT( "T_cl" ), wxDefaultPosition, wxSize(s, -1), wxALIGN_LEFT ), 0, wxALIGN_LEFT | wxALL, 1 );
-    pBoxcl->Add( m_pSliderFiberscl, 0, wxALIGN_CENTER | wxALL, 1);
-    pBoxcl->Add( m_pTxtclBox,   0, wxALIGN_CENTER | wxALL, 1);
-    
-    pBoxMain->Add(pBoxcl, 0, wxFIXED_MINSIZE | wxEXPAND, 0 );
 
 
     //////////////////////////////////////////////////////////////////////////
@@ -4101,6 +3863,48 @@ void Fibers::createPropertiesSizer( PropertiesWindow *pParent )
 	pBoxMain->Add( pBoxOpac, 0, wxFIXED_MINSIZE | wxEXPAND | wxTOP | wxBOTTOM, 8 );
 
 
+	wxBoxSizer *pBoxcalpha = new wxBoxSizer( wxHORIZONTAL );
+    pBoxcalpha->Add( new wxStaticText( pParent, wxID_ANY, wxT( "c" ), wxDefaultPosition, wxSize(s, -1), wxALIGN_LEFT ), 0, wxALIGN_LEFT | wxALL, 1 );
+    pBoxcalpha->Add( m_pSliderFibersAlpha, 0, wxALIGN_CENTER | wxALL, 1);
+    pBoxcalpha->Add( m_pTxtAlphaBox,   0, wxALIGN_CENTER | wxALL, 1);
+    
+    pBoxMain->Add(pBoxcalpha, 0, wxFIXED_MINSIZE | wxEXPAND, 0 );
+
+    wxBoxSizer *pBoxRowlina = new wxBoxSizer( wxHORIZONTAL );
+    pBoxRowlina->Add( new wxStaticText( pParent, wxID_ANY, wxT( "a" ), wxDefaultPosition, wxSize(s, -1), wxALIGN_LEFT ), 0, wxALIGN_LEFT | wxALL, 1 );
+    pBoxRowlina->Add( m_pSliderFibersLina, 0, wxALIGN_CENTER | wxALL, 1);
+    pBoxRowlina->Add( m_pTxtlina,   0, wxALIGN_CENTER | wxALL, 1);
+    
+    pBoxMain->Add(pBoxRowlina, 0, wxFIXED_MINSIZE | wxEXPAND, 0 );
+
+    wxBoxSizer *pBoxRowlinb = new wxBoxSizer( wxHORIZONTAL );
+    pBoxRowlinb->Add( new wxStaticText( pParent, wxID_ANY, wxT( "b" ), wxDefaultPosition, wxSize(s, -1), wxALIGN_LEFT ), 0, wxALIGN_LEFT | wxALL, 1 );
+    pBoxRowlinb->Add( m_pSliderFibersLinb, 0, wxALIGN_CENTER | wxALL, 1);
+    pBoxRowlinb->Add( m_pTxtlinb,   0, wxALIGN_CENTER | wxALL, 1);
+    
+    pBoxMain->Add(pBoxRowlinb, 0, wxFIXED_MINSIZE | wxEXPAND, 0 );
+
+    wxBoxSizer *pBoxRow1 = new wxBoxSizer( wxHORIZONTAL );
+    pBoxRow1->Add( new wxStaticText( pParent, wxID_ANY, wxT( "Theta" ), wxDefaultPosition, wxSize(s, -1), wxALIGN_LEFT ), 0, wxALIGN_LEFT | wxALL, 1 );
+    pBoxRow1->Add( m_pSliderFibersTheta, 0, wxALIGN_CENTER | wxALL, 1);
+    pBoxRow1->Add( m_pTxtThetaBox,   0, wxALIGN_CENTER | wxALL, 1);
+    
+    pBoxMain->Add(pBoxRow1, 0, wxFIXED_MINSIZE | wxEXPAND, 0 );
+
+    wxBoxSizer *pBoxRow2 = new wxBoxSizer( wxHORIZONTAL );
+    pBoxRow2->Add( new wxStaticText( pParent, wxID_ANY, wxT( "Phi" ), wxDefaultPosition, wxSize(s, -1), wxALIGN_LEFT ), 0, wxALIGN_LEFT | wxALL, 1 );
+    pBoxRow2->Add( m_pSliderFibersPhi, 0, wxALIGN_CENTER | wxALL, 1);
+    pBoxRow2->Add( m_pTxtPhiBox,   0, wxALIGN_CENTER | wxALL, 1);
+    
+    pBoxMain->Add(pBoxRow2, 0, wxFIXED_MINSIZE | wxEXPAND, 0 );
+
+    wxBoxSizer *pBoxcl = new wxBoxSizer( wxHORIZONTAL );
+    pBoxcl->Add( new wxStaticText( pParent, wxID_ANY, wxT( "T_cl" ), wxDefaultPosition, wxSize(s, -1), wxALIGN_LEFT ), 0, wxALIGN_LEFT | wxALL, 1 );
+    pBoxcl->Add( m_pSliderFiberscl, 0, wxALIGN_CENTER | wxALL, 1);
+    pBoxcl->Add( m_pTxtclBox,   0, wxALIGN_CENTER | wxALL, 1);
+    
+    pBoxMain->Add(pBoxcl, 0, wxFIXED_MINSIZE | wxEXPAND, 0 );
+
     //////////////////////////////////////////////////////////////////////////
 
     m_pPropertiesSizer->Add( pBoxMain, 0, wxFIXED_MINSIZE | wxEXPAND, 0 );
@@ -4129,8 +3933,6 @@ void Fibers::createPropertiesSizer( PropertiesWindow *pParent )
 #if !_USE_LIGHT_GUI
     pParent->Connect( m_pRadDistanceAnchoring->GetId(),          wxEVT_COMMAND_RADIOBUTTON_SELECTED, wxCommandEventHandler( PropertiesWindow::OnListMenuDistance ) );
     pParent->Connect( m_pRadMinDistanceAnchoring->GetId(),       wxEVT_COMMAND_RADIOBUTTON_SELECTED, wxCommandEventHandler( PropertiesWindow::OnListMenuMinDistance ) );
-    pParent->Connect( m_pRadTorsion->GetId(),                    wxEVT_COMMAND_RADIOBUTTON_SELECTED, wxCommandEventHandler( PropertiesWindow::OnColorWithTorsion ) );
-    pParent->Connect( m_pRadCurvature->GetId(),                  wxEVT_COMMAND_RADIOBUTTON_SELECTED, wxCommandEventHandler( PropertiesWindow::OnColorWithCurvature ) );
 #endif
 
     pParent->Connect( m_pRadConstant->GetId(),                   wxEVT_COMMAND_RADIOBUTTON_SELECTED, wxCommandEventHandler( PropertiesWindow::OnColorWithConstantColor ) );

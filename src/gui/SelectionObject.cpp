@@ -72,8 +72,8 @@ void SelectionObject::doBasicInit()
     m_treeId = NULL;
     m_pLabelAnatomy = NULL;
     m_pCBSelectDataSet = NULL;
-    m_displayCrossSections = CS_NOTHING;
-    m_displayDispersionCone = DC_NOTHING;
+	m_displayCrossSections = CS_MIN_MAX_ONLY;
+	m_displayDispersionCone = DC_FULL_CONE;
     
     m_maxCrossSectionIndex  = 0;
     m_minCrossSectionIndex  = 0;
@@ -965,14 +965,14 @@ void SelectionObject::updateStats()
     
     updateStatsGrid();
     
-    //vector< vector< Vector > > l_selectedFibersPoints = getSelectedFibersPoints();
+    vector< vector< Vector > > l_selectedFibersPoints = getSelectedFibersPoints();
     
-    /*//getMeanMaxMinFiberCrossSection  ( l_selectedFibersPoints,
+    //getMeanMaxMinFiberCrossSection  ( l_selectedFibersPoints,
      //                                  m_meanFiberPoints,
-     //                                  o_gridInfo.m_meanCrossSection, 
-     //                                  o_gridInfo.m_maxCrossSection,
-     //                                  o_gridInfo.m_minCrossSection   );*/
-    ////getFiberDispersion              ( o_gridInfo.m_dispersion        );
+       //                                m_stats.m_meanCrossSection, 
+         //                              m_stats.m_maxCrossSection,
+           //                            m_stats.m_minCrossSection   );
+    getFiberDispersion              ( m_stats.m_dispersion        );
     
     
 }
@@ -1129,7 +1129,7 @@ vector< vector< Vector > > SelectionObject::getSelectedFibersPoints()
         }
     }
     
-    std::cout << l_selectedFibersPoints.size() << std::endl;
+    //std::cout << l_selectedFibersPoints.size() << std::endl;
     return l_selectedFibersPoints;
 }
 
@@ -1732,9 +1732,9 @@ void SelectionObject::drawFibersInfo()
     // Draw the mean fiber.
     drawThickFiber( m_meanFiberPoints, (float)THICK_FIBER_THICKNESS/100.0f, THICK_FIBER_NB_TUBE_EDGE );
     // TODO selection convex hull
-    /*drawConvexHull();
-    drawCrossSections();
-    drawDispersionCone();*/
+    //drawConvexHull();
+    //drawCrossSections();
+    //drawDispersionCone();
 
     glEnable( GL_DEPTH_TEST);
 }

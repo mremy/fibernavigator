@@ -786,7 +786,7 @@ void TrackingWindow::OnSelectMask( wxCommandEvent& WXUNUSED(event) )
     {
         m_pMainFrame->m_pTrackingWindowHardi->m_pBtnStart->Enable( true );
         m_pMainFrame->m_pTrackingWindowHardi->m_pBtnStart->SetBackgroundColour(wxColour( 147, 255, 239 ));
-		m_pMainFrame->m_pFMRIWindow->setInitiateTractoBtn();
+		//m_pMainFrame->m_pFMRIWindow->setInitiateTractoBtn();
     }
 }
 

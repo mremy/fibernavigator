@@ -233,7 +233,7 @@ MainFrame::MainFrame( const wxString     &title,
     m_lastPath( MyApp::respath + _T( "data" ) ),
     m_pTimer( NULL ),
     m_isDrawerToolActive( false ),
-    m_drawSize( 2 ),
+    m_drawSize( 5 ),
     m_drawRound( true ),
     m_draw3d( false ),
     m_canUseColorPicker( false ),
@@ -390,13 +390,13 @@ void MainFrame::initLayout()
     m_pTrackingWindowHardi->SetScrollbars( 10, 10, 50, 50 );
     m_pTrackingWindowHardi->EnableScrolling( true, true );
 
-	m_pFMRIWindow = new FMRIWindow( m_tab, this, wxID_ANY, wxDefaultPosition, wxSize( PROP_WND_WIDTH, PROP_WND_HEIGHT )); // Contains realtime fmri properties
-    m_pFMRIWindow->SetScrollbars( 10, 10, 50, 50 );
-    m_pFMRIWindow->EnableScrolling( true, true );
+	//m_pFMRIWindow = new FMRIWindow( m_tab, this, wxID_ANY, wxDefaultPosition, wxSize( PROP_WND_WIDTH, PROP_WND_HEIGHT )); // Contains realtime fmri properties
+    //m_pFMRIWindow->SetScrollbars( 10, 10, 50, 50 );
+	//m_pFMRIWindow->EnableScrolling( true, true );
 
     m_tab->AddPage( m_pPropertiesWindow, wxT( "Properties" ) );
-    m_tab->AddPage( m_pTrackingWindowHardi, wxT( "HARDI tracking" ) );
-    m_tab->AddPage( m_pFMRIWindow, wxT( "rsfMRI networks" ) );
+    m_tab->AddPage( m_pTrackingWindowHardi, wxT( "Real-time tractography" ) );
+    //m_tab->AddPage( m_pFMRIWindow, wxT( "rsfMRI networks" ) );
 	//m_tab->AddPage( m_pTrackingWindow, wxT( "DTI tracking" ) );
 
     pBoxTab->Add( m_tab, 1, wxEXPAND | wxALL, 2 );
@@ -437,7 +437,7 @@ void MainFrame::onLoad( wxCommandEvent& WXUNUSED(event) )
 {
     wxArrayString l_fileNames;
     wxString l_caption          = wxT( "Choose a file" );
-    wxString l_wildcard         = wxT( "*.*|*.*|Nifti (*.nii)|*.nii*|Mesh files (*.mesh)|*.mesh|Mesh files (*.surf)|*.surf|Mesh files (*.dip)|*.dip|Fibers VTK/DMRI (*.fib)|*.fib|Fibers VTK(*.vtk)|*.vtk|Fibers PTK (*.bundlesdata)|*.bundlesdata|Fibers TrackVis (*.trk)|*.trk|Fibers MRtrix (*.tck)|*.tck|Scene Files (*.scn)|*.scn|Tensor files (*.nii*)|*.nii|ODF files (*.nii)|*.nii*" );
+    wxString l_wildcard         = wxT( "*.*|*.*|Nifti (*.nii)|*.nii*|Mesh files (*.mesh)|*.mesh|Mesh files (*.surf)|*.surf|Mesh files (*.dip)|*.dip|Fibers VTK/DMRI (*.fib)|*.fib|Fibers VTK World Space (*.vtk)|*.vtk|Fibers PTK (*.bundlesdata)|*.bundlesdata|Fibers TrackVis (*.trk)|*.trk|Fibers MRtrix (*.tck)|*.tck|Scene Files (*.scn)|*.scn|Tensor files (*.nii*)|*.nii|ODF files (*.nii)|*.nii*" );
     wxString l_defaultDir       = wxEmptyString;
     wxString l_defaultFileName  = wxEmptyString;
     wxFileDialog dialog( this, l_caption, l_defaultDir, l_defaultFileName, l_wildcard, wxFD_OPEN | wxFD_MULTIPLE );
@@ -1953,7 +1953,7 @@ void MainFrame::onAbout( wxCommandEvent& WXUNUSED(event) )
     
     ostringstream oss;
     oss << "Fibernavigator: a tool for interactive MRI images and streamlines exploration." << std::endl << std::endl;
-    oss << "For documentation and release information, please visit our website: " << "http://scilus.github.io/fibernavigator/" << std::endl << std::endl;
+    oss << "For documentation and release information, please visit our website: " << "http://chamberm.github.io/fibernavigator/" << std::endl << std::endl;
     oss << "Current contributors: https://github.com/scilus/fibernavigator/wiki/Current-contributors" << std::endl;
     oss << "Past contributors: https://github.com/scilus/fibernavigator/wiki/Past-contributors" << std::endl << std::endl;
     oss << "Built on Git revision: " << fullSha1.substr(0, 10) << std::endl;

@@ -1514,8 +1514,8 @@ void MainCanvas::segment()
         case KMEANS:
         {
             Logger::getInstance()->print( wxT( "Segment method: KMeans" ), LOGLEVEL_DEBUG );
-//             float means[2], stddev[2], apriori[2];
-//             KMeans( means, stddev, apriori, sourceData, resultData );
+             float means[2], stddev[2], apriori[2];
+             KMeans( means, stddev, apriori, sourceData, resultData );
             break;
         }
     }
