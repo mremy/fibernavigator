@@ -1462,6 +1462,33 @@ void PropertiesWindow::OnDisplayConvexHull( wxCommandEvent& WXUNUSED(event) )
     }
 }
 
+void PropertiesWindow::OnDisplayCrossSections( wxCommandEvent& WXUNUSED(event) )
+{
+	SelectionObject *pSelObj = m_pMainFrame->getCurrentSelectionObject();
+    if( pSelObj != NULL )
+    {
+		pSelObj->m_displayCrossSections = (CrossSectionsDisplay)( ( (int)pSelObj->m_displayCrossSections ) + 1 );
+		if( pSelObj->m_displayCrossSections == CS_NB_OF_CHOICES )
+        pSelObj->m_displayCrossSections = CS_NOTHING;
+
+    } 
+}
+
+///////////////////////////////////////////////////////////////////////////
+// This function will be triggered when the user click on the display dispersion tube
+// button that is located in the m_fibersInfoSizer.
+///////////////////////////////////////////////////////////////////////////
+void PropertiesWindow::OnDisplayDispersionTube( wxCommandEvent& WXUNUSED(event) )
+{
+	SelectionObject *pSelObj = m_pMainFrame->getCurrentSelectionObject();
+    if( pSelObj != NULL )
+    {
+		pSelObj->m_displayDispersionCone = (DispersionConeDisplay)( ( (int)pSelObj->m_displayDispersionCone ) + 1 );
+		if( pSelObj->m_displayDispersionCone == DC_NB_OF_CHOICES )
+			pSelObj->m_displayDispersionCone = DC_NOTHING;
+	}
+}
+
 ///////////////////////////////////////////////////////////////////////////
 // This function will be triggered when the user click on the color button
 // beside the display convex hull button that is located in the m_fibersInfoSizer.

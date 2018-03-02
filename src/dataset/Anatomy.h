@@ -148,6 +148,8 @@ private:
     wxButton        *m_pBtnGraphCut;
     wxButton        *m_pBtnKmeans;
     wxTextCtrl      *m_pTxtThres;
+	wxTextCtrl      *m_pTxtMinDatasetValue;
+	wxTextCtrl      *m_pTxtMaxDatasetValue;
     wxSlider        *m_pLowerEqSlider;
     wxSlider        *m_pUpperEqSlider;
 

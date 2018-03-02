@@ -20,8 +20,8 @@
 #include "../dataset/Fibers.h"
 #include "../dataset/RTTrackingHelper.h"
 #include "../gui/MainFrame.h"
-//#include "../misc/Algorithms/ConvexGrahamHull.h"
-//#include "../misc/Algorithms/ConvexHullIncremental.h"
+#include "../misc/Algorithms/ConvexGrahamHull.h"
+#include "../misc/Algorithms/ConvexHullIncremental.h"
 #include "../misc/Algorithms/Helper.h"
 // TODO selection remove.
 #include "../misc/IsoSurface/CIsoSurface.h"
@@ -72,8 +72,8 @@ void SelectionObject::doBasicInit()
     m_treeId = NULL;
     m_pLabelAnatomy = NULL;
     m_pCBSelectDataSet = NULL;
-	m_displayCrossSections = CS_MIN_MAX_ONLY;
-	m_displayDispersionCone = DC_FULL_CONE;
+	m_displayCrossSections = CS_NOTHING;
+	m_displayDispersionCone = DC_NOTHING;
     
     m_maxCrossSectionIndex  = 0;
     m_minCrossSectionIndex  = 0;
@@ -703,64 +703,90 @@ void SelectionObject::drawThickFiber( const vector< Vector > &i_fiberPoints, flo
 
 void SelectionObject::computeConvexHull()
 {
-    m_mustUpdateConvexHull = true;
-//     if ( m_pToggleDisplayConvexHull->GetValue() && m_convexHullOpacity != 0)
-//     {
-//             vector< Vector > pts;
-//             vector< vector< Vector > > l_selectedFibersPoints = getSelectedFibersPoints();
-//             for (unsigned int i(0); i< l_selectedFibersPoints.size(); i++)
-//                 pts.insert(pts.end(), l_selectedFibersPoints[i].begin(), l_selectedFibersPoints[i].end());
-// 
-//             m_hullTriangles.clear();
-//             ConvexHullIncremental hull(pts);
-//             hull.buildHull();
-//             hull.getHullTriangles( m_hullTriangles );
-//             m_mustUpdateConvexHull = false;
-//     }
+
+	int activeFiberSetCount( 0 );
+    
+    vector< Fibers * > pFibersSet = DatasetManager::getInstance()->getFibers();
+    
+    for( size_t fiberSetIdx(0); fiberSetIdx < pFibersSet.size(); ++fiberSetIdx )
+    {
+        Fibers *pCurFibers = pFibersSet[ fiberSetIdx ];
+        if( pCurFibers->getShow() )
+        {
+            vector< int > selectedFibersIdx = getSelectedFibersIndexes( pCurFibers );
+            
+            if( selectedFibersIdx.empty() )
+            {
+                // Do not want to do any processing in this case.
+                continue;
+            }
+            
+            vector< int > nbPointsBySelectedFiber;
+            vector< vector < Vector > > pointsBySelectedFiber;
+            
+            getSelectedFibersInfo( selectedFibersIdx, pCurFibers, 
+                                  nbPointsBySelectedFiber, pointsBySelectedFiber );
+            
+		     m_mustUpdateConvexHull = true;
+			 if ( m_pToggleDisplayConvexHull->GetValue() && m_convexHullOpacity != 0)
+			 {
+					 vector< Vector > pts;
+					 vector< vector< Vector > > l_selectedFibersPoints = pointsBySelectedFiber;
+					 for (unsigned int i(0); i< l_selectedFibersPoints.size(); i++)
+						 pts.insert(pts.end(), l_selectedFibersPoints[i].begin(), l_selectedFibersPoints[i].end());
+ 
+					 m_hullTriangles.clear();
+					 ConvexHullIncremental hull(pts);
+					 hull.buildHull();
+					 hull.getHullTriangles( m_hullTriangles );
+					 m_mustUpdateConvexHull = false;
+			 }
+		}
+	}
 }
 
 void SelectionObject::drawConvexHull()
 {
-//     if ( m_pToggleDisplayConvexHull->GetValue() && m_pToggleDisplayConvexHull->IsEnabled() && m_convexHullOpacity != 0)
-//     {
-//         if (m_mustUpdateConvexHull)
-//             computeConvexHull();
-// 
-//         glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
-//         glEnable( GL_BLEND );
-//         glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-//         glColor4f( (float)m_convexHullColor.Red() / 255.0f, (float)m_convexHullColor.Green() / 255.0f, (float)m_convexHullColor.Blue() / 255.0f, m_convexHullOpacity );
-// 
-//         Vector normal;
-//         glBegin( GL_TRIANGLES );
-//         list< Face3D >::iterator it;
-//             for( it = m_hullTriangles.begin(); it != m_hullTriangles.end(); it++ )
-//             {
-//                 //Vector normal;
-//                 //normal = (p[i+1] - p[i]).Cross(p[i+2]-p[i]);
-//                 //normal.normalize();
-//                 //glNormal3f(normal[0], normal[1], normal[2]);
-//                 glVertex3f( it->getPt1().x, it->getPt1().y, it->getPt1().z );
-// 
-//                 //normal = (p[i] - p[i+1]).Cross(p[i+2]-p[i+1]);
-//                 //normal.normalize();
-//                 //glNormal3f(normal[0], normal[1], normal[2]);
-//                 glVertex3f( it->getPt2().x, it->getPt2().y, it->getPt2().z );
-// 
-//                 //normal = (p[i] - p[i+2]).Cross(p[i+1]-p[i+2]);
-//                 //normal.normalize();
-//                 //glNormal3f(normal[0], normal[1], normal[2]);
-//                 glVertex3f( it->getPt3().x, it->getPt3().y, it->getPt3().z );
-//             }
-//         glEnd();
-// 
-//         glDisable( GL_BLEND );
-//     }
+     if ( m_pToggleDisplayConvexHull->GetValue() && m_pToggleDisplayConvexHull->IsEnabled() && m_convexHullOpacity != 0)
+     {
+         if (m_mustUpdateConvexHull)
+             computeConvexHull();
+ 
+         glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+         glEnable( GL_BLEND );
+         glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+         glColor4f( (float)m_convexHullColor.Red() / 255.0f, (float)m_convexHullColor.Green() / 255.0f, (float)m_convexHullColor.Blue() / 255.0f, m_convexHullOpacity );
+ 
+         Vector normal;
+         glBegin( GL_TRIANGLES );
+         list< Face3D >::iterator it;
+             for( it = m_hullTriangles.begin(); it != m_hullTriangles.end(); it++ )
+             {
+                 //Vector normal;
+                 //normal = (p[i+1] - p[i]).Cross(p[i+2]-p[i]);
+                 //normal.normalize();
+                 //glNormal3f(normal[0], normal[1], normal[2]);
+                 glVertex3f( it->getPt1().x, it->getPt1().y, it->getPt1().z );
+ 
+                 //normal = (p[i] - p[i+1]).Cross(p[i+2]-p[i+1]);
+                 //normal.normalize();
+                 //glNormal3f(normal[0], normal[1], normal[2]);
+                 glVertex3f( it->getPt2().x, it->getPt2().y, it->getPt2().z );
+ 
+                 //normal = (p[i] - p[i+2]).Cross(p[i+1]-p[i+2]);
+                 //normal.normalize();
+                 //glNormal3f(normal[0], normal[1], normal[2]);
+                 glVertex3f( it->getPt3().x, it->getPt3().y, it->getPt3().z );
+             }
+         glEnd();
+ 
+         glDisable( GL_BLEND );
+     }
 }
 
 void SelectionObject::updateConvexHullOpacity()
 {
-//     setConvexHullOpacity( ( m_pSliderConvexHullOpacity->GetValue() + (float)m_pSliderConvexHullOpacity->GetMin() ) / (float)m_pSliderConvexHullOpacity->GetMax() );
+     setConvexHullOpacity( ( m_pSliderConvexHullOpacity->GetValue() + (float)m_pSliderConvexHullOpacity->GetMin() ) / (float)m_pSliderConvexHullOpacity->GetMax() );
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -878,6 +904,7 @@ void SelectionObject::updateStats()
     int activeFiberSetCount( 0 );
     
     vector< Fibers * > pFibersSet = DatasetManager::getInstance()->getFibers();
+	vector< vector < Vector > > l_fibersPtns;
     
     for( size_t fiberSetIdx(0); fiberSetIdx < pFibersSet.size(); ++fiberSetIdx )
     {
@@ -897,7 +924,7 @@ void SelectionObject::updateStats()
             
             getSelectedFibersInfo( selectedFibersIdx, pCurFibers, 
                                   nbPointsBySelectedFiber, pointsBySelectedFiber );
-            
+			l_fibersPtns = pointsBySelectedFiber;
             ++activeFiberSetCount;
             
             if( m_statsAreBeingComputed )
@@ -923,6 +950,7 @@ void SelectionObject::updateStats()
                 getMeanFiberValue( pointsBySelectedFiber, localMeanValue );
                 
                 m_stats.m_meanValue += localMeanValue;
+
             }
 
             // Get the mean fiber.
@@ -962,19 +990,16 @@ void SelectionObject::updateStats()
     }
     
     m_statsNeedUpdating = false;
+
+	getMeanMaxMinFiberCrossSection  ( l_fibersPtns,
+                           m_meanFiberPoints,
+                            m_stats.m_meanCrossSection, 
+                            m_stats.m_maxCrossSection,
+                            m_stats.m_minCrossSection   );
+	getFiberDispersion              ( m_stats.m_dispersion        );
     
     updateStatsGrid();
-    
-    vector< vector< Vector > > l_selectedFibersPoints = getSelectedFibersPoints();
-    
-    //getMeanMaxMinFiberCrossSection  ( l_selectedFibersPoints,
-     //                                  m_meanFiberPoints,
-       //                                m_stats.m_meanCrossSection, 
-         //                              m_stats.m_maxCrossSection,
-           //                            m_stats.m_minCrossSection   );
-    getFiberDispersion              ( m_stats.m_dispersion        );
-    
-    
+  
 }
 
 void SelectionObject::notifyStatsNeedUpdating()
@@ -1408,117 +1433,117 @@ bool SelectionObject::getMeanMaxMinFiberLength( const vector< int > &selectedFib
 //
 // Returns true if successful, false otherwise.
 ///////////////////////////////////////////////////////////////////////////
-//bool SelectionObject::getMeanMaxMinFiberCrossSection( const vector< vector< Vector > > &i_fibersPoints,
-//                                                      const vector< Vector >           &i_meanFiberPoints, 
-//                                                            float                      &o_meanCrossSection,
-//                                                            float                      &o_maxCrossSection,
-//                                                            float                      &o_minCrossSection )
-//{
-//    m_crossSectionsPoints.clear();
-//    m_crossSectionsAreas.clear();
-//    m_crossSectionsNormals.clear();
-//    m_crossSectionsPoints.resize ( i_meanFiberPoints.size() );
-//    m_crossSectionsAreas.resize  ( i_meanFiberPoints.size() );
-//    m_crossSectionsNormals.resize( i_meanFiberPoints.size() );
-//
-//    o_meanCrossSection = 0.0f;
-//    o_maxCrossSection  = 0.0f;
-//
-//    // We need at least 3 fibers to get 3 points to be able to calculate a convex hull!
-//    if( i_fibersPoints.size() < 3 )
-//    {
-//        o_minCrossSection  = 0.0f;
-//        return false;
-//    }
-//
-//    o_minCrossSection  = numeric_limits<float>::max();
-//
-//    vector< Vector > l_maxHullPts, l_maxOriginalPts, l_minHullPts, l_minOriginalPts;
-//
-//    // For each points on the mean fiber we calculate a plane perpendicular with it.
-//    for( unsigned int i = 0; i < i_meanFiberPoints.size(); ++i )
-//    {        
-//        vector < Vector > l_intersectionPoints;
-//        Vector l_pointOnPlane, l_planeNormal;
-//        l_pointOnPlane = i_meanFiberPoints[i];
-//
-//        // When we are at the last point of the mean fiber, since i_meanFiberPoints[i + 1] 
-//        // will not exist, we calculate the vector with the previous point.
-//        if( i == i_meanFiberPoints.size() - 1 )
-//            l_planeNormal = i_meanFiberPoints[i] - i_meanFiberPoints[i - 1];
-//        else
-//            l_planeNormal = i_meanFiberPoints[i + 1] - i_meanFiberPoints[i];
-//
-//        l_planeNormal.normalize();
-//
-//        // We get the points intersecting the current plane for all the selectedFibers.
-//        for( unsigned int j = 0; j < i_fibersPoints.size(); ++j )
-//            getFiberPlaneIntersectionPoint( i_fibersPoints[j], l_pointOnPlane, l_planeNormal, l_intersectionPoints );
-//
-//        // We need at least 3 points to get a valid cross section.
-//
-//        if( l_intersectionPoints.size() < 3 )
-//            continue;
-//
-//        vector < Vector > original3Dpts = l_intersectionPoints;
-//
-//        // Once we have those 3d points, we need to map them to 2d so we can calculate the convex hull.
-//        if( ! ( Helper::convert3DPlanePointsTo2D( l_planeNormal, l_intersectionPoints ) ) )
-//            continue;
-//
-//        ConvexGrahamHull hull( l_intersectionPoints );
-//       
-//        // Let's build the convex hull.
-//        vector < Vector > l_hullPoints;
-//        if( ! ( hull.buildHull() ) )
-//            continue;
-//        hull.getHullPoints( l_hullPoints );
-//        // Computing the surface area of the hull.
-//        double l_hullArea = 0.0f;
-//        if( ! ( hull.area( l_hullArea ) ) )
-//            continue;
-//
-//        o_meanCrossSection += l_hullArea;
-//
-//        // To be able to see the cross section on the screen we save the points in m_crossSectionsPoints
-//        // and the area value in m_crossSectionsAreas, we also save the normals of the planes inside
-//        // m_crossSectionsNormals to be able to draw the dispersion cone.
-//        vector< Vector > tmp;
-//        Helper::convert2DPlanePointsTo3D( original3Dpts, l_hullPoints, tmp );
-//        m_crossSectionsPoints[i]  = tmp;
-//        m_crossSectionsAreas[i]   = l_hullArea;
-//        m_crossSectionsNormals[i] = l_planeNormal;
-//
-//        // Maximum Cross Section.
-//        if( l_hullArea > o_maxCrossSection )
-//        {
-//            o_maxCrossSection = (float)l_hullArea;
-//            m_maxCrossSectionIndex = i;
-//        }
-//
-//        // Minimum Cross Section.
-//        if( l_hullArea < o_minCrossSection )
-//        {
-//            o_minCrossSection = (float)l_hullArea;
-//            m_minCrossSectionIndex = i;
-//        }
-//    }
-//     
-//    o_meanCrossSection /= i_meanFiberPoints.size();
-//
-//    float voxelX = DatasetManager::getInstance()->getVoxelX();
-//    float voxelY = DatasetManager::getInstance()->getVoxelY();
-//    float voxelZ = DatasetManager::getInstance()->getVoxelZ();
-//
-//    // We want to return the values in millimeters so we need to multiply them by the spacing in the anatomy file.
-//    float l_spacing = voxelX * voxelY * voxelZ;
-//
-//    o_maxCrossSection  *= l_spacing;
-//    o_minCrossSection  *= l_spacing;
-//    o_meanCrossSection *= l_spacing;
-//
-//    return true;
-//}
+bool SelectionObject::getMeanMaxMinFiberCrossSection( const vector< vector< Vector > > &i_fibersPoints,
+                                                      const vector< Vector >           &i_meanFiberPoints, 
+                                                            float                      &o_meanCrossSection,
+                                                            float                      &o_maxCrossSection,
+                                                            float                      &o_minCrossSection )
+{
+    m_crossSectionsPoints.clear();
+    m_crossSectionsAreas.clear();
+    m_crossSectionsNormals.clear();
+    m_crossSectionsPoints.resize ( i_meanFiberPoints.size() );
+    m_crossSectionsAreas.resize  ( i_meanFiberPoints.size() );
+    m_crossSectionsNormals.resize( i_meanFiberPoints.size() );
+
+    o_meanCrossSection = 0.0f;
+    o_maxCrossSection  = 0.0f;
+
+    // We need at least 3 fibers to get 3 points to be able to calculate a convex hull!
+    if( i_fibersPoints.size() < 3 )
+    {
+        o_minCrossSection  = 0.0f;
+        return false;
+    }
+
+    o_minCrossSection  = numeric_limits<float>::max();
+
+    vector< Vector > l_maxHullPts, l_maxOriginalPts, l_minHullPts, l_minOriginalPts;
+
+    // For each points on the mean fiber we calculate a plane perpendicular with it.
+    for( unsigned int i = 0; i < i_meanFiberPoints.size(); ++i )
+    {        
+        vector < Vector > l_intersectionPoints;
+        Vector l_pointOnPlane, l_planeNormal;
+        l_pointOnPlane = i_meanFiberPoints[i];
+
+        // When we are at the last point of the mean fiber, since i_meanFiberPoints[i + 1] 
+        // will not exist, we calculate the vector with the previous point.
+        if( i == i_meanFiberPoints.size() - 1 )
+            l_planeNormal = i_meanFiberPoints[i] - i_meanFiberPoints[i - 1];
+        else
+            l_planeNormal = i_meanFiberPoints[i + 1] - i_meanFiberPoints[i];
+
+        l_planeNormal.normalize();
+
+        // We get the points intersecting the current plane for all the selectedFibers.
+        for( unsigned int j = 0; j < i_fibersPoints.size(); ++j )
+            getFiberPlaneIntersectionPoint( i_fibersPoints[j], l_pointOnPlane, l_planeNormal, l_intersectionPoints );
+
+        // We need at least 3 points to get a valid cross section.
+
+        if( l_intersectionPoints.size() < 3 )
+            continue;
+
+        vector < Vector > original3Dpts = l_intersectionPoints;
+
+        // Once we have those 3d points, we need to map them to 2d so we can calculate the convex hull.
+        if( ! ( Helper::convert3DPlanePointsTo2D( l_planeNormal, l_intersectionPoints ) ) )
+            continue;
+
+        ConvexGrahamHull hull( l_intersectionPoints );
+       
+        // Let's build the convex hull.
+        vector < Vector > l_hullPoints;
+        if( ! ( hull.buildHull() ) )
+            continue;
+        hull.getHullPoints( l_hullPoints );
+        // Computing the surface area of the hull.
+        double l_hullArea = 0.0f;
+        if( ! ( hull.area( l_hullArea ) ) )
+            continue;
+
+        o_meanCrossSection += l_hullArea;
+
+        // To be able to see the cross section on the screen we save the points in m_crossSectionsPoints
+        // and the area value in m_crossSectionsAreas, we also save the normals of the planes inside
+        // m_crossSectionsNormals to be able to draw the dispersion cone.
+        vector< Vector > tmp;
+        Helper::convert2DPlanePointsTo3D( original3Dpts, l_hullPoints, tmp );
+        m_crossSectionsPoints[i]  = tmp;
+        m_crossSectionsAreas[i]   = l_hullArea;
+        m_crossSectionsNormals[i] = l_planeNormal;
+
+        // Maximum Cross Section.
+        if( l_hullArea > o_maxCrossSection )
+        {
+            o_maxCrossSection = (float)l_hullArea;
+            m_maxCrossSectionIndex = i;
+        }
+
+        // Minimum Cross Section.
+        if( l_hullArea < o_minCrossSection )
+        {
+            o_minCrossSection = (float)l_hullArea;
+            m_minCrossSectionIndex = i;
+        }
+    }
+     
+    o_meanCrossSection /= i_meanFiberPoints.size();
+
+    float voxelX = DatasetManager::getInstance()->getVoxelX();
+    float voxelY = DatasetManager::getInstance()->getVoxelY();
+    float voxelZ = DatasetManager::getInstance()->getVoxelZ();
+
+    // We want to return the values in millimeters so we need to multiply them by the spacing in the anatomy file.
+    float l_spacing = voxelX * voxelY * voxelZ;
+
+    o_maxCrossSection  *= l_spacing;
+    o_minCrossSection  *= l_spacing;
+    o_meanCrossSection *= l_spacing;
+
+    return true;
+}
 
 ///////////////////////////////////////////////////////////////////////////
 // Will return the intersection point between a fiber and a plane.
@@ -1732,9 +1757,9 @@ void SelectionObject::drawFibersInfo()
     // Draw the mean fiber.
     drawThickFiber( m_meanFiberPoints, (float)THICK_FIBER_THICKNESS/100.0f, THICK_FIBER_NB_TUBE_EDGE );
     // TODO selection convex hull
-    //drawConvexHull();
-    //drawCrossSections();
-    //drawDispersionCone();
+    drawConvexHull();
+    drawCrossSections();
+    drawDispersionCone();
 
     glEnable( GL_DEPTH_TEST);
 }
@@ -2026,9 +2051,9 @@ void SelectionObject::updateStatsGrid()
 
 void SelectionObject::setShowConvexHullOption( bool i_val )
 {
-//     m_pLblConvexHullOpacity->Show( i_val );
-//     m_pSliderConvexHullOpacity->Show( i_val);
-//     m_pBtnSelectConvexHullColor->Enable( i_val );
+     m_pLblConvexHullOpacity->Show( i_val );
+     m_pSliderConvexHullOpacity->Show( i_val);
+     m_pBtnSelectConvexHullColor->Enable( i_val );
 }
 
 void SelectionObject::UpdateMeanValueTypeBox()
@@ -2112,11 +2137,11 @@ void SelectionObject::createPropertiesSizer( PropertiesWindow *pParent )
         wxButton *pBtnSetAsDistanceAnchor = new wxButton( pParent, wxID_ANY, wxT( "Set As Anchor" ) );
     #endif
     
-        //m_pbtnDisplayCrossSections      = new wxButton( pParent, wxID_ANY, wxT( "Display Cross Section (C.S.)" ) );
-        //m_pbtnDisplayDispersionTube     = new wxButton( pParent, wxID_ANY, wxT( "Display Dispersion Tube" ) );
+        m_pbtnDisplayCrossSections      = new wxButton( pParent, wxID_ANY, wxT( "Display Cross Section (C.S.)" ) );
+        m_pbtnDisplayDispersionTube     = new wxButton( pParent, wxID_ANY, wxT( "Display Dispersion Tube" ) );
         wxBitmapButton *pBtnDelete      = new wxBitmapButton( pParent, wxID_ANY, bmpDelete, DEF_POS, wxSize( 20, -1 ) );
         m_pBtnSelectMeanFiberColor      = new wxBitmapButton( pParent, wxID_ANY, bmpMeanFiberColor );
-    //     m_pBtnSelectConvexHullColor     = new wxBitmapButton( pParent, wxID_ANY, bmpConvexHullColor );
+         m_pBtnSelectConvexHullColor     = new wxBitmapButton( pParent, wxID_ANY, bmpConvexHullColor );
         m_pToggleVisibility           = new wxToggleButton( pParent, wxID_ANY, wxT( "Visible" ), DEF_POS, wxSize( 20, -1 ) );
         m_pToggleActivate             = new wxToggleButton( pParent, wxID_ANY, wxT( "Activate" ), DEF_POS, wxSize( 20, -1 ) );
         wxToggleButton *pToggleAndNot = new wxToggleButton( pParent, wxID_ANY, wxT( "And / Not" ), DEF_POS, wxSize( 20, -1 ) );
@@ -2124,14 +2149,14 @@ void SelectionObject::createPropertiesSizer( PropertiesWindow *pParent )
         m_pToggleCalculatesFibersInfo = new wxToggleButton( pParent, wxID_ANY, wxT( "Calculate Fibers Stats" ) );
 
         m_pToggleDisplayMeanFiber     = new wxToggleButton( pParent, wxID_ANY, wxT( "Display Mean Fiber" ) );
-    //     m_pToggleDisplayConvexHull    = new wxToggleButton( pParent, wxID_ANY, wxT( "Display convex hull" ) );
+         m_pToggleDisplayConvexHull    = new wxToggleButton( pParent, wxID_ANY, wxT( "Display convex hull" ) );
         m_pLblColoring          = new wxStaticText( pParent, wxID_ANY, wxT( "Coloring" ) );
         m_pLblMeanFiberOpacity  = new wxStaticText( pParent, wxID_ANY, wxT( "Opacity" ) );
-    //     m_pLblConvexHullOpacity = new wxStaticText( pParent, wxID_ANY, wxT( "Opacity" ) );
+        m_pLblConvexHullOpacity = new wxStaticText( pParent, wxID_ANY, wxT( "Opacity" ) );
         m_pRadCustomColoring = new wxRadioButton( pParent, wxID_ANY, _T( "Custom" ), DEF_POS, DEF_SIZE, wxRB_GROUP );
         m_pRadNormalColoring = new wxRadioButton( pParent, wxID_ANY, _T( "Normal" ) );
         m_pSliderMeanFiberOpacity  = new wxSlider( pParent, wxID_ANY, 35, 0, 100, DEF_POS, wxSize( 40, -1 ), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
-    //     m_pSliderConvexHullOpacity = new wxSlider( pParent, wxID_ANY, 35, 0, 100, DEF_POS, wxSize( 40, -1 ), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
+        m_pSliderConvexHullOpacity = new wxSlider( pParent, wxID_ANY, 35, 0, 100, DEF_POS, wxSize( 40, -1 ), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
         m_pTxtName  = new wxTextCtrl( pParent, wxID_ANY, getName(), DEF_POS, DEF_SIZE, wxTE_CENTRE | wxTE_READONLY );
         m_pTxtBoxX  = new wxTextCtrl( pParent, wxID_ANY, wxString::Format( wxT( "%.2f" ), m_center.x ), DEF_POS, wxSize( 10, -1 ) );
         m_pTxtBoxY  = new wxTextCtrl( pParent, wxID_ANY, wxString::Format( wxT( "%.2f" ), m_center.y ), DEF_POS, wxSize( 10, -1 ) );
@@ -2262,22 +2287,22 @@ void SelectionObject::createPropertiesSizer( PropertiesWindow *pParent )
 
         //////////////////////////////////////////////////////////////////////////
 
-        //m_pPropertiesSizer->Add( m_pbtnDisplayCrossSections,  0,wxALIGN_CENTER );
-        //m_pPropertiesSizer->Add( m_pbtnDisplayDispersionTube, 0,wxALIGN_CENTER );
+        m_pPropertiesSizer->Add( m_pbtnDisplayCrossSections,  0,wxALIGN_CENTER );
+        m_pPropertiesSizer->Add( m_pbtnDisplayDispersionTube, 0,wxALIGN_CENTER );
 
         //////////////////////////////////////////////////////////////////////////
 
-    //     pBoxSizer = new wxBoxSizer( wxHORIZONTAL );
-    //     pBoxSizer->Add( m_pToggleDisplayConvexHull,  3, wxALIGN_CENTER | wxEXPAND | wxALL, 1 );
-    //     pBoxSizer->Add( m_pBtnSelectConvexHullColor, 1, wxALIGN_CENTER | wxEXPAND | wxALL, 1 );
-    //     pBoxMain->Add( pBoxSizer, 0, wxEXPAND | wxALL, 1 );
+         pBoxSizer = new wxBoxSizer( wxHORIZONTAL );
+         pBoxSizer->Add( m_pToggleDisplayConvexHull,  3, wxALIGN_CENTER | wxEXPAND | wxALL, 1 );
+         pBoxSizer->Add( m_pBtnSelectConvexHullColor, 1, wxALIGN_CENTER | wxEXPAND | wxALL, 1 );
+         pBoxMain->Add( pBoxSizer, 0, wxEXPAND | wxALL, 1 );
 
         //////////////////////////////////////////////////////////////////////////
 
-    //     pBoxSizer = new wxBoxSizer( wxHORIZONTAL );
-    //     pBoxSizer->Add( m_pLblConvexHullOpacity, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxALL, 1 );
-    //     pBoxSizer->Add( m_pSliderConvexHullOpacity, 1, wxALIGN_LEFT | wxEXPAND | wxALL, 1 );
-    //     pBoxMain->Add( pBoxSizer, 0, wxEXPAND | wxALL, 1 );
+         pBoxSizer = new wxBoxSizer( wxHORIZONTAL );
+         pBoxSizer->Add( m_pLblConvexHullOpacity, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxALL, 1 );
+         pBoxSizer->Add( m_pSliderConvexHullOpacity, 1, wxALIGN_LEFT | wxEXPAND | wxALL, 1 );
+         pBoxMain->Add( pBoxSizer, 0, wxEXPAND | wxALL, 1 );
 
         //////////////////////////////////////////////////////////////////////////
 
@@ -2334,20 +2359,20 @@ void SelectionObject::createPropertiesSizer( PropertiesWindow *pParent )
     
         pParent->Connect( pBtnDelete->GetId(),              wxEVT_COMMAND_BUTTON_CLICKED, wxTreeEventHandler(    PropertiesWindow::OnDeleteTreeItem ) );
         pParent->Connect( m_pBtnSelectMeanFiberColor->GetId(),  wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( PropertiesWindow::OnMeanFiberColorChange ) );
-    //     pParent->Connect( m_pBtnSelectConvexHullColor->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( PropertiesWindow::OnConvexHullColorChange ) );
-        //pParent->Connect( m_pbtnDisplayCrossSections->GetId(),wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(PropertiesWindow::OnDisplayCrossSections ) );
-        //pParent->Connect( m_pbtnDisplayDispersionTube->GetId(),wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(PropertiesWindow::OnDisplayDispersionTube ) );
+        pParent->Connect( m_pBtnSelectConvexHullColor->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( PropertiesWindow::OnConvexHullColorChange ) );
+        pParent->Connect( m_pbtnDisplayCrossSections->GetId(),wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(PropertiesWindow::OnDisplayCrossSections ) );
+        pParent->Connect( m_pbtnDisplayDispersionTube->GetId(),wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(PropertiesWindow::OnDisplayDispersionTube ) );
         pParent->Connect( m_pToggleVisibility->GetId(), wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler( PropertiesWindow::OnToggleShowSelectionObject ) );
         pParent->Connect( m_pToggleActivate->GetId(),   wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxTreeEventHandler(    PropertiesWindow::OnActivateTreeItem ) );
         pParent->Connect( pToggleAndNot->GetId(),       wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler( PropertiesWindow::OnToggleAndNot ) );
         pParent->Connect( m_pTogglePruneRemove->GetId(),       wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler( PropertiesWindow::OnTogglePruneRemove ) );
         pParent->Connect( m_pToggleCalculatesFibersInfo->GetId(), wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler( PropertiesWindow::OnDisplayFibersInfo ) );
         pParent->Connect( m_pToggleDisplayMeanFiber->GetId(),     wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler( PropertiesWindow::OnDisplayMeanFiber ) );
-    //     pParent->Connect( m_pToggleDisplayConvexHull->GetId(),    wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler( PropertiesWindow::OnDisplayConvexHull ) );
+         pParent->Connect( m_pToggleDisplayConvexHull->GetId(),    wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler( PropertiesWindow::OnDisplayConvexHull ) );
         pParent->Connect( m_pRadCustomColoring->GetId(), wxEVT_COMMAND_RADIOBUTTON_SELECTED, wxCommandEventHandler( PropertiesWindow::OnCustomMeanFiberColoring ) );
         pParent->Connect( m_pRadNormalColoring->GetId(), wxEVT_COMMAND_RADIOBUTTON_SELECTED, wxCommandEventHandler( PropertiesWindow::OnNormalMeanFiberColoring ) );
         pParent->Connect( m_pSliderMeanFiberOpacity->GetId(),  wxEVT_COMMAND_SLIDER_UPDATED, wxCommandEventHandler( PropertiesWindow::OnMeanFiberOpacityChange ) );
-    //     pParent->Connect( m_pSliderConvexHullOpacity->GetId(), wxEVT_COMMAND_SLIDER_UPDATED, wxCommandEventHandler( PropertiesWindow::OnConvexHullOpacityChange ) );
+        pParent->Connect( m_pSliderConvexHullOpacity->GetId(), wxEVT_COMMAND_SLIDER_UPDATED, wxCommandEventHandler( PropertiesWindow::OnConvexHullOpacityChange ) );
         pParent->Connect( m_pTxtBoxX->GetId(),  wxEVT_COMMAND_TEXT_UPDATED, wxCommandEventHandler( PropertiesWindow::OnBoxPositionX ) );
         pParent->Connect( m_pTxtBoxY->GetId(),  wxEVT_COMMAND_TEXT_UPDATED, wxCommandEventHandler( PropertiesWindow::OnBoxPositionY ) );
         pParent->Connect( m_pTxtBoxZ->GetId(),  wxEVT_COMMAND_TEXT_UPDATED, wxCommandEventHandler( PropertiesWindow::OnBoxPositionZ ) );
@@ -2471,8 +2496,8 @@ void SelectionObject::updatePropertiesSizer()
         }
     
         // TODO selection convex hull
-        // m_pToggleDisplayConvexHull->Enable( fibersLoaded );
-        // setShowConvexHullOption( m_pToggleDisplayConvexHull->GetValue() );
+         m_pToggleDisplayConvexHull->Enable( fibersLoaded );
+         setShowConvexHullOption( m_pToggleDisplayConvexHull->GetValue() );
 
     // Because of a bug on the Windows version of this, we currently do not use this wxChoice on Windows.
     // Will have to be fixed.
@@ -2485,8 +2510,8 @@ void SelectionObject::updatePropertiesSizer()
         }
     #endif
 
-        //m_pbtnDisplayDispersionTube->Enable(m_pToggleCalculatesFibersInfo->GetValue());
-        //m_pbtnDisplayCrossSections->Enable(m_pToggleCalculatesFibersInfo->GetValue());
+        m_pbtnDisplayDispersionTube->Enable(m_pToggleCalculatesFibersInfo->GetValue());
+        m_pbtnDisplayCrossSections->Enable(m_pToggleCalculatesFibersInfo->GetValue());
     }
 
     if( m_boxMoved )

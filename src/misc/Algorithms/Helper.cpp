@@ -11,8 +11,6 @@
 
 #include "Helper.h"
 
-#include "misc/Algorithms/BSpline.h"
-
 #include <math.h>
 #include <cassert>
 

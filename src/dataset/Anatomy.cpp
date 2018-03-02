@@ -37,7 +37,7 @@ using std::vector;
 #define MIN_HEADER_SIZE 348
 #define NII_HEADER_SIZE 352
 
-#define LOWER_EQ_THRES  20
+#define LOWER_EQ_THRES  0
 #define UPPER_EQ_THRES  255
 
 Anatomy::Anatomy( ) 
@@ -795,11 +795,13 @@ bool Anatomy::load( nifti_image *pHeader, nifti_image *pBody )
         {
             short int* pData = (short int*)pBody->data;
             int dataMax = 0;
+			int dataMin = std::numeric_limits<int>::infinity();
             std::vector<int> histo( 65536, 0 );
 
             for( int i(0); i < datasetSize; ++i )
             {
                 dataMax = wxMax(dataMax, pData[i]);
+				dataMin = wxMin(dataMin, pData[i]);
                 ++histo[pData[i]];
             }
 
@@ -849,6 +851,17 @@ bool Anatomy::load( nifti_image *pHeader, nifti_image *pBody )
             {
                 m_floatDataset[i] = (float)pData[i];
             }
+
+			float dataMin = std::numeric_limits<float>::infinity();
+            for( int i(0); i < datasetSize; ++i )
+            {
+                if (m_floatDataset[i] < dataMin)
+                {
+                    dataMin = m_floatDataset[i];
+                }
+            }
+
+			m_dataMin = dataMin;
 
             float dataMax = 0.0f;
             for( int i(0); i < datasetSize; ++i )
@@ -1110,9 +1123,11 @@ void Anatomy::createPropertiesSizer( PropertiesWindow *pParent )
 
     //////////////////////////////////////////////////////////////////////////
 #if !_USE_ZOOM_GUI
-	int s = 120;
+	int s = 90;
+	int box = 30
 #else
-	int s = 400;
+	int s = 300;
+	int box = 100;
 #endif
     // Init widgets
     m_pLowerEqSlider =       new wxSlider( pParent, wxID_ANY, m_lowerEqThreshold * .2f, 0, 51, wxDefaultPosition, wxSize( s, -1 ), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
@@ -1142,13 +1157,21 @@ void Anatomy::createPropertiesSizer( PropertiesWindow *pParent )
     m_pTxtThres = new wxTextCtrl( pParent, wxID_ANY, wxT( "0.20" ), wxDefaultPosition, wxSize( 40, -1 ), wxTE_READONLY );
     m_pLblThres = new wxStaticText( pParent, wxID_ANY, wxT( "Threshold" ) );
 
+    m_pTxtMinDatasetValue = new wxTextCtrl( pParent, wxID_ANY, wxT("0"), wxDefaultPosition, wxSize(box, -1), wxTE_CENTRE | wxTE_READONLY );
+	m_pTxtMaxDatasetValue = new wxTextCtrl( pParent, wxID_ANY, wxT("100"), wxDefaultPosition, wxSize(box, -1), wxTE_CENTRE | wxTE_READONLY );
+
+	m_pTxtMinDatasetValue->SetValue(wxString::Format( wxT( "%.2f"), m_dataMin) );
+	m_pTxtMaxDatasetValue->SetValue(wxString::Format( wxT( "%.2f"), m_oldMax) );
+
     //////////////////////////////////////////////////////////////////////////
 
-    wxFlexGridSizer *pGridSliders = new wxFlexGridSizer( 2 );
+    wxFlexGridSizer *pGridSliders = new wxFlexGridSizer( 3 );
     pGridSliders->Add( new wxStaticText( pParent, wxID_ANY, wxT( "Lower Threshold" ) ), 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxALL, 1 );
     pGridSliders->Add( m_pLowerEqSlider, 0, wxALIGN_CENTER_HORIZONTAL | wxEXPAND | wxALL, 1 );
+	pGridSliders->Add( m_pTxtMinDatasetValue,   0, wxALIGN_LEFT | wxALL, 1);
     pGridSliders->Add( new wxStaticText( pParent, wxID_ANY, wxT( "Upper Threshold" ) ), 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxALL, 1 );
     pGridSliders->Add( m_pUpperEqSlider, 0, wxALIGN_CENTER_HORIZONTAL | wxEXPAND | wxALL, 1 );
+	pGridSliders->Add( m_pTxtMaxDatasetValue,   0, wxALIGN_LEFT | wxALL, 1);
     pBoxMain->Add( pGridSliders, 0, wxEXPAND | wxALL, 2 );
 
     //////////////////////////////////////////////////////////////////////////
@@ -1271,6 +1294,16 @@ void Anatomy::updatePropertiesSizer()
     m_pLowerEqSlider->Enable( 1 == m_bands );
     m_pUpperEqSlider->Enable( 1 == m_bands );
     m_pEqualize->Enable(      1 == m_bands );
+	if(m_useEqualizedDataset)
+	{
+		m_pTxtMinDatasetValue->SetValue(wxString::Format( wxT( "%.2f"), m_lowerEqThreshold / 255.f * m_oldMax ) );
+		m_pTxtMaxDatasetValue->SetValue(wxString::Format( wxT( "%.2f"), m_upperEqThreshold / 255.f * m_oldMax) );
+	}
+	else
+	{
+		m_pTxtMinDatasetValue->SetValue(wxString::Format( wxT( "%.2f"), m_dataMin) );
+		m_pTxtMaxDatasetValue->SetValue(wxString::Format( wxT( "%.2f"), m_oldMax) );
+	}
 
 #if !_USE_LIGHT_GUI
     //m_pBtnMinimize->Enable( DatasetManager::getInstance()->isFibersLoaded() );
@@ -1969,6 +2002,20 @@ void Anatomy::equalizeHistogram()
     for( unsigned int i( 0 ); i < size; ++i )
     {
         m_equalizedDataset[i] = equalizedHistogram[static_cast< unsigned int >( m_floatDataset.at( i ) * ( GRAY_SCALE - 1 ) )];
+    }
+
+	float min = std::numeric_limits<float>::infinity();
+	float max = 0;
+	for( unsigned int i( 0 ); i < size; ++i )
+    {
+        if(m_equalizedDataset[i] > max)
+			max = m_equalizedDataset[i];
+
+		if(m_equalizedDataset[i] < min)
+			min = m_equalizedDataset[i];
+
+		m_eqMax = max;
+		m_eqMin = min;
     }
 
     clock_t endTime( clock() );

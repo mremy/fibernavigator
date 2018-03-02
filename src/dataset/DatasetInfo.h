@@ -72,6 +72,8 @@ public:
     float    getThreshold() const                { return m_threshold;          };
     float    getOldMax() const                   { return m_oldMax;             };
     void     setOldMax(float v)                  { m_oldMax = v;                };
+	float    getMin() const                      { return m_dataMin;             };
+    void     setMin(float v)                     { m_dataMin = v;                };
     void     setNewMax(float v)                  { m_newMax = v;                };
     float    getNewMax() const                   { return m_newMax;             };
     void     setThreshold(float value)           { m_threshold = value;         };
@@ -162,7 +164,10 @@ protected:
 	float       m_edgeOp;
     float       m_brightness;
     float       m_oldMax;
+	float       m_dataMin;
     float       m_newMax;
+	float       m_eqMax;
+	float       m_eqMin;
 
     wxColour    m_color;
     GLuint      m_GLuint;
