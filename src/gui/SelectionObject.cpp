@@ -676,6 +676,9 @@ void SelectionObject::drawThickFiber( const vector< Vector > &i_fiberPoints, flo
         else // else we calculate the normal using the point after the current one.
             l_normal = i_fiberPoints[i+1] - i_fiberPoints[i];
 
+		l_normal.x = std::abs(l_normal.x);
+		l_normal.y = std::abs(l_normal.y);
+		l_normal.z = std::abs(l_normal.z);
         Helper::getCirclePoints( i_fiberPoints[i], l_normal, i_thickness, i_nmTubeEdge, l_circlesPoints[i] );
     }
 
@@ -806,7 +809,10 @@ void SelectionObject::setNormalColorArray(const vector< Vector > &i_fiberPoints)
             color = i_fiberPoints[i+1] - i_fiberPoints[i];
         else
             color = i_fiberPoints[i] - i_fiberPoints[i-1];
-        
+
+		color.x = std::abs(color.x);
+		color.y = std::abs(color.y);
+		color.z = std::abs(color.z);
         color.normalize();
         m_meanFiberColorVector.push_back( color );
             
@@ -1470,7 +1476,7 @@ bool SelectionObject::getMeanMaxMinFiberCrossSection( const vector< vector< Vect
         // When we are at the last point of the mean fiber, since i_meanFiberPoints[i + 1] 
         // will not exist, we calculate the vector with the previous point.
         if( i == i_meanFiberPoints.size() - 1 )
-            l_planeNormal = i_meanFiberPoints[i] - i_meanFiberPoints[i - 1];
+            l_planeNormal = (i_meanFiberPoints[i] - i_meanFiberPoints[i - 1])*-1;
         else
             l_planeNormal = i_meanFiberPoints[i + 1] - i_meanFiberPoints[i];
 
@@ -1560,7 +1566,7 @@ bool SelectionObject::getFiberPlaneIntersectionPoint( const vector< Vector > &i_
                                                       const Vector           &i_planeNormal,
                                                             vector< Vector > &o_intersectionPoints )
 {
-    float l_minDistance = numeric_limits<float>::max();
+    float l_minDistance = 20;
     Vector l_tmp;
     bool l_intersected = false;
     
@@ -1686,7 +1692,7 @@ float SelectionObject::getMaxDistanceBetweenPoints( const vector< Vector > &i_po
 ///////////////////////////////////////////////////////////////////////////
 void SelectionObject::draw()
 {
-    if( m_meanFiberIsBeingDisplayed )
+	if( m_meanFiberIsBeingDisplayed || m_displayCrossSections != CS_NOTHING || m_displayDispersionCone != DC_NOTHING)
     {
         drawFibersInfo();
     }
@@ -1917,6 +1923,7 @@ void SelectionObject::getDispersionCircle( const vector< Vector > &i_crossSectio
     // The center of the circle is the center of the vector formed by the the 2 points forming the max distance.
     Vector l_center = ( ( i_crossSectionPoints[l_secondPointIndex] - i_crossSectionPoints[l_firstPointIndex] ) / 2.0f )
                       + i_crossSectionPoints[l_firstPointIndex];
+
 
     Helper::getCirclePoints( l_center, i_crossSectionNormal, l_radius, DISPERSION_CONE_NB_TUBE_EDGE, o_circlePoints );
 }
