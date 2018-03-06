@@ -742,12 +742,12 @@ bool Anatomy::load( nifti_image *pHeader, nifti_image *pBody )
             m_type = BOT_INITIALIZED;
         }
     }
-    else if( pHeader->datatype == 4 )
+	else if( pHeader->datatype == 4 || pHeader->datatype == 512)
     {
         m_type = HEAD_SHORT;
     }
 
-    else if( pHeader->datatype == 16 )
+    else if( pHeader->datatype == 16 || pHeader->datatype == 64)
     {
         if( pHeader->dim[4] == 3 )
         {
@@ -793,94 +793,190 @@ bool Anatomy::load( nifti_image *pHeader, nifti_image *pBody )
 
         case HEAD_SHORT:
         {
-            short int* pData = (short int*)pBody->data;
-            int dataMax = 0;
-			int dataMin = std::numeric_limits<int>::infinity();
-            std::vector<int> histo( 65536, 0 );
+			if(pHeader->datatype == 512)
+			{
+				unsigned short int* pData = (unsigned short int*)pBody->data;
+				int dataMax = 0;
+				int dataMin = std::numeric_limits<int>::infinity();
+				std::vector<int> histo( 65536, 0 );
 
-            for( int i(0); i < datasetSize; ++i )
-            {
-                dataMax = wxMax(dataMax, pData[i]);
-				dataMin = wxMin(dataMin, pData[i]);
-                ++histo[pData[i]];
-            }
+				for( int i(0); i < datasetSize; ++i )
+				{
+					dataMax = wxMax(dataMax, pData[i]);
+					dataMin = wxMin(dataMin, pData[i]);
+					++histo[wxMax(pData[i],0)];
+				}
 
-            int fivePercent   = (int)( datasetSize * 0.001 );
-            int newMax        = 65535;
-            int adder         = 0;
+				int fivePercent   = (int)( datasetSize * 0.001 );
+				int newMax        = 65535;
+				int adder         = 0;
 
-            for( int i(65535); i > 0; --i )
-            {
-                adder += histo[i];
-                newMax = i;
+				for( int i(65535); i > 0; --i )
+				{
+					adder += histo[i];
+					newMax = i;
 
-                if( adder > fivePercent )
-                {
-                    break;
-                }
-            }
+					if( adder > fivePercent )
+					{
+						break;
+					}
+				}
             
-            for( int i(0); i < datasetSize; ++i )
-            {
-                if ( pData[i] > newMax )
-                {
-                    pData[i] = newMax;
-                }
-            }
+				for( int i(0); i < datasetSize; ++i )
+				{
+					if ( pData[i] > newMax )
+					{
+						pData[i] = newMax;
+					}
+				}
 
-            m_floatDataset.resize( datasetSize );
+				m_floatDataset.resize( datasetSize );
 
-            for( int i(0); i < datasetSize; ++i )
-            {
-                m_floatDataset[i] = (float)pData[i] / (float)newMax;
-            }
+				for( int i(0); i < datasetSize; ++i )
+				{
+					m_floatDataset[i] = (float)pData[i] / (float)newMax;
+				}
 
-            m_oldMax    = dataMax;
-            m_newMax    = newMax;
-            flag        = true;
-            break;
+				m_oldMax    = dataMax;
+				m_newMax    = newMax;
+				flag        = true;
+				break;
+			}
+			else
+			{
+				short int* pData = (short int*)pBody->data;
+				int dataMax = 0;
+				int dataMin = std::numeric_limits<int>::infinity();
+				std::vector<int> histo( 65536, 0 );
+
+				for( int i(0); i < datasetSize; ++i )
+				{
+					dataMax = wxMax(dataMax, pData[i]);
+					dataMin = wxMin(dataMin, pData[i]);
+					++histo[wxMax(pData[i],0)];
+				}
+
+				int fivePercent   = (int)( datasetSize * 0.001 );
+				int newMax        = 65535;
+				int adder         = 0;
+
+				for( int i(65535); i > 0; --i )
+				{
+					adder += histo[i];
+					newMax = i;
+
+					if( adder > fivePercent )
+					{
+						break;
+					}
+				}
+            
+				for( int i(0); i < datasetSize; ++i )
+				{
+					if ( pData[i] > newMax )
+					{
+						pData[i] = newMax;
+					}
+				}
+
+				m_floatDataset.resize( datasetSize );
+
+				for( int i(0); i < datasetSize; ++i )
+				{
+					m_floatDataset[i] = (float)pData[i] / (float)newMax;
+				}
+
+				m_oldMax    = dataMax;
+				m_newMax    = newMax;
+				flag        = true;
+				break;
+			}
         }
 
         case OVERLAY:
         {
-            float* pData = (float*)pBody->data;
+			if(pHeader->datatype == 64)
+			{
+				double* pData = (double*)pBody->data;
 
-            m_floatDataset.resize( datasetSize );
+				m_floatDataset.resize( datasetSize );
             
-            for( int i(0); i < datasetSize; ++i )
-            {
-                m_floatDataset[i] = (float)pData[i];
-            }
+				for( int i(0); i < datasetSize; ++i )
+				{
+					m_floatDataset[i] = (float)pData[i];
+				}
 
-			float dataMin = std::numeric_limits<float>::infinity();
-            for( int i(0); i < datasetSize; ++i )
-            {
-                if (m_floatDataset[i] < dataMin)
-                {
-                    dataMin = m_floatDataset[i];
-                }
-            }
+				float dataMin = std::numeric_limits<float>::infinity();
+				for( int i(0); i < datasetSize; ++i )
+				{
+					if (m_floatDataset[i] < dataMin)
+					{
+						dataMin = m_floatDataset[i];
+					}
+				}
 
-			m_dataMin = dataMin;
+				m_dataMin = dataMin;
 
-            float dataMax = 0.0f;
-            for( int i(0); i < datasetSize; ++i )
-            {
-                if (m_floatDataset[i] > dataMax)
-                {
-                    dataMax = m_floatDataset[i];
-                }
-            }
+				float dataMax = 0.0f;
+				for( int i(0); i < datasetSize; ++i )
+				{
+					if (m_floatDataset[i] > dataMax)
+					{
+						dataMax = m_floatDataset[i];
+					}
+				}
 
-            for( int i(0); i < datasetSize; ++i )
-            {
-                m_floatDataset[i] = m_floatDataset[i] / dataMax;
-            }
+				for( int i(0); i < datasetSize; ++i )
+				{
+					m_floatDataset[i] = m_floatDataset[i] / dataMax;
+				}
 
-            m_oldMax    = dataMax;
-            m_newMax    = 1.0;
-            flag        = true;
-            break;
+				m_oldMax    = dataMax;
+				m_newMax    = 1.0;
+				flag        = true;
+				break;
+			}
+			else
+			{
+				float* pData = (float*)pBody->data;
+
+				m_floatDataset.resize( datasetSize );
+            
+				for( int i(0); i < datasetSize; ++i )
+				{
+					m_floatDataset[i] = (float)pData[i];
+				}
+
+				float dataMin = std::numeric_limits<float>::infinity();
+				for( int i(0); i < datasetSize; ++i )
+				{
+					if (m_floatDataset[i] < dataMin)
+					{
+						dataMin = m_floatDataset[i];
+					}
+				}
+
+				m_dataMin = dataMin;
+
+				float dataMax = 0.0f;
+				for( int i(0); i < datasetSize; ++i )
+				{
+					if (m_floatDataset[i] > dataMax)
+					{
+						dataMax = m_floatDataset[i];
+					}
+				}
+
+				for( int i(0); i < datasetSize; ++i )
+				{
+					m_floatDataset[i] = m_floatDataset[i] / dataMax;
+				}
+
+				m_oldMax    = dataMax;
+				m_newMax    = 1.0;
+				flag        = true;
+				break;
+			}
         }
 
         case RGB:
