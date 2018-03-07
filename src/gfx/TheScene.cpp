@@ -890,11 +890,7 @@ void TheScene::drawSelectionObjects()
     }
     
     bindTextures();
-    
-    ShaderProgram *pMeshShader = ShaderHelper::getInstance()->getMeshShader();
-    pMeshShader->bind();
-    ShaderHelper::getInstance()->setMeshShaderVars();
-    
+
     if( SceneManager::getInstance()->isPointMode() )
         glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
     else
@@ -902,10 +898,6 @@ void TheScene::drawSelectionObjects()
     
     glEnable( GL_BLEND );
     glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-    
-    pMeshShader->setUniInt  ( "showFS", true );
-    pMeshShader->setUniInt  ( "useTex", false );
-    pMeshShader->setUniFloat( "alpha_", 1.0 );
     
     for( unsigned int objIdx( 0 ); objIdx < selectionObjects.size(); ++objIdx )
     {
@@ -916,8 +908,6 @@ void TheScene::drawSelectionObjects()
             selectionObjects[objIdx]->draw();
         }
     }
-    
-    pMeshShader->release();
     
     lightsOff();
     

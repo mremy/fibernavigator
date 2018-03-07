@@ -30,7 +30,7 @@ SelectionVOI::SelectionVOI( Anatomy *pSourceAnatomy, const float threshold, cons
     
     buildSurface( pSourceAnatomy );
     
-    setColor( wxColour( 240, 30, 30 ) );
+    setColor( wxColour( 30, 30, 240 ) );
 }
 
 SelectionVOI::SelectionVOI( const wxXmlNode selObjNode, const wxString &rootPath )

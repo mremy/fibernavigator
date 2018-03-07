@@ -22,6 +22,7 @@
 #include "../gui/MainFrame.h"
 #include "../misc/Algorithms/ConvexGrahamHull.h"
 #include "../misc/Algorithms/ConvexHullIncremental.h"
+#include "../gfx/ShaderHelper.h"
 #include "../misc/Algorithms/Helper.h"
 // TODO selection remove.
 #include "../misc/IsoSurface/CIsoSurface.h"
@@ -902,10 +903,8 @@ void SelectionObject::updateStats()
         m_stats.m_meanValue  = 0.0f;
     }
     
-    if( m_meanFiberIsBeingDisplayed )
-    {
-        m_meanFiberPoints.assign(MEAN_FIBER_NB_POINTS, Vector( 0.0, 0.0, 0.0 ));
-    }
+    m_meanFiberPoints.assign(MEAN_FIBER_NB_POINTS, Vector( 0.0, 0.0, 0.0 ));
+
     
     int activeFiberSetCount( 0 );
     
@@ -959,17 +958,15 @@ void SelectionObject::updateStats()
 
             }
 
-            // Get the mean fiber.
-            if( m_meanFiberIsBeingDisplayed )
-            {
-                vector< Vector > meanFiberPoint;
-                getMeanFiber(pointsBySelectedFiber, MEAN_FIBER_NB_POINTS, meanFiberPoint);
+
+            vector< Vector > meanFiberPoint;
+            getMeanFiber(pointsBySelectedFiber, MEAN_FIBER_NB_POINTS, meanFiberPoint);
                 
-                for( int meanPtIdx( 0 ); meanPtIdx < MEAN_FIBER_NB_POINTS; ++meanPtIdx )
-                {
-                    m_meanFiberPoints[ meanPtIdx ] += meanFiberPoint[ meanPtIdx ];
-                }
+            for( int meanPtIdx( 0 ); meanPtIdx < MEAN_FIBER_NB_POINTS; ++meanPtIdx )
+            {
+                m_meanFiberPoints[ meanPtIdx ] += meanFiberPoint[ meanPtIdx ];
             }
+
         }
     }
     
@@ -981,12 +978,9 @@ void SelectionObject::updateStats()
             m_stats.m_meanValue     /= activeFiberSetCount;
         }
         
-        if( m_meanFiberIsBeingDisplayed )
+        for( int meanPtIdx( 0 ); meanPtIdx < MEAN_FIBER_NB_POINTS; ++meanPtIdx )
         {
-            for( int meanPtIdx( 0 ); meanPtIdx < MEAN_FIBER_NB_POINTS; ++meanPtIdx )
-            {
-                m_meanFiberPoints[ meanPtIdx ] /= activeFiberSetCount;
-            }
+            m_meanFiberPoints[ meanPtIdx ] /= activeFiberSetCount;
         }
     }
     
@@ -1694,7 +1688,9 @@ void SelectionObject::draw()
 {
 	if( m_meanFiberIsBeingDisplayed || m_displayCrossSections != CS_NOTHING || m_displayDispersionCone != DC_NOTHING)
     {
-        drawFibersInfo();
+		SceneManager::getInstance()->getScene()->lightsOff();
+		drawFibersInfo();
+		SceneManager::getInstance()->getScene()->lightsOn();
     }
     
     if( ! m_isVisible )
@@ -1727,9 +1723,23 @@ void SelectionObject::draw()
         l_color[2] = std::abs(m_magnetField.z);
     }
 
-    // Because each type of selection object is unique, this function will
-    // draw the selection object according to its specifications.
-    drawObject( l_color );
+	if(m_objectType == VOI_TYPE)
+	{
+
+		ShaderProgram *pMeshShader = ShaderHelper::getInstance()->getMeshShader();
+		pMeshShader->bind();
+		ShaderHelper::getInstance()->setMeshShaderVars();
+
+		pMeshShader->setUniInt  ( "showFS", true );
+		pMeshShader->setUniInt  ( "useTex", false );
+		pMeshShader->setUniFloat( "alpha_", 1.0 );
+
+		drawObject( l_color );
+
+		pMeshShader->release();
+	}
+	else
+		drawObject( l_color );
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -2053,6 +2063,9 @@ void SelectionObject::updateStatsGrid()
         m_pGridFibersInfo->SetCellValue( 2,  0, wxString::Format( wxT( "%.2f" ), m_stats.m_meanLength       ) );
         m_pGridFibersInfo->SetCellValue( 3,  0, wxString::Format( wxT( "%.2f" ), m_stats.m_minLength        ) );
         m_pGridFibersInfo->SetCellValue( 4,  0, wxString::Format( wxT( "%.2f" ), m_stats.m_maxLength        ) );
+		m_pGridFibersInfo->SetCellValue( 5,  0, wxString::Format( wxT( "%.2f" ), m_stats.m_meanCrossSection       ) );
+		m_pGridFibersInfo->SetCellValue( 6,  0, wxString::Format( wxT( "%.2f" ), m_stats.m_minCrossSection        ) );
+		m_pGridFibersInfo->SetCellValue( 7,  0, wxString::Format( wxT( "%.2f" ), m_stats.m_maxCrossSection        ) );
     }
 }
 
@@ -2216,24 +2229,24 @@ void SelectionObject::createPropertiesSizer( PropertiesWindow *pParent )
 
         //////////////////////////////////////////////////////////////////////////
 
-        m_pGridFibersInfo = new wxGrid( pParent, wxID_ANY );
+		m_pGridFibersInfo = new wxGrid( pParent, wxID_ANY);
         m_pGridFibersInfo->SetRowLabelAlignment( wxALIGN_LEFT, wxALIGN_CENTER );
         font = m_pGridFibersInfo->GetFont();
         font.SetPointSize( 8 );
         font.SetWeight( wxFONTWEIGHT_BOLD );
         m_pGridFibersInfo->SetFont( font );
         m_pGridFibersInfo->SetColLabelSize( 2 );
-        m_pGridFibersInfo->CreateGrid( 5, 1, wxGrid::wxGridSelectCells );
+        m_pGridFibersInfo->CreateGrid( 8, 1, wxGrid::wxGridSelectCells );
         m_pGridFibersInfo->SetColLabelValue( 0, wxT( "" ) );
         m_pGridFibersInfo->SetRowLabelValue( 0, wxT( "Count" ) );
         m_pGridFibersInfo->SetRowLabelValue( 1, wxT( "Mean Value" ) );
         m_pGridFibersInfo->SetRowLabelValue( 2, wxT( "Mean Length (mm)" ) );
         m_pGridFibersInfo->SetRowLabelValue( 3, wxT( "Min Length (mm)" ) );
         m_pGridFibersInfo->SetRowLabelValue( 4, wxT( "Max Length (mm)" ) );
-    //     m_pGridFibersInfo->SetRowLabelValue( 5, wxT( "Mean C. S. (mm)" ) );
-    //     m_pGridFibersInfo->SetRowLabelValue( 6, wxT( "Min C. S. (mm)" ) );
-    //     m_pGridFibersInfo->SetRowLabelValue( 7, wxT( "Max C. S. (mm)" ) );
-    //     m_pGridFibersInfo->SetRowLabelValue( 10, wxT( "Dispersion" ) );
+        m_pGridFibersInfo->SetRowLabelValue( 5, wxT( "Mean C. S. (mm)" ) );
+        m_pGridFibersInfo->SetRowLabelValue( 6, wxT( "Min C. S. (mm)" ) );
+        m_pGridFibersInfo->SetRowLabelValue( 7, wxT( "Max C. S. (mm)" ) );
+        //m_pGridFibersInfo->SetRowLabelValue( 10, wxT( "Dispersion" ) );
 
 #if !_USE_ZOOM_GUI
 		int lab = 120;
@@ -2241,6 +2254,7 @@ void SelectionObject::createPropertiesSizer( PropertiesWindow *pParent )
 		int lab = 300;
 #endif
         m_pGridFibersInfo->SetRowLabelSize( lab );
+		m_pGridFibersInfo->SetColSize(0, lab*0.7);
 
 
 
