@@ -166,6 +166,9 @@ public :
     void       setMeanFiberOpacity( float i_opacity) { m_meanFiberOpacity = i_opacity;         };
     float      getMeanFiberOpacity()                 { return m_meanFiberOpacity;              };
 
+	void       setCSThreshold( float i_CSthresh) { m_CSThreshold = i_CSthresh;         };
+    float      getCSThreshold()                 { return m_CSThreshold;              };
+
     void       setMeanFiberColorMode( FibersColorationMode i_mode ) { m_meanFiberColorationMode = i_mode; };
     FibersColorationMode getMeanFiberColorMode()     { return m_meanFiberColorationMode;        };
     
@@ -249,6 +252,7 @@ protected :
     wxColour m_meanFiberColor; //Custom color chose by the user
     std::vector< Vector > m_meanFiberColorVector; //Vector of colour compute by the program
     float m_meanFiberOpacity; //Between 0 and 1
+	float m_CSThreshold;
     FibersColorationMode m_meanFiberColorationMode;
 
     // Those variables represent the min/max value in pixel of the object.
@@ -281,6 +285,7 @@ public:
     void   computeConvexHull                 ();
     
     void   updateMeanFiberOpacity             ();
+	void   updateCSThreshold                  ();
     void   UpdateMeanValueTypeBox             ();
     void   updateConvexHullOpacity            ();
 protected:
@@ -379,7 +384,9 @@ private:
     wxRadioButton   *m_pRadCustomColoring;
     wxRadioButton   *m_pRadNormalColoring;
     wxStaticText    *m_pLblMeanFiberOpacity;
+	wxStaticText    *m_pLblCrossSectionThreshold;
     wxSlider        *m_pSliderMeanFiberOpacity;
+	wxSlider		*m_pSliderCSthreshold;
     wxButton        *m_pbtnDisplayCrossSections;
     wxButton        *m_pbtnDisplayDispersionTube;
     wxStaticText    *m_pLabelAnatomy;

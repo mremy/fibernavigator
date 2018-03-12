@@ -105,6 +105,7 @@ public:
     void OnNormalMeanFiberColoring          ( wxCommandEvent& event );
     void OnCustomMeanFiberColoring          ( wxCommandEvent& event );
     void OnMeanFiberOpacityChange           ( wxCommandEvent& event );
+	void OnCSThresholdChange				( wxCommandEvent& event );
 
     void OnGlyphMinHueSliderMoved           ( wxCommandEvent& event ); // The coloration.
     void OnGlyphMaxHueSliderMoved           ( wxCommandEvent& event ); // The coloration.

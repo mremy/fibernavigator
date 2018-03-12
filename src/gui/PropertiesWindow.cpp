@@ -945,6 +945,17 @@ void PropertiesWindow::OnMeanFiberOpacityChange( wxCommandEvent& event )
     }
 }
 
+void PropertiesWindow::OnCSThresholdChange( wxCommandEvent& event )
+{
+    Logger::getInstance()->print( wxT( "Event triggered - PropertiesWindow::OnCSThresholdChange" ), LOGLEVEL_DEBUG );
+    
+    SelectionObject *pSelObj = m_pMainFrame->getCurrentSelectionObject();
+    if( pSelObj != NULL )
+    {
+        pSelObj->updateCSThreshold();
+    }
+}
+
 //////////////////////////////////////////////////////////////////////////
 // This function will be triggered when the user clicks on the "Set as distance
 // anchor" option.

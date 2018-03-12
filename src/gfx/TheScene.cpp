@@ -712,7 +712,7 @@ void TheScene::renderFibers()
                     {
                         lightsOn();
                         GLfloat light_position0[] = { 1.0f, 1.0f, 1.0f, 0.0f };
-                glLightfv( GL_LIGHT0, GL_POSITION, light_position0 );
+						glLightfv( GL_LIGHT0, GL_POSITION, light_position0 );
                     }
                     if( ! pFibers->getUseTex() )
                     {
