@@ -75,6 +75,7 @@ void SelectionObject::doBasicInit()
     m_pCBSelectDataSet = NULL;
 	m_displayCrossSections = CS_NOTHING;
 	m_displayDispersionCone = DC_NOTHING;
+	m_noOfMeanFiberPts = 50;
     
     m_maxCrossSectionIndex  = 0;
     m_minCrossSectionIndex  = 0;
@@ -441,7 +442,7 @@ void SelectionObject::update()
 {
     updateStatusBar();
     SceneManager::getInstance()->setSelBoxChanged( true );
-    MyApp::frame->refreshAllGLWidgets();
+    //MyApp::frame->refreshAllGLWidgets();
 
     float voxelX = DatasetManager::getInstance()->getVoxelX();
     float voxelY = DatasetManager::getInstance()->getVoxelY();
@@ -677,9 +678,7 @@ void SelectionObject::drawThickFiber( const vector< Vector > &i_fiberPoints, flo
         else // else we calculate the normal using the point after the current one.
             l_normal = i_fiberPoints[i+1] - i_fiberPoints[i];
 
-		l_normal.x = std::abs(l_normal.x);
-		l_normal.y = std::abs(l_normal.y);
-		l_normal.z = std::abs(l_normal.z);
+		l_normal.normalize();
         Helper::getCirclePoints( i_fiberPoints[i], l_normal, i_thickness, i_nmTubeEdge, l_circlesPoints[i] );
     }
 
@@ -903,7 +902,7 @@ void SelectionObject::updateStats()
         m_stats.m_meanValue  = 0.0f;
     }
     
-    m_meanFiberPoints.assign(MEAN_FIBER_NB_POINTS, Vector( 0.0, 0.0, 0.0 ));
+	m_meanFiberPoints.assign(m_noOfMeanFiberPts, Vector( 0.0, 0.0, 0.0 ));
 
     
     int activeFiberSetCount( 0 );
@@ -960,7 +959,7 @@ void SelectionObject::updateStats()
 
 
             vector< Vector > meanFiberPoint;
-            getMeanFiber(pointsBySelectedFiber, MEAN_FIBER_NB_POINTS, m_meanFiberPoints);
+            getMeanFiber(pointsBySelectedFiber, m_noOfMeanFiberPts, m_meanFiberPoints);
                 
             //for( int meanPtIdx( 0 ); meanPtIdx < MEAN_FIBER_NB_POINTS; ++meanPtIdx )
             //{
@@ -1392,6 +1391,34 @@ bool SelectionObject::getMeanFiberValue( const vector< vector< Vector > > &fiber
     }
     
     computedMeanValue /= pointsCount;
+
+	float maxValue( 1.0f );
+    switch( pCurrentAnatomy->getType() )
+    {
+        case HEAD_BYTE:
+        {
+            maxValue = 255.0;
+            break;
+        }
+        case HEAD_SHORT:
+        {
+            maxValue = pCurrentAnatomy->getNewMax();
+            break;
+        }
+        case OVERLAY:
+        {
+            maxValue = pCurrentAnatomy->getOldMax();
+            break;
+        }
+		case RGB:
+        {
+            computedMeanValue = 0;
+            break;
+        }
+    }
+    //Denormalize
+    computedMeanValue *= maxValue;
+
     return true;
 }
 
@@ -2141,7 +2168,9 @@ void SelectionObject::setShowMeanFiberOption( bool i_val )
     m_pLblMeanFiberOpacity->Show( i_val );
     m_pSliderMeanFiberOpacity->Show( i_val );
 	m_pSliderCSthreshold->Show( i_val );
+	m_pSliderNoOfCS->Show( i_val );
 	m_pLblCrossSectionThreshold->Show( i_val );
+	m_pLblNoOfCS->Show( i_val );
 }
 
 void SelectionObject::updateMeanFiberOpacity()
@@ -2152,6 +2181,12 @@ void SelectionObject::updateMeanFiberOpacity()
 void SelectionObject::updateCSThreshold()
 {
 	setCSThreshold( m_pSliderCSthreshold->GetValue() );
+	notifyStatsNeedUpdating();
+}
+
+void SelectionObject::updateNoOfCS()
+{
+	setNoOfCS( m_pSliderNoOfCS->GetValue() );
 	notifyStatsNeedUpdating();
 }
 
@@ -2206,11 +2241,13 @@ void SelectionObject::createPropertiesSizer( PropertiesWindow *pParent )
         m_pLblColoring          = new wxStaticText( pParent, wxID_ANY, wxT( "Coloring" ) );
         m_pLblMeanFiberOpacity  = new wxStaticText( pParent, wxID_ANY, wxT( "Opacity" ) );
 		m_pLblCrossSectionThreshold  = new wxStaticText( pParent, wxID_ANY, wxT( "C.S. threshold" ) );
+		m_pLblNoOfCS  = new wxStaticText( pParent, wxID_ANY, wxT( "Number of points" ) );
         m_pLblConvexHullOpacity = new wxStaticText( pParent, wxID_ANY, wxT( "Opacity" ) );
         m_pRadCustomColoring = new wxRadioButton( pParent, wxID_ANY, _T( "Custom" ), DEF_POS, DEF_SIZE, wxRB_GROUP );
         m_pRadNormalColoring = new wxRadioButton( pParent, wxID_ANY, _T( "Normal" ) );
         m_pSliderMeanFiberOpacity  = new wxSlider( pParent, wxID_ANY, 35, 0, 100, DEF_POS, wxSize( 40, -1 ), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
 		m_pSliderCSthreshold  = new wxSlider( pParent, wxID_ANY, 20, 0, 100, DEF_POS, wxSize( 40, -1 ), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
+		m_pSliderNoOfCS  = new wxSlider( pParent, wxID_ANY, 50, 3, 50, DEF_POS, wxSize( 40, -1 ), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
         m_pSliderConvexHullOpacity = new wxSlider( pParent, wxID_ANY, 35, 0, 100, DEF_POS, wxSize( 40, -1 ), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
         m_pTxtName  = new wxTextCtrl( pParent, wxID_ANY, getName(), DEF_POS, DEF_SIZE, wxTE_CENTRE | wxTE_READONLY );
         m_pTxtBoxX  = new wxTextCtrl( pParent, wxID_ANY, wxString::Format( wxT( "%.2f" ), m_center.x ), DEF_POS, wxSize( 10, -1 ) );
@@ -2240,11 +2277,11 @@ void SelectionObject::createPropertiesSizer( PropertiesWindow *pParent )
 
         //////////////////////////////////////////////////////////////////////////
 
-        pBoxSizer = new wxBoxSizer( wxHORIZONTAL );
-        pBoxSizer->Add( pToggleAndNot,  1, wxEXPAND | wxALL, 1 );
-        pBoxSizer->Add( m_pTogglePruneRemove, 1, wxEXPAND | wxALL, 1 );
-        pBoxSizer->Add( pBtnChangeName, 1, wxEXPAND | wxALL, 1 );
-        pBoxMain->Add( pBoxSizer, 0, wxFIXED_MINSIZE | wxEXPAND, 0 );
+        wxBoxSizer *pBoxSizer1 = new wxBoxSizer( wxHORIZONTAL );
+        pBoxSizer1->Add( pToggleAndNot,  1, wxEXPAND | wxALL, 1 );
+        pBoxSizer1->Add( m_pTogglePruneRemove, 1, wxEXPAND | wxALL, 1 );
+        pBoxSizer1->Add( pBtnChangeName, 1, wxEXPAND | wxALL, 1 );
+        pBoxMain->Add( pBoxSizer1, 0, wxFIXED_MINSIZE | wxEXPAND, 0 );
 
         //////////////////////////////////////////////////////////////////////////
 
@@ -2315,10 +2352,10 @@ void SelectionObject::createPropertiesSizer( PropertiesWindow *pParent )
 
         //////////////////////////////////////////////////////////////////////////
 
-        pBoxSizer = new wxBoxSizer( wxHORIZONTAL );
-        pBoxSizer->Add( m_pToggleDisplayMeanFiber,  3, wxEXPAND, 0 );
-        pBoxSizer->Add( m_pBtnSelectMeanFiberColor, 1, wxEXPAND, 0 );
-        pBoxMain->Add( pBoxSizer, 0, wxEXPAND, 0 );
+        wxBoxSizer *pBoxSizer2 = new wxBoxSizer( wxHORIZONTAL );
+        pBoxSizer2->Add( m_pToggleDisplayMeanFiber,  3, wxEXPAND, 0 );
+        pBoxSizer2->Add( m_pBtnSelectMeanFiberColor, 1, wxEXPAND, 0 );
+        pBoxMain->Add( pBoxSizer2, 0, wxEXPAND, 0 );
 
         pBoxMain->AddSpacer( 8 );
 
@@ -2336,15 +2373,20 @@ void SelectionObject::createPropertiesSizer( PropertiesWindow *pParent )
 
         //////////////////////////////////////////////////////////////////////////
 
-        pBoxSizer = new wxBoxSizer( wxHORIZONTAL );
-        pBoxSizer->Add( m_pLblMeanFiberOpacity,    0, wxEXPAND, 0 );
-        pBoxSizer->Add( m_pSliderMeanFiberOpacity, 1, wxEXPAND, 0 );
-        pBoxMain->Add( pBoxSizer, 0, wxEXPAND | wxALL, 1 );
+        wxBoxSizer *pBoxSizer3 = new wxBoxSizer( wxHORIZONTAL );
+        pBoxSizer3->Add( m_pLblMeanFiberOpacity,    0, wxEXPAND, 0 );
+        pBoxSizer3->Add( m_pSliderMeanFiberOpacity, 1, wxEXPAND, 0 );
+        pBoxMain->Add( pBoxSizer3, 0, wxEXPAND | wxALL, 1 );
 
-		pBoxSizer = new wxBoxSizer( wxHORIZONTAL );
-		pBoxSizer->Add( m_pLblCrossSectionThreshold,    0, wxEXPAND, 0 );
-        pBoxSizer->Add( m_pSliderCSthreshold, 1, wxEXPAND, 0 );
-        pBoxMain->Add( pBoxSizer, 0, wxEXPAND | wxALL, 1 );
+		wxBoxSizer *pBoxSizer4 = new wxBoxSizer( wxHORIZONTAL );
+		pBoxSizer4->Add( m_pLblCrossSectionThreshold,    0, wxEXPAND, 0 );
+        pBoxSizer4->Add( m_pSliderCSthreshold, 1, wxEXPAND, 0 );
+        pBoxMain->Add( pBoxSizer4, 0, wxEXPAND | wxALL, 1 );
+
+		wxBoxSizer *pBoxSizer5 = new wxBoxSizer( wxHORIZONTAL );
+		pBoxSizer5->Add( m_pLblNoOfCS,    0, wxEXPAND, 0 );
+        pBoxSizer5->Add( m_pSliderNoOfCS, 1, wxEXPAND, 0 );
+        pBoxMain->Add( pBoxSizer5, 0, wxEXPAND | wxALL, 1 );
 
         //////////////////////////////////////////////////////////////////////////
 
@@ -2353,17 +2395,17 @@ void SelectionObject::createPropertiesSizer( PropertiesWindow *pParent )
 
         //////////////////////////////////////////////////////////////////////////
 
-         pBoxSizer = new wxBoxSizer( wxHORIZONTAL );
-         pBoxSizer->Add( m_pToggleDisplayConvexHull,  3, wxALIGN_CENTER | wxEXPAND | wxALL, 1 );
-         pBoxSizer->Add( m_pBtnSelectConvexHullColor, 1, wxALIGN_CENTER | wxEXPAND | wxALL, 1 );
-         pBoxMain->Add( pBoxSizer, 0, wxEXPAND | wxALL, 1 );
+         wxBoxSizer *pBoxSizer6 = new wxBoxSizer( wxHORIZONTAL );
+         pBoxSizer6->Add( m_pToggleDisplayConvexHull,  3, wxALIGN_CENTER | wxEXPAND | wxALL, 1 );
+         pBoxSizer6->Add( m_pBtnSelectConvexHullColor, 1, wxALIGN_CENTER | wxEXPAND | wxALL, 1 );
+         pBoxMain->Add( pBoxSizer6, 0, wxEXPAND | wxALL, 1 );
 
         //////////////////////////////////////////////////////////////////////////
 
-         pBoxSizer = new wxBoxSizer( wxHORIZONTAL );
-         pBoxSizer->Add( m_pLblConvexHullOpacity, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxALL, 1 );
-         pBoxSizer->Add( m_pSliderConvexHullOpacity, 1, wxALIGN_LEFT | wxEXPAND | wxALL, 1 );
-         pBoxMain->Add( pBoxSizer, 0, wxEXPAND | wxALL, 1 );
+         wxBoxSizer *pBoxSizer7 = new wxBoxSizer( wxHORIZONTAL );
+         pBoxSizer7->Add( m_pLblConvexHullOpacity, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxALL, 1 );
+         pBoxSizer7->Add( m_pSliderConvexHullOpacity, 1, wxALIGN_LEFT | wxEXPAND | wxALL, 1 );
+         pBoxMain->Add( pBoxSizer7, 0, wxEXPAND | wxALL, 1 );
 
         //////////////////////////////////////////////////////////////////////////
 
@@ -2434,6 +2476,7 @@ void SelectionObject::createPropertiesSizer( PropertiesWindow *pParent )
         pParent->Connect( m_pRadNormalColoring->GetId(), wxEVT_COMMAND_RADIOBUTTON_SELECTED, wxCommandEventHandler( PropertiesWindow::OnNormalMeanFiberColoring ) );
         pParent->Connect( m_pSliderMeanFiberOpacity->GetId(),  wxEVT_COMMAND_SLIDER_UPDATED, wxCommandEventHandler( PropertiesWindow::OnMeanFiberOpacityChange ) );
 		pParent->Connect( m_pSliderCSthreshold->GetId(),  wxEVT_COMMAND_SLIDER_UPDATED, wxCommandEventHandler( PropertiesWindow::OnCSThresholdChange ) );
+		pParent->Connect( m_pSliderNoOfCS->GetId(),  wxEVT_COMMAND_SLIDER_UPDATED, wxCommandEventHandler( PropertiesWindow::OnNoofCSchange ) );
         pParent->Connect( m_pSliderConvexHullOpacity->GetId(), wxEVT_COMMAND_SLIDER_UPDATED, wxCommandEventHandler( PropertiesWindow::OnConvexHullOpacityChange ) );
         pParent->Connect( m_pTxtBoxX->GetId(),  wxEVT_COMMAND_TEXT_UPDATED, wxCommandEventHandler( PropertiesWindow::OnBoxPositionX ) );
         pParent->Connect( m_pTxtBoxY->GetId(),  wxEVT_COMMAND_TEXT_UPDATED, wxCommandEventHandler( PropertiesWindow::OnBoxPositionY ) );

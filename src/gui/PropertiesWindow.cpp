@@ -956,6 +956,17 @@ void PropertiesWindow::OnCSThresholdChange( wxCommandEvent& event )
     }
 }
 
+void PropertiesWindow::OnNoofCSchange( wxCommandEvent& event )
+{
+    Logger::getInstance()->print( wxT( "Event triggered - PropertiesWindow::OnNoofCSchange" ), LOGLEVEL_DEBUG );
+    
+    SelectionObject *pSelObj = m_pMainFrame->getCurrentSelectionObject();
+    if( pSelObj != NULL )
+    {
+        pSelObj->updateNoOfCS();
+    }
+}
+
 //////////////////////////////////////////////////////////////////////////
 // This function will be triggered when the user clicks on the "Set as distance
 // anchor" option.

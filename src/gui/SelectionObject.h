@@ -169,6 +169,9 @@ public :
 	void       setCSThreshold( float i_CSthresh) { m_CSThreshold = i_CSthresh;         };
     float      getCSThreshold()                 { return m_CSThreshold;              };
 
+	void       setNoOfCS( float i_noOfCS) { m_noOfMeanFiberPts = i_noOfCS;         };
+    float      getNoOfCS()                 { return m_noOfMeanFiberPts;              };
+
     void       setMeanFiberColorMode( FibersColorationMode i_mode ) { m_meanFiberColorationMode = i_mode; };
     FibersColorationMode getMeanFiberColorMode()     { return m_meanFiberColorationMode;        };
     
@@ -229,6 +232,7 @@ protected :
     int             m_stepSize;
     float           m_Q;
     Vector          m_magnetField;
+	int             m_noOfMeanFiberPts;
 
     wxColour        m_color;         // Used for coloring the isosurface.
     
@@ -286,6 +290,7 @@ public:
     
     void   updateMeanFiberOpacity             ();
 	void   updateCSThreshold                  ();
+	void   updateNoOfCS                       ();
     void   UpdateMeanValueTypeBox             ();
     void   updateConvexHullOpacity            ();
 protected:
@@ -385,8 +390,10 @@ private:
     wxRadioButton   *m_pRadNormalColoring;
     wxStaticText    *m_pLblMeanFiberOpacity;
 	wxStaticText    *m_pLblCrossSectionThreshold;
+	wxStaticText    *m_pLblNoOfCS;
     wxSlider        *m_pSliderMeanFiberOpacity;
 	wxSlider		*m_pSliderCSthreshold;
+	wxSlider        *m_pSliderNoOfCS;
     wxButton        *m_pbtnDisplayCrossSections;
     wxButton        *m_pbtnDisplayDispersionTube;
     wxStaticText    *m_pLabelAnatomy;
@@ -406,7 +413,7 @@ public:
     wxToggleButton  *m_pTogglePruneRemove;
     
     static const int    DISPERSION_CONE_NB_TUBE_EDGE=25; // This value represent the number of edge the dispersion cone will have.
-    static const int    MEAN_FIBER_NB_POINTS=50;         // This value represent the number of points we want the mean fiber to have.
+    //static const int    MEAN_FIBER_NB_POINTS=50;         // This value represent the number of points we want the mean fiber to have.
     static const int    THICK_FIBER_NB_TUBE_EDGE=10;     // This value represent the number of edge the tube of the thick fiber will have.
     static const int    THICK_FIBER_THICKNESS=33;        // This value represent the size of the tube the thick fiber will have (*1/100).
 

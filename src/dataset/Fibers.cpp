@@ -4003,7 +4003,7 @@ void Fibers::updatePropertiesSizer()
         m_isColorationUpdated = false;
     }
 
-    DatasetInfo* pDatasetInfo = NULL;
+    /*DatasetInfo* pDatasetInfo = NULL;
 
     long nextItemId = MyApp::frame->getCurrentListIndex();
 
@@ -4051,7 +4051,7 @@ void Fibers::updatePropertiesSizer()
         {
             DatasetInfo::m_pBtnUp->Disable();
         }
-    }
+    }*/
 }
 
 bool Fibers::toggleShow()

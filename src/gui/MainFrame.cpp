@@ -2107,13 +2107,14 @@ void MainFrame::updateStatusBar()
 {
     float value( 0 );
     long index = getCurrentListIndex();
+	bool isAnat = true;
     if( index != -1)
     {
         DatasetIndex idx = m_pListCtrl->GetItem( index );
         DatasetInfo* pDataset = DatasetManager::getInstance()->getDataset( idx );
         Anatomy* pAnat = dynamic_cast<Anatomy*>( pDataset );
 		
-        if( pAnat != NULL && pAnat->getType() != RGB )
+        if( pAnat != NULL )
         {
             //Picked position
             int rows = pAnat->getRows();
@@ -2141,6 +2142,15 @@ void MainFrame::updateStatusBar()
                         maxValue = pAnat->getOldMax();
                         break;
                     }
+					case RGB:
+					{
+						int valueR = (* ( pAnat->getFloatDataset() ) )[ind*3]*255.0f;
+						int valueG = (* ( pAnat->getFloatDataset() ) )[ind*3+1]*255.0f;
+						int valueB = (* ( pAnat->getFloatDataset() ) )[ind*3+2]*255.0f;
+						GetStatusBar()->SetStatusText( wxString::Format(wxT("Pos: %d  %d  %d Value %i %i %i" ), m_pXSlider->GetValue(), m_pYSlider->GetValue(),m_pZSlider->GetValue(), valueR, valueG, valueB ), 0 );
+						isAnat = false;
+					}
+					
                 }
                 //Denormalize
                 value = (* ( pAnat->getFloatDataset() ) )[ind] * maxValue;
@@ -2151,7 +2161,8 @@ void MainFrame::updateStatusBar()
                 value = (* ( pAnat->getEqualizedDataset() ) )[ind];
             }
         }
-        GetStatusBar()->SetStatusText( wxString::Format(wxT("Pos: %d  %d  %d Value %.2f" ), m_pXSlider->GetValue(), m_pYSlider->GetValue(),m_pZSlider->GetValue(), value ), 0 );
+		if(isAnat)
+			GetStatusBar()->SetStatusText( wxString::Format(wxT("Pos: %d  %d  %d Value %.2f" ), m_pXSlider->GetValue(), m_pYSlider->GetValue(),m_pZSlider->GetValue(), value ), 0 );
     }
 	 
     Logger::getInstance()->printIfGLError( wxT( "MainFrame::updateStatusBar" ) );
