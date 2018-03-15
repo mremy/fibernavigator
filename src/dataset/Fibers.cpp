@@ -938,6 +938,11 @@ bool Fibers::loadMRtrix( const wxString &filename )
     FMatrix invertedTransform( 4, 4 );
     invertedTransform = invert( localToWorld );
 
+	std::cout << invertedTransform(0,0) << " " << invertedTransform(0,1) << " " << invertedTransform(0,2) << " " << invertedTransform(0,3) << "\n";
+    std::cout << invertedTransform(1,0) << " " << invertedTransform(1,1) << " " << invertedTransform(1,2) << " " << invertedTransform(1,3) << "\n";
+    std::cout << invertedTransform(2,0) << " " << invertedTransform(2,1) << " " << invertedTransform(2,2) << " " << invertedTransform(2,3) << "\n";
+    std::cout << invertedTransform(3,0) << " " << invertedTransform(3,1) << " " << invertedTransform(3,2) << " " << invertedTransform(3,3) << "\n";
+
     for( int i = 0; i < m_countPoints * 3; ++i )
     {
         FMatrix curPoint( 4, 1 );
@@ -1950,17 +1955,22 @@ void Fibers::fitToAnat(bool saving)
         localToWorld.setSubMatrix( 0, 0, rotMat );
     }
 
+	std::cout << localToWorld(0,0) << " " << localToWorld(0,1) << " " << localToWorld(0,2) << " " << localToWorld(0,3) << "\n";
+    std::cout << localToWorld(1,0) << " " << localToWorld(1,1) << " " << localToWorld(1,2) << " " << localToWorld(1,3) << "\n";
+    std::cout << localToWorld(2,0) << " " << localToWorld(2,1) << " " << localToWorld(2,2) << " " << localToWorld(2,3) << "\n";
+    std::cout << localToWorld(3,0) << " " << localToWorld(3,1) << " " << localToWorld(3,2) << " " << localToWorld(3,3) << "\n";
+
     FMatrix invertedTransform( localToWorld );
 
-    //HACK nifti
-    invertedTransform(0,0) *= -1;
-    invertedTransform(0,1) *= -1;
-    invertedTransform(1,0) *= -1;
-    invertedTransform(0,2) *= -1;
-    invertedTransform(1,1) *= -1;
-    invertedTransform(1,2) *= -1;
-    invertedTransform(0,3) *= -1;
-    invertedTransform(1,3) *= -1;
+    ////HACK nifti
+    //invertedTransform(0,0) *= -1;
+    //invertedTransform(0,1) *= -1;
+    //invertedTransform(1,0) *= -1;
+    //invertedTransform(0,2) *= -1;
+    //invertedTransform(1,1) *= -1;
+    //invertedTransform(1,2) *= -1;
+    //invertedTransform(0,3) *= -1;
+    //invertedTransform(1,3) *= -1;
 
     if(!saving)
     {
@@ -2090,8 +2100,35 @@ Anatomy* Fibers::generateFiberVolume()
     return pTmpAnatomy;
 }
 
+void Fibers::getFibersInfoToSaveTCK( vector<float>& pointsToSave, int& countLines )
+{
+	int pointIndex( 0 );
+    countLines = 0;
+
+    for( int l = 0; l < m_countLines; ++l )
+    {
+        if( m_selected[l] && !m_filtered[l] )
+        {
+            unsigned int pc = getStartIndexForLine( l ) * 3;
+
+            for( int j = 0; j < getPointsPerLine( l ); ++j )
+            {
+                pointsToSave.push_back( m_pointArray[pc] );
+                ++pc;
+                pointsToSave.push_back( m_pointArray[pc] );
+                ++pc;
+                pointsToSave.push_back( m_pointArray[pc] );
+                ++pc;
+            }
+            ++countLines;
+			pointsToSave.push_back( 99999 );
+        }
+    }
+}
+
 void Fibers::getFibersInfoToSave( vector<float>& pointsToSave,  vector<int>& linesToSave, vector<int>& colorsToSave, int& countLines )
 {
+
     int pointIndex( 0 );
     countLines = 0;
 
@@ -2195,6 +2232,14 @@ void Fibers::save( wxString filename, int format )
         }
         fitToAnat(true);
     }
+	else if(format == 2)
+	{
+		if( filename.AfterLast( '.' ) != _T( "tck" ) )
+        {
+            filename += _T( ".tck" );
+        }
+        fitToAnat(true);
+	}
     else
     {
         if( filename.AfterLast( '.' ) != _T( "fib" ) )
@@ -2202,74 +2247,174 @@ void Fibers::save( wxString filename, int format )
             filename += _T( ".fib" );
         }
     }
+	
+	if(format == 2)
+	{
+		pFn = ( char * ) malloc( filename.length() );
+		strcpy( pFn, ( const char * ) filename.mb_str( wxConvUTF8 ) );
+		myfile.open( pFn, std::ios::binary );
 
-    pFn = ( char * ) malloc( filename.length() );
-    strcpy( pFn, ( const char * ) filename.mb_str( wxConvUTF8 ) );
-    myfile.open( pFn, std::ios::binary );
+		getFibersInfoToSaveTCK( pointsToSave, countLines );
 
-    getFibersInfoToSave( pointsToSave, linesToSave, colorsToSave, countLines );
+		string header1 = "mrtrix tracks\nmethod: fnav\nsource: fibernav\nstep_size: 1\n";
+		header1 += "datatype: Float32LE\n";
+		header1 += "count: "+ wxString::Format( wxT( "%i"), countLines)+"\n";
 
-    string header1 = "# vtk DataFile Version 3.0\nvtk output\nBINARY\nDATASET POLYDATA\nPOINTS ";
-    header1 += intToString( pointsToSave.size() / 3 );
-    header1 += " float\n";
-    for( unsigned int i = 0; i < header1.size(); ++i )
-    {
-        vBuffer.push_back( header1[i] );
-    }
-    for( unsigned int i = 0; i < pointsToSave.size(); ++i )
-    {
-        f.f = pointsToSave[i];
-        vBuffer.push_back( f.b[3] );
-        vBuffer.push_back( f.b[2] );
-        vBuffer.push_back( f.b[1] );
-        vBuffer.push_back( f.b[0] );
-    }
+		int tmpLength = header1.length();
+		int countLinesLength = 0;
+		do
+		{
+			++countLinesLength; 
+			tmpLength /= 10;
+		}while (tmpLength);
 
-    vBuffer.push_back( '\n' );
-    string header2 = "LINES " + intToString( countLines ) + " " + intToString( linesToSave.size() ) + "\n";
-    for( unsigned int i = 0; i < header2.size(); ++i )
-    {
-        vBuffer.push_back( header2[i] );
-    }
-    for( unsigned int i = 0; i < linesToSave.size(); ++i )
-    {
-        c.i = linesToSave[i];
-        vBuffer.push_back( c.b[3] );
-        vBuffer.push_back( c.b[2] );
-        vBuffer.push_back( c.b[1] );
-        vBuffer.push_back( c.b[0] );
-    }
+		int count = header1.length() + countLinesLength + 13;
+		int countLinesLength2 = 0;
+		do
+		{
+			++countLinesLength2; 
+			count /= 10;
+		}while (count);
 
-    vBuffer.push_back( '\n' );
-    string header3 = "POINT_DATA ";
-    header3 += intToString( pointsToSave.size() / 3 );
-    header3 += "\n";
-    header3 += "COLOR_SCALARS scalars 3\n";
-    for( unsigned int i = 0; i < header3.size(); ++i )
-    {
-        vBuffer.push_back( header3[i] );
-    }
-    for( unsigned int i = 0; i < colorsToSave.size(); ++i )
-    {
-        vBuffer.push_back( colorsToSave[i] );
-    }
-    vBuffer.push_back( '\n' );
+		int finalLength = header1.length() + std::max(countLinesLength2, countLinesLength) + 13;
 
-    // Put the buffer vector into a char* array.
-    char* pBuffer = new char[vBuffer.size()];
+		header1 += "file: . " + wxString::Format( wxT( "%i"), finalLength)+"\n";
+		header1 +=	"END\n";
+		for( unsigned int i = 0; i < header1.size(); ++i )
+		{
+			vBuffer.push_back( header1[i] );
+		}
 
-    for( unsigned int i = 0; i < vBuffer.size(); ++i )
-    {
-        pBuffer[i] = vBuffer[i];
-    }
+		for( unsigned int i = 0; i < pointsToSave.size(); ++i )
+		{
+			if(99999 != pointsToSave[i])
+			{
+				f.f = pointsToSave[i];
+				vBuffer.push_back( f.b[0] );
+				vBuffer.push_back( f.b[1] );
+				vBuffer.push_back( f.b[2] );
+				vBuffer.push_back( f.b[3] );
+			}
+			else
+			{
+				vBuffer.push_back( 0x00 );
+				vBuffer.push_back( 0x00 );
+				vBuffer.push_back( 0xC0 );
+				vBuffer.push_back( 0x7F );
+			
+				vBuffer.push_back( 0x00 );
+				vBuffer.push_back( 0x00 );
+				vBuffer.push_back( 0xC0 );
+				vBuffer.push_back( 0x7F );
 
-    myfile.write( pBuffer, vBuffer.size() );
-    myfile.close();
+				vBuffer.push_back( 0x00 );
+				vBuffer.push_back( 0x00 );
+				vBuffer.push_back( 0xC0 );
+				vBuffer.push_back( 0x7F );
+			}
+		}
+		f.f = std::numeric_limits<float>::infinity();
+		vBuffer.push_back( f.b[0] );
+		vBuffer.push_back( f.b[1] );
+		vBuffer.push_back( f.b[2] );
+		vBuffer.push_back( f.b[3] );
 
-    delete[] pBuffer;
-    pBuffer = NULL;
+		vBuffer.push_back( f.b[0] );
+		vBuffer.push_back( f.b[1] );
+		vBuffer.push_back( f.b[2] );
+		vBuffer.push_back( f.b[3] );
 
-    if( format == 0)
+		vBuffer.push_back( f.b[0] );
+		vBuffer.push_back( f.b[1] );
+		vBuffer.push_back( f.b[2] );
+		vBuffer.push_back( f.b[3] );
+
+		// Put the buffer vector into a char* array.
+		char* pBuffer = new char[vBuffer.size()];
+
+		for( unsigned int i = 0; i < vBuffer.size(); ++i )
+		{
+			pBuffer[i] = vBuffer[i];
+		}
+
+		myfile.write( pBuffer, vBuffer.size() );
+		myfile.close();
+
+		delete[] pBuffer;
+		pBuffer = NULL;
+	}
+	else
+	{
+
+		pFn = ( char * ) malloc( filename.length() );
+		strcpy( pFn, ( const char * ) filename.mb_str( wxConvUTF8 ) );
+		myfile.open( pFn, std::ios::binary );
+
+		getFibersInfoToSave( pointsToSave, linesToSave, colorsToSave, countLines );
+
+		string header1 = "# vtk DataFile Version 3.0\nvtk output\nBINARY\nDATASET POLYDATA\nPOINTS ";
+		header1 += intToString( pointsToSave.size() / 3 );
+		header1 += " float\n";
+		for( unsigned int i = 0; i < header1.size(); ++i )
+		{
+			vBuffer.push_back( header1[i] );
+		}
+		for( unsigned int i = 0; i < pointsToSave.size(); ++i )
+		{
+			f.f = pointsToSave[i];
+			vBuffer.push_back( f.b[3] );
+			vBuffer.push_back( f.b[2] );
+			vBuffer.push_back( f.b[1] );
+			vBuffer.push_back( f.b[0] );
+		}
+
+		vBuffer.push_back( '\n' );
+		string header2 = "LINES " + intToString( countLines ) + " " + intToString( linesToSave.size() ) + "\n";
+		for( unsigned int i = 0; i < header2.size(); ++i )
+		{
+			vBuffer.push_back( header2[i] );
+		}
+		for( unsigned int i = 0; i < linesToSave.size(); ++i )
+		{
+			c.i = linesToSave[i];
+			vBuffer.push_back( c.b[3] );
+			vBuffer.push_back( c.b[2] );
+			vBuffer.push_back( c.b[1] );
+			vBuffer.push_back( c.b[0] );
+		}
+
+		vBuffer.push_back( '\n' );
+		string header3 = "POINT_DATA ";
+		header3 += intToString( pointsToSave.size() / 3 );
+		header3 += "\n";
+		header3 += "COLOR_SCALARS scalars 3\n";
+		for( unsigned int i = 0; i < header3.size(); ++i )
+		{
+			vBuffer.push_back( header3[i] );
+		}
+		for( unsigned int i = 0; i < colorsToSave.size(); ++i )
+		{
+			vBuffer.push_back( colorsToSave[i] );
+		}
+		vBuffer.push_back( '\n' );
+
+		// Put the buffer vector into a char* array.
+		char* pBuffer = new char[vBuffer.size()];
+
+		for( unsigned int i = 0; i < vBuffer.size(); ++i )
+		{
+			pBuffer[i] = vBuffer[i];
+		}
+
+		myfile.write( pBuffer, vBuffer.size() );
+		myfile.close();
+
+		delete[] pBuffer;
+		pBuffer = NULL;
+
+	}
+
+    if( format == 0 || format == 2)
     {
         fitToAnat(false);
     }

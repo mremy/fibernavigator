@@ -49,6 +49,7 @@ public:
     Anatomy* generateFiberVolume();
 
     void    getFibersInfoToSave( std::vector<float> &pointsToSave, std::vector<int> &linesToSave, std::vector<int> &colorsToSave, int &countLines );
+	void    getFibersInfoToSaveTCK( std::vector<float> &pointsToSave, int &countLines );
     void    getNbLines( int &nbLines );
     void    loadDMRIFibersInFile( std::ofstream &myfile );
 

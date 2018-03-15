@@ -639,7 +639,7 @@ void MainFrame::onSaveFibers( wxCommandEvent& WXUNUSED(event) )
     }
  
     wxString caption         = wxT( "Choose a file" );
-    wxString wildcard        = wxT( "VTK fiber files (*.vtk)|*.vtk|VTK fiber files (*.fib)|*.fib|DMRI fiber files (*.fib)|*.fib|*.*|*.*" );
+    wxString wildcard        = wxT( "VTK fiber files (*.vtk)|*.vtk|VTK fiber files (*.fib)|*.fib|MRtrix format (*.tck)|*.tck|DMRI fiber files (*.fib)|*.fib|*.*|*.*" );
     wxString defaultDir      = wxEmptyString;
     wxString defaultFilename = wxEmptyString;
     wxFileDialog dialog( this, caption, defaultDir, defaultFilename, wildcard, wxFD_SAVE );
@@ -661,7 +661,7 @@ void MainFrame::onSaveFibers( wxCommandEvent& WXUNUSED(event) )
                     Fibers* pFibers = DatasetManager::getInstance()->getSelectedFibers( m_pListCtrl->GetItem( index ) );
                     if( pFibers )
                     {
-                        if (dialog.GetFilterIndex()==2)
+                        if (dialog.GetFilterIndex()==3)
                         {
                             pFibers->saveDMRI( dialog.GetPath() );
                         }
@@ -676,7 +676,7 @@ void MainFrame::onSaveFibers( wxCommandEvent& WXUNUSED(event) )
             {
                 FibersGroup* l_fibersGroup = DatasetManager::getInstance()->getFibersGroup();
                 
-                if (dialog.GetFilterIndex()==2)
+                if (dialog.GetFilterIndex()==3)
                 {
                     l_fibersGroup->saveDMRI( dialog.GetPath() );
                 }
