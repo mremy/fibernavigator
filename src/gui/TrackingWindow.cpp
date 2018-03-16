@@ -151,6 +151,11 @@ int slider2 = 250;
 int slider3 = 150;
 #endif
 
+	wxBoxSizer *pBoxRow = new wxBoxSizer( wxHORIZONTAL );
+	wxStaticText *m_pTextThreshold  = new wxStaticText( this, wxID_ANY, wxT("From Chamberland et al. (2014)"), wxDefaultPosition, wxSize(zoomS*2, -1),  wxALIGN_CENTER );
+	pBoxRow->Add( m_pTextThreshold, 0, wxALIGN_CENTER_HORIZONTAL | wxALL, 1);
+	m_pTrackingSizer->Add( pBoxRow, 0, wxFIXED_MINSIZE | wxALL, 2 );
+
     m_pBtnSelectFile = new wxButton( this, wxID_ANY,wxT("Select Peaks"), wxDefaultPosition, wxSize(zoomS, -1) );
     Connect( m_pBtnSelectFile->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(TrackingWindow::OnSelectFileHARDI) );
     m_pBtnSelectFile->SetBackgroundColour(wxColour( 255, 147, 147 ));

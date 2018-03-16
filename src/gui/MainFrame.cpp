@@ -13,6 +13,7 @@
 #include "ToolBar.h"
 #include "TrackingWindow.h"
 #include "FMRIWindow.h"
+#include "ClusteringWindow.h"
 #include "../main.h"
 #include "../Logger.h"
 #include "../dataset/Anatomy.h"
@@ -379,6 +380,7 @@ void MainFrame::initLayout()
     m_pPropertiesWindow = new PropertiesWindow( m_tab, this, wxID_ANY, wxDefaultPosition, wxSize( PROP_WND_WIDTH, PROP_WND_HEIGHT ), m_pListCtrl ); // Contains Scene Objects properties
     m_pPropertiesWindow->SetScrollbars( 10, 10, 50, 50 );
     m_pPropertiesWindow->EnableScrolling( false, true );
+	m_tab->AddPage( m_pPropertiesWindow, wxT( "Properties" ) );
 
     //////////////////////////////////////////////////////////////////////////
     // TrackingWindow initialization for RTT
@@ -394,8 +396,16 @@ void MainFrame::initLayout()
     //m_pFMRIWindow->SetScrollbars( 10, 10, 50, 50 );
 	//m_pFMRIWindow->EnableScrolling( true, true );
 
-    m_tab->AddPage( m_pPropertiesWindow, wxT( "Properties" ) );
     m_tab->AddPage( m_pTrackingWindowHardi, wxT( "Real-time tractography" ) );
+
+	//////////////////////////////////////////////////////////////////////////
+    // ClusteringWindow initialization
+    m_pClusteringWindow = new ClusteringWindow( m_tab, this, wxID_ANY, wxDefaultPosition, wxSize( PROP_WND_WIDTH, PROP_WND_HEIGHT ) ); // Contains clustering properties
+    m_pClusteringWindow->SetScrollbars( 10, 10, 50, 50 );
+    m_pClusteringWindow->EnableScrolling( false, true );
+
+    m_tab->AddPage( m_pClusteringWindow, wxT( "Clustering" ) );
+
     //m_tab->AddPage( m_pFMRIWindow, wxT( "rsfMRI networks" ) );
 	//m_tab->AddPage( m_pTrackingWindow, wxT( "DTI tracking" ) );
 

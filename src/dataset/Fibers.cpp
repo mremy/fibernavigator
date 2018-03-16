@@ -1577,6 +1577,54 @@ bool Fibers::createFrom( const vector<Fibers*>& bundles, wxString name )
     return true;
 }
 
+bool Fibers::createFrom( const vector<float*>& pointsStartPtr, const vector<int>& linesLength,
+                         const vector<float*>& colorStartPtr, wxString name )
+{
+    // Count the total number of points included in this Fibers object.
+    m_countPoints = 0;
+    for (vector<int>::const_iterator it = linesLength.begin(); it != linesLength.end(); ++it)
+        m_countPoints += *it;
+
+    m_countLines = linesLength.size();
+    m_pointArray.clear();
+    m_colorArray.clear();
+    m_linePointers.clear();
+    m_reverse.clear();
+
+    m_pointArray.max_size();
+    m_pointArray.resize( m_countPoints * 3 );
+    m_colorArray.resize( m_countPoints * 3 );
+    m_reverse.resize( m_countPoints );
+    m_linePointers.resize( m_countLines + 1 );
+    m_selected.resize( m_countLines, false );
+    m_filtered.resize( m_countLines, false );
+    
+    // Copy points, copy colors, set line pointers and set reverse lookup
+    m_linePointers[0] = 0;
+    for( int i = 0; i < m_countLines; ++i )
+    {
+        int offset = m_linePointers[i] * 3;
+        for( int j = 0; j < linesLength[i] * 3; ++j )
+        {
+
+            m_pointArray[offset + j] = pointsStartPtr[i][j];
+            m_colorArray[offset + j] = colorStartPtr[i][j];
+            m_reverse[offset/3 + j/3] = i;
+        }
+
+        m_linePointers[i+1] = m_linePointers[i] + linesLength[i];
+    }
+    
+    createColorArray( false );
+    m_type = FIBERS;
+    m_fullPath = wxString(name);
+    m_name = wxString(name);
+
+    m_pOctree = new Octree( 2, m_pointArray, m_countPoints );
+
+    return true;
+}
+
 ///////////////////////////////////////////////////////////////////////////
 // This function was made for debug purposes, it will create a fake set of
 // fibers with hardcoded value to be able to test different things.

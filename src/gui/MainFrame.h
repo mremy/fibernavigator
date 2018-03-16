@@ -24,6 +24,7 @@ class SelectionObject;
 class SelectionTree;
 class TrackingWindow;
 class FMRIWindow;
+class ClusteringWindow;
 
 enum DrawMode
 {
@@ -39,6 +40,7 @@ class MainFrame : public wxFrame
     friend class PropertiesWindow;
     friend class TrackingWindow;
     friend class FMRIWindow;
+	friend class ClusteringWindow;
 
 public:
     MainFrame( const wxString &title, const wxPoint &pos, const wxSize &size );
@@ -88,6 +90,7 @@ public:
     TrackingWindow      *m_pTrackingWindow;
     TrackingWindow      *m_pTrackingWindowHardi;
     FMRIWindow          *m_pFMRIWindow;
+	ClusteringWindow    *m_pClusteringWindow;
     MainCanvas          *m_pMainGL;
     MainCanvas          *m_pGL0;
     MainCanvas          *m_pGL1;
