@@ -44,6 +44,9 @@ public:
     bool    load( const wxString &filename );
     bool    createFrom( const vector<Fibers*>& fibers, wxString name=wxT("Merged"));
 	bool    createFrom( const vector<float*>& pointArray, const vector<int>& linePointers, const vector<float*>& colorArray, wxString name=wxT("Generated.trk"));
+	void    addCentroidToRender(vector<float> pts);
+	void    toggleShowCentroid();
+	bool    isShowCentroids() {return m_showCentroids;}
 
     void    updateFibersColors();
 
@@ -83,6 +86,7 @@ public:
     float    getLocalizedAlpha( int index );
 
     void    setFibersLength();
+	vector<float> getCentroidPts() { return m_centroidPts;}
     
     float   getFiberLength( const int fiberId ) const
     {
@@ -272,6 +276,8 @@ private:
     float           m_zDrawn;
     std::vector< unsigned int > m_cfStartOfLine;
     std::vector< unsigned int > m_cfPointsPerLine;
+	vector<float> m_centroidPts;
+	bool			m_showCentroids;
     
     wxColor         m_constantColor;
 
@@ -300,6 +306,7 @@ private:
     wxToggleButton *m_pToggleLocalColoring;
     wxToggleButton *m_pToggleNormalColoring;
     wxButton       *m_pSelectConstantFibersColor;
+	wxButton       *m_pShowCentroidPts;
     wxToggleButton *m_pToggleCrossingFibers;
     wxToggleButton *m_pToggleSliceFibers;
     wxRadioButton  *m_pRadNormalColoring;

@@ -28,6 +28,7 @@ public:
     vector<float*>  getPoints( unsigned int no_cluster );
     vector<int>     getLengths( unsigned int no_cluster );
     vector<float*>  getColors( unsigned int no_cluster );
+	std::vector<float> getCentroid(unsigned int i) {return m_clusters[i].m_centroid; }
 
 private:
     QuickBundles( const QuickBundles & );

@@ -243,7 +243,7 @@ void ClusteringWindow::doClustering( vector<Fibers*> selectedFibers, wxString ba
     float threshold = m_pSliderThreshold->GetValue() / 10.0;
     
     // Do the actual clustering.
-    QuickBundles clustering(selectedFibers, &metric, threshold, 18);
+    QuickBundles clustering(selectedFibers, &metric, threshold, 50);
 
     // Create each bundle that has been found by the clustering algorithm.
     Logger::getInstance()->print( wxT( "Creating Fibers objects..." ), LOGLEVEL_DEBUG );
@@ -265,9 +265,13 @@ void ClusteringWindow::doClustering( vector<Fibers*> selectedFibers, wxString ba
 
         Fibers *pBundle = new Fibers();
         pBundle->createFrom(points, lengths, colors, name);
+		pBundle->addCentroidToRender(clustering.getCentroid(i));
         bundles.push_back(pBundle);
         ++noBundle;
     }
+
+	//Also add centroid:
+	
 
     Logger::getInstance()->print( wxT( "Removing Fibers objects..." ), LOGLEVEL_DEBUG );
     // Remove old Fibers objects
@@ -307,6 +311,7 @@ void ClusteringWindow::doClustering( vector<Fibers*> selectedFibers, wxString ba
     for( vector<Fibers *>::const_iterator it = bundles.begin(); it != bundles.end(); ++it )
     {
         (*it)->setColorationMode( CONSTANT_COLOR );
+		(*it)->setUseTex(false);
         (*it)->updateColorationMode();
         (*it)->setThreshold( 1 );  // Ugly patch in order to force an updateFibersColors by the Fibers::draw function.
         //(*it)->updateFibersColors();

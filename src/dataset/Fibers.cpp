@@ -92,6 +92,8 @@ Fibers::Fibers()
     m_zDrawn( 0.0f ),
     m_cfStartOfLine(),
     m_cfPointsPerLine(),
+	m_centroidPts(),
+	m_showCentroids(false),
     m_constantColor( 0, 0, 0 ),
     m_pSliderFibersFilterMin( NULL ),
     m_pSliderFibersFilterMax( NULL ),
@@ -101,6 +103,7 @@ Fibers::Fibers()
     m_pToggleLocalColoring( NULL ),
     m_pToggleNormalColoring( NULL ),
     m_pSelectConstantFibersColor( NULL ),
+	m_pShowCentroidPts ( NULL ),
     m_pToggleCrossingFibers( NULL ),
     m_pToggleSliceFibers( NULL ),
     m_pRadNormalColoring( NULL ),
@@ -1577,6 +1580,10 @@ bool Fibers::createFrom( const vector<Fibers*>& bundles, wxString name )
     return true;
 }
 
+void Fibers::addCentroidToRender(vector<float> pts)
+{
+	m_centroidPts = pts;
+}
 bool Fibers::createFrom( const vector<float*>& pointsStartPtr, const vector<int>& linesLength,
                          const vector<float*>& colorStartPtr, wxString name )
 {
@@ -3545,6 +3552,11 @@ void Fibers::drawSortedLines()
     delete[] pLineIds;
 }
 
+void Fibers::toggleShowCentroid()
+{
+	m_showCentroids = !m_showCentroids;
+}
+
 void Fibers::useFakeTubes()
 {
     m_useFakeTubes = !m_useFakeTubes;
@@ -3951,6 +3963,7 @@ void Fibers::createPropertiesSizer( PropertiesWindow *pParent )
     m_pToggleLocalColoring  = new wxToggleButton(   pParent, wxID_ANY, wxT( "Local Coloring" ) );
     m_pToggleNormalColoring = new wxToggleButton(   pParent, wxID_ANY, wxT( "Color With Overlay" ) );
     m_pSelectConstantFibersColor = new wxButton(    pParent, wxID_ANY, wxT( "Select Constant Color..." ) );
+	m_pShowCentroidPts = new wxButton(    pParent, wxID_ANY, wxT( "Show Centroids Pts (from QB)" ) );
     m_pToggleCrossingFibers = new wxToggleButton(   pParent, wxID_ANY, wxT( "TDI Fibers" ) );
     m_pToggleSliceFibers = new wxToggleButton(   pParent, wxID_ANY, wxT( "Slice Fibers" ) );
     m_pToggleSliceFibers->Enable(false);
@@ -4013,6 +4026,7 @@ void Fibers::createPropertiesSizer( PropertiesWindow *pParent )
     pBoxMain->Add( m_pToggleLocalColoring,     0, wxEXPAND | wxLEFT | wxRIGHT, 24 );
     pBoxMain->Add( m_pToggleNormalColoring,    0, wxEXPAND | wxLEFT | wxRIGHT, 24 );
     pBoxMain->Add( m_pSelectConstantFibersColor, 0, wxEXPAND | wxLEFT | wxRIGHT, 24 );
+	pBoxMain->Add( m_pShowCentroidPts, 0, wxEXPAND | wxLEFT | wxRIGHT, 24 );
 
     //////////////////////////////////////////////////////////////////////////
 
@@ -4119,6 +4133,7 @@ void Fibers::createPropertiesSizer( PropertiesWindow *pParent )
     pParent->Connect( m_pToggleLocalColoring->GetId(),           wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler( PropertiesWindow::OnToggleUseTex ) );
     pParent->Connect( m_pToggleNormalColoring->GetId(),          wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxEventHandler(        PropertiesWindow::OnToggleShowFS ) );
     pParent->Connect( m_pSelectConstantFibersColor->GetId(),     wxEVT_COMMAND_BUTTON_CLICKED,       wxCommandEventHandler( PropertiesWindow::OnSelectConstantColor ) );
+	pParent->Connect( m_pShowCentroidPts->GetId(),     wxEVT_COMMAND_BUTTON_CLICKED,       wxCommandEventHandler( PropertiesWindow::OnShowCentroidPts ) );
     pParent->Connect( m_pToggleCrossingFibers->GetId(),          wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxEventHandler(        PropertiesWindow::OnToggleCrossingFibers ) );
     pParent->Connect( m_pToggleSliceFibers->GetId(),          wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxEventHandler(        PropertiesWindow::OnToggleSliceFibers ) );
     pParent->Connect( m_pRadNormalColoring->GetId(),             wxEVT_COMMAND_RADIOBUTTON_SELECTED, wxCommandEventHandler( PropertiesWindow::OnNormalColoring ) );

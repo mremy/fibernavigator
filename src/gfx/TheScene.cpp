@@ -724,6 +724,21 @@ void TheScene::renderFibers()
 
                     Logger::getInstance()->printIfGLError( wxT( "Draw fibers" ) );
                 }
+
+				if(pFibers->isShowCentroids())
+				{
+					glDisable( GL_DEPTH_TEST);
+					glPointSize(15);
+					glColor3f(1,1,1);
+					vector<float> centroid = pFibers->getCentroidPts();
+					for(int i =0; i< centroid.size(); i+=3)
+					{
+						glBegin(GL_POINTS);
+							glVertex3f(centroid[i],centroid[i+1], centroid[i+2]);
+						glEnd();
+					}
+					glEnable( GL_DEPTH_TEST);
+				}
             }
         }
     }

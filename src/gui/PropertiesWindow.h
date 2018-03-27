@@ -93,6 +93,7 @@ public:
     void OnColorWithTorsion                 ( wxCommandEvent& event );
     void OnColorWithConstantColor           ( wxCommandEvent& event );
     void OnSelectConstantColor              ( wxCommandEvent& event );
+	void OnShowCentroidPts					( wxCommandEvent& event );
     void ColorFibers();
     void OnFibersAlpha                      ( wxCommandEvent& event );
 

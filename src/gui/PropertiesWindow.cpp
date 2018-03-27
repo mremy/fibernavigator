@@ -900,6 +900,24 @@ void PropertiesWindow::OnSelectConstantColor( wxCommandEvent& WXUNUSED(event) )
     }
 }
 
+void PropertiesWindow::OnShowCentroidPts( wxCommandEvent& WXUNUSED(event) )
+{
+    Logger::getInstance()->print( wxT( "Event triggered - PropertiesWindow::OnShowCentroidPts" ), LOGLEVEL_DEBUG );
+    
+    long index = MyApp::frame->getCurrentListIndex();
+    if( -1 == index )
+    {
+        Logger::getInstance()->print( wxT( "PropertiesWindow::OnShowCentroidPts - Current index is -1" ), LOGLEVEL_ERROR );
+        return;
+    }
+    
+    Fibers* pFibers = DatasetManager::getInstance()->getSelectedFibers( MyApp::frame->m_pListCtrl->GetItem( index ) );
+    if( pFibers != NULL )
+    {
+        pFibers->toggleShowCentroid();
+    }
+}
+
 ///////////////////////////////////////////////////////////////////////////
 // This function will be triggered when the user click on the normal coloring radio
 // button located in the mean fiber coloring option

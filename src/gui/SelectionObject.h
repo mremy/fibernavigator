@@ -346,7 +346,11 @@ protected:
                                            Fibers        *pCurFibers,
                                            float         &o_meanLength,
                                            float         &o_maxLength,
-                                           float         &o_minLength );
+                                           float         &o_minLength);
+
+	bool   getLongestStreamline( const vector< int > &selectedFibersIndexes,
+                                           Fibers        *pCurFibers,
+										   vector<Vector> &longestStrm);
 
     std::vector< std::vector< Vector > >   getSelectedFibersPoints ();
     

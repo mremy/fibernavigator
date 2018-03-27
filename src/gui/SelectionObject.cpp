@@ -76,6 +76,7 @@ void SelectionObject::doBasicInit()
 	m_displayCrossSections = CS_NOTHING;
 	m_displayDispersionCone = DC_NOTHING;
 	m_noOfMeanFiberPts = 50;
+	m_meanFiberColor = wxColour( 255.0f, 255.0f, 255.0f);
     
     m_maxCrossSectionIndex  = 0;
     m_minCrossSectionIndex  = 0;
@@ -870,12 +871,25 @@ void SelectionObject::drawPolygon( const vector< Vector > &i_polygonPoints )
     if( i_polygonPoints.size() < 3)
         return;
 
+	Vector mean(0,0,0);
     glBegin( GL_POLYGON );
 
     for( unsigned int i = 0; i < i_polygonPoints.size(); ++i )
+	{
         glVertex3f( i_polygonPoints[i].x, i_polygonPoints[i].y, i_polygonPoints[i].z );
+		mean+=Vector(i_polygonPoints[i].x, i_polygonPoints[i].y, i_polygonPoints[i].z);
+	}
 
+	mean.x/=i_polygonPoints.size();
+	mean.y/=i_polygonPoints.size();
+	mean.z/=i_polygonPoints.size();
     glEnd();
+
+	/*glColor3f(1,1,1);
+	glPointSize(15);
+	glBegin(GL_POINTS);
+		glVertex3f(mean.x, mean.y, mean.z);
+	glEnd();*/
 }
 
 void SelectionObject::updateStats()
@@ -909,6 +923,7 @@ void SelectionObject::updateStats()
     
     vector< Fibers * > pFibersSet = DatasetManager::getInstance()->getFibers();
 	vector< vector < Vector > > l_fibersPtns;
+	vector<Vector> longestfiber;
     
     for( size_t fiberSetIdx(0); fiberSetIdx < pFibersSet.size(); ++fiberSetIdx )
     {
@@ -930,6 +945,35 @@ void SelectionObject::updateStats()
                                   nbPointsBySelectedFiber, pointsBySelectedFiber );
 			l_fibersPtns = pointsBySelectedFiber;
             ++activeFiberSetCount;
+
+			//get longest streamline
+			getLongestStreamline(selectedFibersIdx, pCurFibers, longestfiber);
+
+			//Resample to X nb point
+			if(longestfiber.size() > 2)
+			{
+				unsigned int l_currentFiberNbPoints = longestfiber.size();
+        
+				// The -1 is because we dont take into consideration the number of points but 
+				// the number of vector between the points.      
+				float        l_currentFiberRatio    = (float)( longestfiber.size() - 1 ) / ( m_noOfMeanFiberPts - 1 );
+        
+				m_meanFiberPoints[0]              += longestfiber[1];
+				m_meanFiberPoints[m_noOfMeanFiberPts - 1] += longestfiber[l_currentFiberNbPoints - 2] ;
+
+				//For each point of current streamline, resample the fibers to inbPoints
+				for( unsigned int j = 1; j < m_noOfMeanFiberPts - 1; ++j )
+				{
+					float l_currentPointInterpolationRatio = l_currentFiberRatio * j;
+             
+					// Calculating the ratio of the interpolation.
+					int l_pointBelow = (int)l_currentPointInterpolationRatio;
+					l_currentPointInterpolationRatio -= l_pointBelow;
+					// Simple interpolation.
+					m_meanFiberPoints[j] += ( ( longestfiber[l_pointBelow]     * ( 1.0 - l_currentPointInterpolationRatio ) ) + 
+											( longestfiber[l_pointBelow + 1] *         l_currentPointInterpolationRatio ) );  	
+				}
+			}
             
             if( m_statsAreBeingComputed )
             {
@@ -942,7 +986,7 @@ void SelectionObject::updateStats()
                 getMeanMaxMinFiberLength( selectedFibersIdx, pCurFibers, 
                                             localMeanLength, 
                                             localMaxLength, 
-                                            localMinLength );
+                                            localMinLength);
                 
                 m_stats.m_meanLength += localMeanLength;
                 
@@ -958,8 +1002,8 @@ void SelectionObject::updateStats()
             }
 
 
-            vector< Vector > meanFiberPoint;
-            getMeanFiber(pointsBySelectedFiber, m_noOfMeanFiberPts, m_meanFiberPoints);
+            //vector< Vector > meanFiberPoint;
+            //getMeanFiber(pointsBySelectedFiber, m_noOfMeanFiberPts, m_meanFiberPoints);
                 
             //for( int meanPtIdx( 0 ); meanPtIdx < MEAN_FIBER_NB_POINTS; ++meanPtIdx )
             //{
@@ -1208,6 +1252,8 @@ bool SelectionObject::getMeanFiber( const vector< vector< Vector > > &i_fibersPo
     o_meanFiberPoints.resize( i_nbPoints );
 	std::vector<Vector> firstStrmline;
 	firstStrmline.resize(i_nbPoints);
+	vector<vector<Vector> > medianStreamPts;
+	medianStreamPts.resize(i_nbPoints);
 
 	//For each streamline, resample to nbPoints
     for( unsigned int i = 0; i < i_fibersPoints.size(); ++i )
@@ -1437,7 +1483,7 @@ bool SelectionObject::getMeanMaxMinFiberLength( const vector< int > &selectedFib
                                                   Fibers        *pCurFibers,
                                                   float         &meanLength,
                                                   float         &maxLength,
-                                                  float         &minLength )
+                                                  float         &minLength)
 {
     meanLength = 0.0f;
     maxLength  = 0.0f;
@@ -1460,6 +1506,7 @@ bool SelectionObject::getMeanMaxMinFiberLength( const vector< int > &selectedFib
         
         maxLength = std::max( maxLength, curFiberLength );
         minLength = std::min( minLength, curFiberLength );
+
     }
     
     meanLength /= selectedFibersIndexes.size();
@@ -1467,6 +1514,35 @@ bool SelectionObject::getMeanMaxMinFiberLength( const vector< int > &selectedFib
     return true;
 }
 
+bool SelectionObject::getLongestStreamline( const vector< int > &selectedFibersIndexes,
+                                                  Fibers        *pCurFibers,
+												  vector<Vector> &longestStreamline)
+{
+	float maxLength  = 0.0f;
+	int fiberId;
+    if( selectedFibersIndexes.empty() )
+    {
+        return false;
+    }
+    
+    float curFiberLength( 0.0f );
+    
+    for( vector< int >::const_iterator idxIt( selectedFibersIndexes.begin() );
+        idxIt != selectedFibersIndexes.end(); ++idxIt )
+    {
+        curFiberLength = pCurFibers->getFiberLength( *idxIt );
+
+		//Save fiberID with maximum length for cross section/mean streamline comput.
+		if(curFiberLength > maxLength)
+			fiberId = *idxIt;
+        
+        maxLength = std::max( maxLength, curFiberLength );	
+    }
+
+	pCurFibers->getFiberCoordValues(fiberId, longestStreamline);
+   
+    return true;
+}
 
 ///////////////////////////////////////////////////////////////////////////
 // Computes the mean, max and the min cross section for a given set of fibers.
@@ -1491,6 +1567,9 @@ bool SelectionObject::getMeanMaxMinFiberCrossSection( const vector< vector< Vect
     m_crossSectionsPoints.resize ( i_meanFiberPoints.size() );
     m_crossSectionsAreas.resize  ( i_meanFiberPoints.size() );
     m_crossSectionsNormals.resize( i_meanFiberPoints.size() );
+
+	vector<Vector> currentStrmResampled;
+	currentStrmResampled.resize(i_meanFiberPoints.size() );
 
     o_meanCrossSection = 0.0f;
     o_maxCrossSection  = 0.0f;
@@ -1559,6 +1638,14 @@ bool SelectionObject::getMeanMaxMinFiberCrossSection( const vector< vector< Vect
         m_crossSectionsPoints[i]  = tmp;
         m_crossSectionsAreas[i]   = l_hullArea;
         m_crossSectionsNormals[i] = l_planeNormal;
+
+		////update mean streamline from cross section 
+		Vector mean (0,0,0);
+		for(int cs = 0; cs < m_crossSectionsPoints[i].size(); cs++)
+			mean+=Vector(m_crossSectionsPoints[i][cs].x, m_crossSectionsPoints[i][cs].y, m_crossSectionsPoints[i][cs].z);
+
+		mean/=m_crossSectionsPoints[i].size();
+		m_meanFiberPoints[i] = mean;
 
         // Maximum Cross Section.
         if( l_hullArea > o_maxCrossSection )
@@ -1732,7 +1819,7 @@ float SelectionObject::getMaxDistanceBetweenPoints( const vector< Vector > &i_po
 ///////////////////////////////////////////////////////////////////////////
 void SelectionObject::draw()
 {
-	if( m_meanFiberIsBeingDisplayed || m_displayCrossSections != CS_NOTHING || m_displayDispersionCone != DC_NOTHING)
+	if( m_meanFiberIsBeingDisplayed || m_displayCrossSections != CS_NOTHING || m_displayDispersionCone != DC_NOTHING || m_pToggleDisplayConvexHull->GetValue())
     {
 		if(m_objectType == VOI_TYPE)
 		{
@@ -2247,7 +2334,7 @@ void SelectionObject::createPropertiesSizer( PropertiesWindow *pParent )
         m_pRadNormalColoring = new wxRadioButton( pParent, wxID_ANY, _T( "Normal" ) );
         m_pSliderMeanFiberOpacity  = new wxSlider( pParent, wxID_ANY, 35, 0, 100, DEF_POS, wxSize( 40, -1 ), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
 		m_pSliderCSthreshold  = new wxSlider( pParent, wxID_ANY, 20, 0, 100, DEF_POS, wxSize( 40, -1 ), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
-		m_pSliderNoOfCS  = new wxSlider( pParent, wxID_ANY, 50, 3, 50, DEF_POS, wxSize( 40, -1 ), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
+		m_pSliderNoOfCS  = new wxSlider( pParent, wxID_ANY, 50, 3, 100, DEF_POS, wxSize( 40, -1 ), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
         m_pSliderConvexHullOpacity = new wxSlider( pParent, wxID_ANY, 35, 0, 100, DEF_POS, wxSize( 40, -1 ), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
         m_pTxtName  = new wxTextCtrl( pParent, wxID_ANY, getName(), DEF_POS, DEF_SIZE, wxTE_CENTRE | wxTE_READONLY );
         m_pTxtBoxX  = new wxTextCtrl( pParent, wxID_ANY, wxString::Format( wxT( "%.2f" ), m_center.x ), DEF_POS, wxSize( 10, -1 ) );
@@ -2389,9 +2476,10 @@ void SelectionObject::createPropertiesSizer( PropertiesWindow *pParent )
         pBoxMain->Add( pBoxSizer5, 0, wxEXPAND | wxALL, 1 );
 
         //////////////////////////////////////////////////////////////////////////
-
-        m_pPropertiesSizer->Add( m_pbtnDisplayCrossSections,  0,wxALIGN_CENTER );
-        m_pPropertiesSizer->Add( m_pbtnDisplayDispersionTube, 0,wxALIGN_CENTER );
+		wxBoxSizer *pBoxSizercs = new wxBoxSizer( wxVERTICAL );
+        pBoxSizercs->Add( m_pbtnDisplayCrossSections,  0,wxEXPAND );
+        pBoxSizercs->Add( m_pbtnDisplayDispersionTube, 0,wxEXPAND );
+		pBoxMain->Add( pBoxSizercs, 0, wxEXPAND | wxALL, 1 );
 
         //////////////////////////////////////////////////////////////////////////
 

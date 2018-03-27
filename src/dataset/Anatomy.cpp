@@ -1220,7 +1220,7 @@ void Anatomy::createPropertiesSizer( PropertiesWindow *pParent )
     //////////////////////////////////////////////////////////////////////////
 #if !_USE_ZOOM_GUI
 	int s = 90;
-	int box = 30
+	int box = 30;
 #else
 	int s = 300;
 	int box = 100;
