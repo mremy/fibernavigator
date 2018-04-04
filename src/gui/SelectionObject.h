@@ -172,6 +172,8 @@ public :
 	void       setNoOfCS( float i_noOfCS) { m_noOfMeanFiberPts = i_noOfCS;         };
     float      getNoOfCS()                 { return m_noOfMeanFiberPts;              };
 
+	void       setRefAnat(Anatomy * refAnat);
+
     void       setMeanFiberColorMode( FibersColorationMode i_mode ) { m_meanFiberColorationMode = i_mode; };
     FibersColorationMode getMeanFiberColorMode()     { return m_meanFiberColorationMode;        };
     
@@ -266,7 +268,7 @@ protected :
     float m_maxX;
     float m_maxY;
     float m_maxZ;
-    
+    Anatomy *m_pRefAnatInfo;
 
     std::map< FiberIdType, SelectionState > m_selectionStates;
     
@@ -293,6 +295,7 @@ public:
 	void   updateNoOfCS                       ();
     void   UpdateMeanValueTypeBox             ();
     void   updateConvexHullOpacity            ();
+	bool   saveTractometry(wxString &filename);
 protected:
     void   drawCrossSections                 ();
     void   drawCrossSectionsPolygons         ();
@@ -335,6 +338,7 @@ protected:
                                                      std::vector< Vector >           &o_meanFiber               );
     bool   getMeanFiberValue                 ( const std::vector< std::vector< Vector > > &fibersPoints, 
                                                      float                           &computedMeanValue         );
+	bool   performTractometry                 ( const std::vector< std::vector< Vector > > &fibersPoints);
     
     bool   getMeanMaxMinFiberCrossSection    ( const std::vector< std::vector< Vector > > &i_fibersPoints,
                                                const std::vector< Vector >           &i_meanFiberPoints,
@@ -349,8 +353,7 @@ protected:
                                            float         &o_minLength);
 
 	bool   getLongestStreamline( const vector< int > &selectedFibersIndexes,
-                                           Fibers        *pCurFibers,
-										   vector<Vector> &longestStrm);
+                                           Fibers        *pCurFibers);
 
     std::vector< std::vector< Vector > >   getSelectedFibersPoints ();
     
@@ -367,6 +370,7 @@ protected:
     unsigned int                m_maxCrossSectionIndex; // Index of the max cross section of m_crossSectionsPoints.
     std::vector< Vector >       m_meanFiberPoints;      // The points representing the mean fiber.
     unsigned int                m_minCrossSectionIndex; // Index of the min cross section of m_crossSectionsPoints.
+	std::vector <float>         m_tractometrics;
     
     FibersInfoGridParams        m_stats;                // The stats for this box.
     bool                        m_statsNeedUpdating;    // Will be used to check if the stats
@@ -400,9 +404,12 @@ private:
 	wxSlider        *m_pSliderNoOfCS;
     wxButton        *m_pbtnDisplayCrossSections;
     wxButton        *m_pbtnDisplayDispersionTube;
+	wxButton        *m_pSaveTractometry;
+	
     wxStaticText    *m_pLabelAnatomy;
     wxChoice        *m_pCBSelectDataSet;
     wxToggleButton  *m_pToggleFieldDirection;
+	wxStaticText    *m_pLblRefAnat;
     
 
 public:
@@ -415,6 +422,7 @@ public:
     wxSlider        *m_pSliderQ;
     wxTextCtrl      *m_pBoxQ;
     wxToggleButton  *m_pTogglePruneRemove;
+	wxButton        *m_pBtnRefAnat;
     
     static const int    DISPERSION_CONE_NB_TUBE_EDGE=25; // This value represent the number of edge the dispersion cone will have.
     //static const int    MEAN_FIBER_NB_POINTS=50;         // This value represent the number of points we want the mean fiber to have.

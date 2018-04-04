@@ -639,6 +639,42 @@ void MainFrame::onSave( wxCommandEvent& WXUNUSED(event) )
     }
 }
 
+void MainFrame::onSaveTractometry()
+{
+    Logger::getInstance()->print( _T("Event triggered - MainFrame::onSaveTractometry"), LOGLEVEL_DEBUG );
+
+    wxString caption         = wxT( "Choose a file" );
+    wxString wildcard        = wxT( "Tractometry files (*.txt)|*.txt|*.*|*.*" );
+    wxString defaultDir      = wxEmptyString;
+    wxString defaultFilename = wxEmptyString;
+    wxFileDialog dialog( this, caption, defaultDir, defaultFilename, wildcard, wxFD_SAVE );
+    dialog.SetFilterIndex( 0 );
+    dialog.SetDirectory( m_lastPath );
+
+	if( SceneManager::getInstance()->isSceneFileLoaded() )
+    {
+        dialog.SetFilename( SceneManager::getInstance()->getSceneFilename() );
+    }
+
+    dialog.SetDirectory( SceneManager::getInstance()->getScenePath() );
+
+    if( dialog.ShowModal() == wxID_OK )
+    {
+        SelectionObject *pSelObj = getCurrentSelectionObject();
+		if( pSelObj != NULL )
+		{
+			if( !pSelObj->saveTractometry( dialog.GetPath() ) )
+			{
+				wxString errorMsg = wxT( "Error occured while trying to save." );
+				Logger::getInstance()->print( errorMsg, LOGLEVEL_ERROR );
+				wxMessageBox( errorMsg, wxT( "Error while saving" ), wxOK | wxICON_ERROR, NULL );
+				GetStatusBar()->SetStatusText( wxT( "ERROR" ), 1 );
+				GetStatusBar()->SetStatusText( Logger::getInstance()->getLastError(), 2 );
+			}
+		}
+    }
+}
+
 void MainFrame::onSaveFibers( wxCommandEvent& WXUNUSED(event) )
 {
     Logger::getInstance()->print( _T("Event triggered - MainFrame::onSaveFibers"), LOGLEVEL_DEBUG );

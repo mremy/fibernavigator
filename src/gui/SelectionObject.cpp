@@ -73,10 +73,12 @@ void SelectionObject::doBasicInit()
     m_treeId = NULL;
     m_pLabelAnatomy = NULL;
     m_pCBSelectDataSet = NULL;
+	m_pSaveTractometry = NULL;
 	m_displayCrossSections = CS_NOTHING;
 	m_displayDispersionCone = DC_NOTHING;
 	m_noOfMeanFiberPts = 50;
 	m_meanFiberColor = wxColour( 255.0f, 255.0f, 255.0f);
+	m_pRefAnatInfo = NULL;
     
     m_maxCrossSectionIndex  = 0;
     m_minCrossSectionIndex  = 0;
@@ -923,7 +925,6 @@ void SelectionObject::updateStats()
     
     vector< Fibers * > pFibersSet = DatasetManager::getInstance()->getFibers();
 	vector< vector < Vector > > l_fibersPtns;
-	vector<Vector> longestfiber;
     
     for( size_t fiberSetIdx(0); fiberSetIdx < pFibersSet.size(); ++fiberSetIdx )
     {
@@ -947,33 +948,7 @@ void SelectionObject::updateStats()
             ++activeFiberSetCount;
 
 			//get longest streamline
-			getLongestStreamline(selectedFibersIdx, pCurFibers, longestfiber);
-
-			//Resample to X nb point
-			if(longestfiber.size() > 2)
-			{
-				unsigned int l_currentFiberNbPoints = longestfiber.size();
-        
-				// The -1 is because we dont take into consideration the number of points but 
-				// the number of vector between the points.      
-				float        l_currentFiberRatio    = (float)( longestfiber.size() - 1 ) / ( m_noOfMeanFiberPts - 1 );
-        
-				m_meanFiberPoints[0]              += longestfiber[1];
-				m_meanFiberPoints[m_noOfMeanFiberPts - 1] += longestfiber[l_currentFiberNbPoints - 2] ;
-
-				//For each point of current streamline, resample the fibers to inbPoints
-				for( unsigned int j = 1; j < m_noOfMeanFiberPts - 1; ++j )
-				{
-					float l_currentPointInterpolationRatio = l_currentFiberRatio * j;
-             
-					// Calculating the ratio of the interpolation.
-					int l_pointBelow = (int)l_currentPointInterpolationRatio;
-					l_currentPointInterpolationRatio -= l_pointBelow;
-					// Simple interpolation.
-					m_meanFiberPoints[j] += ( ( longestfiber[l_pointBelow]     * ( 1.0 - l_currentPointInterpolationRatio ) ) + 
-											( longestfiber[l_pointBelow + 1] *         l_currentPointInterpolationRatio ) );  	
-				}
-			}
+			getLongestStreamline(selectedFibersIdx, pCurFibers);
             
             if( m_statsAreBeingComputed )
             {
@@ -1394,10 +1369,10 @@ bool SelectionObject::getMeanFiberValue( const vector< vector< Vector > > &fiber
 
     vector< Anatomy* > datasets = DatasetManager::getInstance()->getAnatomies();
     
-    if( m_pCBSelectDataSet == NULL && datasets.size() > 0 )
+    if( m_pCBSelectDataSet == NULL && datasets.size() > 0 && m_pRefAnatInfo != NULL )
     {
         // Select the first dataset in the list
-        pCurrentAnatomy = datasets[0];
+        pCurrentAnatomy = m_pRefAnatInfo;
     }
     else if( m_pCBSelectDataSet != NULL && 
              m_pCBSelectDataSet->GetCount() > 0 && 
@@ -1468,6 +1443,116 @@ bool SelectionObject::getMeanFiberValue( const vector< vector< Vector > > &fiber
     return true;
 }
 
+void SelectionObject::setRefAnat(Anatomy * refAnat)
+{
+	m_pRefAnatInfo = refAnat; 
+	m_pBtnRefAnat->SetLabel(refAnat->getName());
+}
+
+bool SelectionObject::performTractometry( const vector< vector< Vector > > &fibersPoints)
+{
+    if( fibersPoints.size() == 0 )
+    {
+        return false;
+    }
+    
+    Anatomy *pCurrentAnatomy( NULL );
+	std::vector<std::vector <float> > localMetrics;
+	m_tractometrics.resize(m_noOfMeanFiberPts);
+	localMetrics.resize(m_noOfMeanFiberPts);
+    vector< Anatomy* > datasets = DatasetManager::getInstance()->getAnatomies();
+    
+    if( m_pCBSelectDataSet == NULL && datasets.size() > 0 )
+    {
+        // Select the first dataset in the list
+        pCurrentAnatomy = datasets[0];
+    }
+    else if( m_pCBSelectDataSet != NULL && 
+             m_pCBSelectDataSet->GetCount() > 0 && 
+             m_pCBSelectDataSet->GetCurrentSelection() != -1 )
+    {
+        // TODO: Verify if the selection is the right index
+        // Get the currently selected dataset.
+        pCurrentAnatomy = datasets[ m_pCBSelectDataSet->GetSelection() ];
+    }
+    else
+    {
+        return false;
+    }
+
+    unsigned int pointsCount( 0 );
+    unsigned int datasetPos ( 0 );
+	float value = 0;
+
+    float voxelX = DatasetManager::getInstance()->getVoxelX();
+    float voxelY = DatasetManager::getInstance()->getVoxelY();
+    float voxelZ = DatasetManager::getInstance()->getVoxelZ();
+
+    for( unsigned int i = 0; i < fibersPoints.size(); ++i )
+    {
+        for( unsigned int j = 0; j < fibersPoints[i].size(); ++j )
+        {
+            datasetPos = ( static_cast<int>( fibersPoints[i][j].x / voxelX ) +
+                           static_cast<int>( fibersPoints[i][j].y / voxelY ) * pCurrentAnatomy->getColumns() +
+                           static_cast<int>( fibersPoints[i][j].z / voxelZ ) * pCurrentAnatomy->getColumns() * pCurrentAnatomy->getRows() ) * pCurrentAnatomy->getBands();
+            
+            for (int k(0); k < pCurrentAnatomy->getBands(); k++)
+            {
+                value= (* ( pCurrentAnatomy->getFloatDataset() ) )[datasetPos + k];
+            }
+
+			float dist = std::numeric_limits<float>::infinity();
+			int assignTo;
+			//assign Value to closest mean streamline pt;
+			for(int l=0; l<m_noOfMeanFiberPts;l++)
+			{
+				float  l_distance = ( fibersPoints[i][j] - m_meanFiberPoints[l] ).getLength();
+
+				if( l_distance < dist )
+				{
+					dist = l_distance;
+					assignTo         = l;
+				}
+			}
+			localMetrics[assignTo].push_back(value);
+
+            ++pointsCount;
+        }
+    }
+    
+	float maxValue( 1.0f );
+    switch( pCurrentAnatomy->getType() )
+    {
+        case HEAD_BYTE:
+        {
+            maxValue = 255.0;
+            break;
+        }
+        case HEAD_SHORT:
+        {
+            maxValue = pCurrentAnatomy->getNewMax();
+            break;
+        }
+        case OVERLAY:
+        {
+            maxValue = pCurrentAnatomy->getOldMax();
+            break;
+        }
+    }
+
+	for(int l=0; l<m_noOfMeanFiberPts;l++)
+	{
+		float sum = 0;
+		for(int m=0; m<localMetrics[l].size();m++)
+		{
+			sum +=localMetrics[l][m];
+		}
+		m_tractometrics[l] = (sum/localMetrics[l].size())*maxValue;
+	}
+
+    return true;
+}
+
 ///////////////////////////////////////////////////////////////////////////
 // Computes the mean, max and min length for a given set of fibers.
 //
@@ -1514,32 +1599,172 @@ bool SelectionObject::getMeanMaxMinFiberLength( const vector< int > &selectedFib
     return true;
 }
 
+bool SelectionObject::saveTractometry(wxString &filename)
+{
+	//Compute part
+	FibersGroup *pFiberGroup = DatasetManager::getInstance()->getFibersGroup();
+    
+    if( pFiberGroup == NULL )
+    {
+        Logger::getInstance()->print( wxT( "In SelectionObject::updateStats, pFiberGroup is NULL" ), LOGLEVEL_DEBUG );
+        return false;
+    }
+    
+    int activeFiberSetCount( 0 );
+    
+    vector< Fibers * > pFibersSet = DatasetManager::getInstance()->getFibers();
+    
+    for( size_t fiberSetIdx(0); fiberSetIdx < pFibersSet.size(); ++fiberSetIdx )
+    {
+        Fibers *pCurFibers = pFibersSet[ fiberSetIdx ];
+        if( pCurFibers->getShow() )
+        {
+            vector< int > selectedFibersIdx = getSelectedFibersIndexes( pCurFibers );
+            
+            if( selectedFibersIdx.empty() )
+            {
+                // Do not want to do any processing in this case.
+                continue;
+            }
+            
+            vector< int > nbPointsBySelectedFiber;
+            vector< vector < Vector > > pointsBySelectedFiber;
+            
+            getSelectedFibersInfo( selectedFibersIdx, pCurFibers, 
+                                  nbPointsBySelectedFiber, pointsBySelectedFiber );
+            ++activeFiberSetCount;
+                
+            performTractometry( pointsBySelectedFiber );
+		}
+	}
+
+	//Save part
+	std::ofstream myfile;
+    char *pFn;
+    float dist = 0.5;
+
+    if( filename.AfterLast( '.' ) != _T( "txt" ) )
+    {
+        filename += _T( ".txt" );
+    }
+
+    pFn = ( char * ) malloc( filename.length() );
+    strcpy( pFn, ( const char * ) filename.mb_str( wxConvUTF8 ) );
+    myfile.open( pFn, std::ios::out );
+
+	for (int i = 0; i < m_noOfMeanFiberPts; i++)
+		myfile << m_tractometrics[i] << " ";
+
+    myfile.close();
+
+	return true;
+}
+
 bool SelectionObject::getLongestStreamline( const vector< int > &selectedFibersIndexes,
-                                                  Fibers        *pCurFibers,
-												  vector<Vector> &longestStreamline)
+                                                  Fibers        *pCurFibers)
 {
 	float maxLength  = 0.0f;
-	int fiberId;
-    if( selectedFibersIndexes.empty() )
+	std::vector<std::pair<int,int>> mapLength;
+	std::vector<Vector> firstStrmline;
+	firstStrmline.resize(m_noOfMeanFiberPts);
+	if( selectedFibersIndexes.empty() )
     {
         return false;
     }
+
+	//Top 5% longest streamlines
+	int topFive = selectedFibersIndexes.size() * 0.05;
     
     float curFiberLength( 0.0f );
     
     for( vector< int >::const_iterator idxIt( selectedFibersIndexes.begin() );
         idxIt != selectedFibersIndexes.end(); ++idxIt )
     {
-        curFiberLength = pCurFibers->getFiberLength( *idxIt );
-
-		//Save fiberID with maximum length for cross section/mean streamline comput.
-		if(curFiberLength > maxLength)
-			fiberId = *idxIt;
-        
-        maxLength = std::max( maxLength, curFiberLength );	
+		mapLength.push_back(std::pair<int,int>(pCurFibers->getFiberLength( *idxIt ),*idxIt));
     }
 
-	pCurFibers->getFiberCoordValues(fiberId, longestStreamline);
+	std::sort(mapLength.begin(), mapLength.end());
+
+	//Resample to X nb point
+	for(int i=0; i< topFive; i++)
+	{
+		int reverseid = selectedFibersIndexes.size()-1-i;
+		int id = mapLength[reverseid].second;
+		vector<Vector> currFiber;
+		std::vector<Vector> currentStrmResampled;
+		currentStrmResampled.resize(m_noOfMeanFiberPts);
+		pCurFibers->getFiberCoordValues(id, currFiber);
+		unsigned int l_currentFiberNbPoints = currFiber.size();
+        
+		// The -1 is because we dont take into consideration the number of points but 
+		// the number of vector between the points.      
+		float        l_currentFiberRatio    = (float)( currFiber.size() - 1 ) / ( m_noOfMeanFiberPts - 1 );
+        
+		currentStrmResampled[0]              += currFiber[1];
+		currentStrmResampled[m_noOfMeanFiberPts - 1] += currFiber[l_currentFiberNbPoints - 2] ;
+
+		//For each point of current streamline, resample the fibers to inbPoints
+		for(int j = 1; j < m_noOfMeanFiberPts - 1; ++j )
+		{
+			float l_currentPointInterpolationRatio = l_currentFiberRatio * j;
+             
+			// Calculating the ratio of the interpolation.
+			int l_pointBelow = (int)l_currentPointInterpolationRatio;
+			l_currentPointInterpolationRatio -= l_pointBelow;
+			// Simple interpolation.
+			currentStrmResampled[j] += ( ( currFiber[l_pointBelow]     * ( 1.0 - l_currentPointInterpolationRatio ) ) + 
+									( currFiber[l_pointBelow + 1] *         l_currentPointInterpolationRatio ) );  	
+		}
+
+		if(i==0) //keep first streamline order
+		{
+			m_meanFiberPoints = currentStrmResampled;
+			firstStrmline = currentStrmResampled;
+		}
+		else
+		{
+			//Before insterting it in the o_meanfiberPoints, check MDF for flips
+			float dDirect = 0;
+			float dFlipped = 0;
+			for( unsigned int j = 0; j < m_noOfMeanFiberPts; ++j )
+			{	
+				dDirect += abs(sqrt((firstStrmline[j].x - currentStrmResampled[j].x)*(firstStrmline[j].x - currentStrmResampled[j].x)
+					+(firstStrmline[j].y - currentStrmResampled[j].y)*(firstStrmline[j].y - currentStrmResampled[j].y)
+					+(firstStrmline[j].z - currentStrmResampled[j].z)*(firstStrmline[j].z - currentStrmResampled[j].z)));
+
+				int k = (m_noOfMeanFiberPts-1)-j;
+
+				dFlipped += abs(sqrt((firstStrmline[j].x - currentStrmResampled[k].x)*(firstStrmline[j].x - currentStrmResampled[k].x)
+					+(firstStrmline[j].y - currentStrmResampled[k].y)*(firstStrmline[j].y - currentStrmResampled[k].y)
+					+(firstStrmline[j].z - currentStrmResampled[k].z)*(firstStrmline[j].z - currentStrmResampled[k].z)));
+
+				dDirect /= m_noOfMeanFiberPts;
+				dFlipped /= m_noOfMeanFiberPts;
+			}
+
+			if(dDirect < dFlipped)
+			{
+				for( unsigned int j = 0; j < m_noOfMeanFiberPts; ++j )
+				{
+					m_meanFiberPoints[j] += currentStrmResampled[j];
+				}
+			}
+			else
+			{
+				int l = 0;
+				for( int j = m_noOfMeanFiberPts - 1; j > -1; --j )
+				{				
+					m_meanFiberPoints[l] += currentStrmResampled[j];
+					l++;
+				}
+			}
+		}
+	}
+	
+	for(int j = 0; j < m_noOfMeanFiberPts; ++j )
+	{
+		m_meanFiberPoints[j] /= topFive;
+	}
    
     return true;
 }
@@ -1819,7 +2044,7 @@ float SelectionObject::getMaxDistanceBetweenPoints( const vector< Vector > &i_po
 ///////////////////////////////////////////////////////////////////////////
 void SelectionObject::draw()
 {
-	if( m_meanFiberIsBeingDisplayed || m_displayCrossSections != CS_NOTHING || m_displayDispersionCone != DC_NOTHING || m_pToggleDisplayConvexHull->GetValue())
+	if( m_meanFiberIsBeingDisplayed || m_displayCrossSections != CS_NOTHING || m_displayDispersionCone != DC_NOTHING )
     {
 		if(m_objectType == VOI_TYPE)
 		{
@@ -2322,8 +2547,11 @@ void SelectionObject::createPropertiesSizer( PropertiesWindow *pParent )
         wxToggleButton *pToggleAndNot = new wxToggleButton( pParent, wxID_ANY, wxT( "And / Not" ), DEF_POS, wxSize( 20, -1 ) );
         m_pTogglePruneRemove = new wxToggleButton( pParent, wxID_ANY, wxT( "Prune" ), DEF_POS, wxSize( 20, -1 ) );
         m_pToggleCalculatesFibersInfo = new wxToggleButton( pParent, wxID_ANY, wxT( "Calculate Fibers Stats" ) );
+		m_pLblRefAnat          = new wxStaticText( pParent, wxID_ANY, wxT( "Ref. Anat:" ) );
+		m_pBtnRefAnat    = new wxButton( pParent, wxID_ANY, wxT( "Choose Anat" ) );
 
         m_pToggleDisplayMeanFiber     = new wxToggleButton( pParent, wxID_ANY, wxT( "Display Mean Fiber" ) );
+		m_pSaveTractometry    = new wxButton( pParent, wxID_ANY, wxT( "Export values" ) );
          m_pToggleDisplayConvexHull    = new wxToggleButton( pParent, wxID_ANY, wxT( "Display convex hull" ) );
         m_pLblColoring          = new wxStaticText( pParent, wxID_ANY, wxT( "Coloring" ) );
         m_pLblMeanFiberOpacity  = new wxStaticText( pParent, wxID_ANY, wxT( "Opacity" ) );
@@ -2383,6 +2611,11 @@ void SelectionObject::createPropertiesSizer( PropertiesWindow *pParent )
         pBoxMain->AddSpacer( 8 );
 
         pBoxMain->Add( m_pToggleCalculatesFibersInfo, 0, wxEXPAND | wxLEFT | wxRIGHT, 24 );
+
+		wxBoxSizer *pBoxSizerRef = new wxBoxSizer( wxHORIZONTAL );
+        pBoxSizerRef->Add( m_pLblRefAnat,    0, wxEXPAND, 0 );
+        pBoxSizerRef->Add( m_pBtnRefAnat, 1, wxEXPAND, 0 );
+        pBoxMain->Add( pBoxSizerRef, 0, wxEXPAND | wxALL, 1 );
 
         pBoxMain->AddSpacer( 2 );
 
@@ -2479,6 +2712,7 @@ void SelectionObject::createPropertiesSizer( PropertiesWindow *pParent )
 		wxBoxSizer *pBoxSizercs = new wxBoxSizer( wxVERTICAL );
         pBoxSizercs->Add( m_pbtnDisplayCrossSections,  0,wxEXPAND );
         pBoxSizercs->Add( m_pbtnDisplayDispersionTube, 0,wxEXPAND );
+		pBoxSizercs->Add( m_pSaveTractometry,0,wxEXPAND );
 		pBoxMain->Add( pBoxSizercs, 0, wxEXPAND | wxALL, 1 );
 
         //////////////////////////////////////////////////////////////////////////
@@ -2553,11 +2787,13 @@ void SelectionObject::createPropertiesSizer( PropertiesWindow *pParent )
         pParent->Connect( m_pBtnSelectConvexHullColor->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( PropertiesWindow::OnConvexHullColorChange ) );
         pParent->Connect( m_pbtnDisplayCrossSections->GetId(),wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(PropertiesWindow::OnDisplayCrossSections ) );
         pParent->Connect( m_pbtnDisplayDispersionTube->GetId(),wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(PropertiesWindow::OnDisplayDispersionTube ) );
+		pParent->Connect( m_pSaveTractometry->GetId(),    wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( PropertiesWindow::onSaveTractometry ) );
         pParent->Connect( m_pToggleVisibility->GetId(), wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler( PropertiesWindow::OnToggleShowSelectionObject ) );
         pParent->Connect( m_pToggleActivate->GetId(),   wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxTreeEventHandler(    PropertiesWindow::OnActivateTreeItem ) );
         pParent->Connect( pToggleAndNot->GetId(),       wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler( PropertiesWindow::OnToggleAndNot ) );
         pParent->Connect( m_pTogglePruneRemove->GetId(),       wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler( PropertiesWindow::OnTogglePruneRemove ) );
         pParent->Connect( m_pToggleCalculatesFibersInfo->GetId(), wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler( PropertiesWindow::OnDisplayFibersInfo ) );
+		pParent->Connect( m_pBtnRefAnat->GetId(),    wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( PropertiesWindow::OnSelectRefAnat ) );
         pParent->Connect( m_pToggleDisplayMeanFiber->GetId(),     wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler( PropertiesWindow::OnDisplayMeanFiber ) );
         pParent->Connect( m_pToggleDisplayConvexHull->GetId(),    wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler( PropertiesWindow::OnDisplayConvexHull ) );
         pParent->Connect( m_pRadCustomColoring->GetId(), wxEVT_COMMAND_RADIOBUTTON_SELECTED, wxCommandEventHandler( PropertiesWindow::OnCustomMeanFiberColoring ) );
@@ -2705,6 +2941,7 @@ void SelectionObject::updatePropertiesSizer()
 
         m_pbtnDisplayDispersionTube->Enable(m_pToggleCalculatesFibersInfo->GetValue());
         m_pbtnDisplayCrossSections->Enable(m_pToggleCalculatesFibersInfo->GetValue());
+		m_pSaveTractometry->Enable(m_pToggleCalculatesFibersInfo->GetValue());
     }
 
     if( m_boxMoved )

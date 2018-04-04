@@ -1503,6 +1503,26 @@ void PropertiesWindow::OnDisplayConvexHull( wxCommandEvent& WXUNUSED(event) )
     }
 }
 
+void PropertiesWindow::OnSelectRefAnat( wxCommandEvent& WXUNUSED(event) )
+{
+    SelectionObject *pSelObj = m_pMainFrame->getCurrentSelectionObject();
+    if( pSelObj != NULL )
+    {
+		//Give selected anat to selobj and update button name
+
+		//Select map for threshold seeding
+		long item = m_pMainFrame->getCurrentListIndex();
+		Anatomy* refAnat = (Anatomy*)DatasetManager::getInstance()->getDataset (MyApp::frame->m_pListCtrl->GetItem( item )); 
+
+		if( refAnat != NULL && refAnat->getBands() == 1 )
+		{
+			pSelObj->setRefAnat( refAnat );
+		}
+
+        m_pMainFrame->refreshAllGLWidgets();
+    }
+}
+
 void PropertiesWindow::OnDisplayCrossSections( wxCommandEvent& WXUNUSED(event) )
 {
 	SelectionObject *pSelObj = m_pMainFrame->getCurrentSelectionObject();
@@ -1528,6 +1548,11 @@ void PropertiesWindow::OnDisplayDispersionTube( wxCommandEvent& WXUNUSED(event) 
 		if( pSelObj->m_displayDispersionCone == DC_NB_OF_CHOICES )
 			pSelObj->m_displayDispersionCone = DC_NOTHING;
 	}
+}
+
+void PropertiesWindow::onSaveTractometry( wxCommandEvent& WXUNUSED(event) )
+{
+	m_pMainFrame->onSaveTractometry();
 }
 
 ///////////////////////////////////////////////////////////////////////////

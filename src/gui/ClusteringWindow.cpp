@@ -241,9 +241,17 @@ void ClusteringWindow::doClustering( vector<Fibers*> selectedFibers, wxString ba
     metric.addMetric( &lengthMetric,      weightLength );
 
     float threshold = m_pSliderThreshold->GetValue() / 10.0;
+
+	float min = std::numeric_limits<float>::infinity();
+	for(int i =0; i< selectedFibers.size(); i++)
+	{
+		float length = selectedFibers[i]->getMinFibersLength();
+		if(length < min)
+			min = length;	
+	}
     
     // Do the actual clustering.
-    QuickBundles clustering(selectedFibers, &metric, threshold, 50);
+    QuickBundles clustering(selectedFibers, &metric, threshold, std::min(100, (int)min));
 
     // Create each bundle that has been found by the clustering algorithm.
     Logger::getInstance()->print( wxT( "Creating Fibers objects..." ), LOGLEVEL_DEBUG );
