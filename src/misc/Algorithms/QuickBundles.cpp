@@ -1,7 +1,7 @@
 #include "QuickBundles.h"
 
 #include "../../Logger.h"
-#include "Interpolation.h"
+#include "Interpolation3D.h"
 #include <sstream>
 
 #include <algorithm>    // std::random_shuffle
@@ -40,7 +40,7 @@ QuickBundles::QuickBundles(const vector<Fibers*>& bundles, Metric *pMetric, floa
     for( unsigned int i=0; i < m_fibersLength.size(); ++i )
     {
         m_line2point.push_back(i * m_nbDownsamplingPts * 3);
-        Interpolation::linear3D(m_fibersLines[i], m_fibersLength[i], &m_pPoints[m_line2point.back()], m_nbDownsamplingPts);
+        Interpolation3D::linear3D(m_fibersLines[i], m_fibersLength[i], &m_pPoints[m_line2point.back()], m_nbDownsamplingPts);
     }
 
     cluster();

@@ -1,5 +1,5 @@
 
-#include "Interpolation.h"
+#include "Interpolation3D.h"
 
 #include "../../Logger.h"
 #include <sstream>
@@ -7,7 +7,7 @@ using std::stringstream;
 
 #include <cmath>
 
-bool Interpolation::linear3D(float *curve, unsigned int N, float *newCurve, unsigned int newN)
+bool Interpolation3D::linear3D(float *curve, unsigned int N, float *newCurve, unsigned int newN)
 {
     float* cumlen = new float[N];
     cumlen[0] = 0.0;

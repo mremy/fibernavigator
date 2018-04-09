@@ -28,6 +28,7 @@
 #include "../misc/IsoSurface/CIsoSurface.h"
 #include "../misc/IsoSurface/TriangleMesh.h"
 #include "../misc/XmlHelper.h"
+#include "../misc/Fantom/FBSpline.h"
 
 #include <wx/textctrl.h>
 #include <wx/tglbtn.h>
@@ -76,7 +77,7 @@ void SelectionObject::doBasicInit()
 	m_pSaveTractometry = NULL;
 	m_displayCrossSections = CS_NOTHING;
 	m_displayDispersionCone = DC_NOTHING;
-	m_noOfMeanFiberPts = 50;
+	m_noOfMeanFiberPts = 20;
 	m_meanFiberColor = wxColour( 255.0f, 255.0f, 255.0f);
 	m_pRefAnatInfo = NULL;
     
@@ -919,8 +920,8 @@ void SelectionObject::updateStats()
     }
     
 	m_meanFiberPoints.assign(m_noOfMeanFiberPts, Vector( 0.0, 0.0, 0.0 ));
+	VecMean.clear();
 
-    
     int activeFiberSetCount( 0 );
     
     vector< Fibers * > pFibersSet = DatasetManager::getInstance()->getFibers();
@@ -1014,10 +1015,24 @@ void SelectionObject::updateStats()
                             m_stats.m_meanCrossSection, 
                             m_stats.m_maxCrossSection,
                             m_stats.m_minCrossSection   );
+
+	getSpline();
 	getFiberDispersion              ( m_stats.m_dispersion        );
     
     updateStatsGrid();
   
+}
+
+void SelectionObject::getSpline()
+{
+	FBSpline spline(4, VecMean);
+	std::vector<std::vector<double> > pts;
+	spline.samplePoints(pts,100);
+	m_meanFiberPoints.clear();
+	for(int i =0; i< pts.size(); i++)
+	{
+		m_meanFiberPoints.push_back(Vector(pts[i][0],pts[i][1],pts[i][2]));
+	}
 }
 
 void SelectionObject::notifyStatsNeedUpdating()
@@ -1455,17 +1470,19 @@ bool SelectionObject::performTractometry( const vector< vector< Vector > > &fibe
     {
         return false;
     }
+
+	int noOfPts = m_meanFiberPoints.size();
     
     Anatomy *pCurrentAnatomy( NULL );
 	std::vector<std::vector <float> > localMetrics;
-	m_tractometrics.resize(m_noOfMeanFiberPts);
-	localMetrics.resize(m_noOfMeanFiberPts);
+	m_tractometrics.resize(noOfPts);
+	localMetrics.resize(noOfPts);
     vector< Anatomy* > datasets = DatasetManager::getInstance()->getAnatomies();
     
-    if( m_pCBSelectDataSet == NULL && datasets.size() > 0 )
+	if( m_pCBSelectDataSet == NULL && datasets.size() > 0 && m_pRefAnatInfo != NULL)
     {
         // Select the first dataset in the list
-        pCurrentAnatomy = datasets[0];
+        pCurrentAnatomy = m_pRefAnatInfo;
     }
     else if( m_pCBSelectDataSet != NULL && 
              m_pCBSelectDataSet->GetCount() > 0 && 
@@ -1504,7 +1521,7 @@ bool SelectionObject::performTractometry( const vector< vector< Vector > > &fibe
 			float dist = std::numeric_limits<float>::infinity();
 			int assignTo;
 			//assign Value to closest mean streamline pt;
-			for(int l=0; l<m_noOfMeanFiberPts;l++)
+			for(int l=0; l<noOfPts;l++)
 			{
 				float  l_distance = ( fibersPoints[i][j] - m_meanFiberPoints[l] ).getLength();
 
@@ -1540,7 +1557,7 @@ bool SelectionObject::performTractometry( const vector< vector< Vector > > &fibe
         }
     }
 
-	for(int l=0; l<m_noOfMeanFiberPts;l++)
+	for(int l=0; l<noOfPts;l++)
 	{
 		float sum = 0;
 		for(int m=0; m<localMetrics[l].size();m++)
@@ -1652,7 +1669,7 @@ bool SelectionObject::saveTractometry(wxString &filename)
     strcpy( pFn, ( const char * ) filename.mb_str( wxConvUTF8 ) );
     myfile.open( pFn, std::ios::out );
 
-	for (int i = 0; i < m_noOfMeanFiberPts; i++)
+	for (int i = 0; i < m_tractometrics.size(); i++)
 		myfile << m_tractometrics[i] << " ";
 
     myfile.close();
@@ -1726,7 +1743,7 @@ bool SelectionObject::getLongestStreamline( const vector< int > &selectedFibersI
 			//Before insterting it in the o_meanfiberPoints, check MDF for flips
 			float dDirect = 0;
 			float dFlipped = 0;
-			for( unsigned int j = 0; j < m_noOfMeanFiberPts; ++j )
+			for(int j = 0; j < m_noOfMeanFiberPts; ++j )
 			{	
 				dDirect += abs(sqrt((firstStrmline[j].x - currentStrmResampled[j].x)*(firstStrmline[j].x - currentStrmResampled[j].x)
 					+(firstStrmline[j].y - currentStrmResampled[j].y)*(firstStrmline[j].y - currentStrmResampled[j].y)
@@ -1744,7 +1761,7 @@ bool SelectionObject::getLongestStreamline( const vector< int > &selectedFibersI
 
 			if(dDirect < dFlipped)
 			{
-				for( unsigned int j = 0; j < m_noOfMeanFiberPts; ++j )
+				for(int j = 0; j < m_noOfMeanFiberPts; ++j )
 				{
 					m_meanFiberPoints[j] += currentStrmResampled[j];
 				}
@@ -1828,7 +1845,7 @@ bool SelectionObject::getMeanMaxMinFiberCrossSection( const vector< vector< Vect
 
         // We get the points intersecting the current plane for all the selectedFibers.
         for( unsigned int j = 0; j < i_fibersPoints.size(); ++j )
-            getFiberPlaneIntersectionPoint( i_fibersPoints[j], l_pointOnPlane, l_planeNormal, l_intersectionPoints );
+            getFiberPlaneIntersectionPoint( i_fibersPoints[j], l_pointOnPlane, l_planeNormal, l_intersectionPoints, i );
 
         // We need at least 3 points to get a valid cross section.
 
@@ -1864,13 +1881,29 @@ bool SelectionObject::getMeanMaxMinFiberCrossSection( const vector< vector< Vect
         m_crossSectionsAreas[i]   = l_hullArea;
         m_crossSectionsNormals[i] = l_planeNormal;
 
-		////update mean streamline from cross section 
+		////update mean streamline from mid point of cross sections
 		Vector mean (0,0,0);
 		for(int cs = 0; cs < m_crossSectionsPoints[i].size(); cs++)
 			mean+=Vector(m_crossSectionsPoints[i][cs].x, m_crossSectionsPoints[i][cs].y, m_crossSectionsPoints[i][cs].z);
 
 		mean/=m_crossSectionsPoints[i].size();
-		m_meanFiberPoints[i] = mean;
+		//except first and last plane, since sometime this may be jagged with spurious ends
+		
+	/*	if(i != 0 && i != m_crossSectionsPoints.size()-1) 
+		{*/
+			m_meanFiberPoints[i] = mean;
+			vector<double> v;
+			v.push_back(mean.x);
+			v.push_back(mean.y);
+			v.push_back(mean.z);
+			VecMean.push_back(v);
+
+		//}
+		//if((i % 2) == 0)
+		//{
+
+		//}
+
 
         // Maximum Cross Section.
         if( l_hullArea > o_maxCrossSection )
@@ -1916,9 +1949,13 @@ bool SelectionObject::getMeanMaxMinFiberCrossSection( const vector< vector< Vect
 bool SelectionObject::getFiberPlaneIntersectionPoint( const vector< Vector > &i_fiberPoints,
                                                       const Vector           &i_pointOnPlane,
                                                       const Vector           &i_planeNormal,
-                                                            vector< Vector > &o_intersectionPoints )
+                                                            vector< Vector > &o_intersectionPoints,
+															int id)
 {
     float l_minDistance = m_CSThreshold;
+	//if(id == 0 || id == m_meanFiberPoints.size()-1)
+		//	l_minDistance /= 2;
+
     Vector l_tmp;
     bool l_intersected = false;
     
@@ -2132,15 +2169,13 @@ void SelectionObject::drawFibersInfo()
     updateStats();
 
     glDisable( GL_DEPTH_TEST);
-    
     // Draw the mean fiber.
     drawThickFiber( m_meanFiberPoints, (float)THICK_FIBER_THICKNESS/100.0f, THICK_FIBER_NB_TUBE_EDGE );
+	glEnable( GL_DEPTH_TEST);
+
     // TODO selection convex hull
     drawConvexHull();
     drawCrossSections();
-    drawDispersionCone();
-
-    glEnable( GL_DEPTH_TEST);
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -2512,7 +2547,7 @@ void SelectionObject::createPropertiesSizer( PropertiesWindow *pParent )
     wxBoxSizer *pBoxMain = new wxBoxSizer( wxVERTICAL );
     if(!m_isMagnet)
     {
-        m_meanFiberOpacity = 0.35f;
+        m_meanFiberOpacity = 0.50f;
 		m_CSThreshold = 20;
         m_convexHullOpacity = 0.35f;
         m_meanFiberColorationMode = NORMAL_COLOR;
@@ -2556,13 +2591,13 @@ void SelectionObject::createPropertiesSizer( PropertiesWindow *pParent )
         m_pLblColoring          = new wxStaticText( pParent, wxID_ANY, wxT( "Coloring" ) );
         m_pLblMeanFiberOpacity  = new wxStaticText( pParent, wxID_ANY, wxT( "Opacity" ) );
 		m_pLblCrossSectionThreshold  = new wxStaticText( pParent, wxID_ANY, wxT( "C.S. threshold" ) );
-		m_pLblNoOfCS  = new wxStaticText( pParent, wxID_ANY, wxT( "Number of points" ) );
+		m_pLblNoOfCS  = new wxStaticText( pParent, wxID_ANY, wxT( "Number of planes" ) );
         m_pLblConvexHullOpacity = new wxStaticText( pParent, wxID_ANY, wxT( "Opacity" ) );
         m_pRadCustomColoring = new wxRadioButton( pParent, wxID_ANY, _T( "Custom" ), DEF_POS, DEF_SIZE, wxRB_GROUP );
         m_pRadNormalColoring = new wxRadioButton( pParent, wxID_ANY, _T( "Normal" ) );
         m_pSliderMeanFiberOpacity  = new wxSlider( pParent, wxID_ANY, 35, 0, 100, DEF_POS, wxSize( 40, -1 ), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
 		m_pSliderCSthreshold  = new wxSlider( pParent, wxID_ANY, 20, 0, 100, DEF_POS, wxSize( 40, -1 ), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
-		m_pSliderNoOfCS  = new wxSlider( pParent, wxID_ANY, 50, 3, 100, DEF_POS, wxSize( 40, -1 ), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
+		m_pSliderNoOfCS  = new wxSlider( pParent, wxID_ANY, 20, 10, 30, DEF_POS, wxSize( 40, -1 ), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
         m_pSliderConvexHullOpacity = new wxSlider( pParent, wxID_ANY, 35, 0, 100, DEF_POS, wxSize( 40, -1 ), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
         m_pTxtName  = new wxTextCtrl( pParent, wxID_ANY, getName(), DEF_POS, DEF_SIZE, wxTE_CENTRE | wxTE_READONLY );
         m_pTxtBoxX  = new wxTextCtrl( pParent, wxID_ANY, wxString::Format( wxT( "%.2f" ), m_center.x ), DEF_POS, wxSize( 10, -1 ) );
@@ -2937,7 +2972,10 @@ void SelectionObject::updatePropertiesSizer()
         {
             UpdateMeanValueTypeBox();
         }
-    #endif
+		m_pBtnRefAnat->Show(false);
+		m_pLblRefAnat->Show(false);
+    #endif		
+
 
         m_pbtnDisplayDispersionTube->Enable(m_pToggleCalculatesFibersInfo->GetValue());
         m_pbtnDisplayCrossSections->Enable(m_pToggleCalculatesFibersInfo->GetValue());

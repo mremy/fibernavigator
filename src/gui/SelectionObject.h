@@ -326,7 +326,8 @@ protected:
     bool   getFiberPlaneIntersectionPoint    ( const std::vector< Vector >           &i_fiberPoints, 
                                                const Vector                          &i_pointOnPlane,
                                                const Vector                          &i_planeNormal,
-                                                     std::vector< Vector >           &o_intersectionPoints      );
+                                                     std::vector< Vector >           &o_intersectionPoints,
+													 int id);
     
     bool   getFiberDispersion                (       float                           &o_dispersion              );
     
@@ -345,6 +346,7 @@ protected:
                                                      float                           &o_meanCrossSection,
                                                      float                           &o_maxCrossSection,
                                                      float                           &o_minCrossSection         );
+	void getSpline();
     
     bool   getMeanMaxMinFiberLength( const vector< int > &selectedFibersIndexes,
                                            Fibers        *pCurFibers,
@@ -371,6 +373,7 @@ protected:
     std::vector< Vector >       m_meanFiberPoints;      // The points representing the mean fiber.
     unsigned int                m_minCrossSectionIndex; // Index of the min cross section of m_crossSectionsPoints.
 	std::vector <float>         m_tractometrics;
+	std::vector< std::vector<double> > VecMean;
     
     FibersInfoGridParams        m_stats;                // The stats for this box.
     bool                        m_statsNeedUpdating;    // Will be used to check if the stats
