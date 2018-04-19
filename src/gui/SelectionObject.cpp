@@ -86,6 +86,8 @@ void SelectionObject::doBasicInit()
     m_Q = 0.25;
     
     m_statsNeedUpdating     = true;
+	m_showStartPoint = false;
+	m_flipStartingPoint = false;
     m_statsAreBeingComputed = false;
     m_meanFiberIsBeingDisplayed = false;
     m_boxMoved              = false;
@@ -708,6 +710,7 @@ void SelectionObject::drawThickFiber( const vector< Vector > &i_fiberPoints, flo
 
 }
 
+
 void SelectionObject::computeConvexHull()
 {
 
@@ -1015,7 +1018,7 @@ void SelectionObject::updateStats()
                             m_stats.m_meanCrossSection, 
                             m_stats.m_maxCrossSection,
                             m_stats.m_minCrossSection   );
-
+	
 	getSpline();
 	getFiberDispersion              ( m_stats.m_dispersion        );
     
@@ -1025,19 +1028,39 @@ void SelectionObject::updateStats()
 
 void SelectionObject::getSpline()
 {
-	FBSpline spline(4, VecMean);
-	std::vector<std::vector<double> > pts;
-	spline.samplePoints(pts,100);
-	m_meanFiberPoints.clear();
-	for(int i =0; i< pts.size(); i++)
+	if(VecMean.size() !=0)
 	{
-		m_meanFiberPoints.push_back(Vector(pts[i][0],pts[i][1],pts[i][2]));
+		FBSpline spline(4, VecMean);
+		std::vector<std::vector<double> > pts;
+		spline.samplePoints(pts,100);
+		m_meanFiberPoints.clear();
+		for(int i =0; i< pts.size(); i++)
+		{
+			m_meanFiberPoints.push_back(Vector(pts[i][0],pts[i][1],pts[i][2]));
+		}
 	}
 }
 
 void SelectionObject::notifyStatsNeedUpdating()
 {
     m_statsNeedUpdating = true;
+}
+
+void SelectionObject::setShowStartingPoint()
+{
+	m_showStartPoint = !m_showStartPoint; 
+}
+
+void SelectionObject::flipStartingPoint()
+{
+	m_flipStartingPoint = !m_flipStartingPoint;
+
+	vector<Vector> temp;
+	for(int i =m_meanFiberPoints.size()-1; i > -1; i--)
+	{
+		temp.push_back(m_meanFiberPoints[i]);
+	}
+	m_meanFiberPoints = temp;
 }
 
 vector< int > SelectionObject::getSelectedFibersIndexes( Fibers *pFibers )
@@ -1529,6 +1552,9 @@ bool SelectionObject::performTractometry( const vector< vector< Vector > > &fibe
 				{
 					dist = l_distance;
 					assignTo         = l;
+
+					//update fiber color vector to match assigned point?
+					//from 1 to noOfPts; (or within fibers color with distance from mean streamline ...)
 				}
 			}
 			localMetrics[assignTo].push_back(value);
@@ -2171,6 +2197,12 @@ void SelectionObject::drawFibersInfo()
     glDisable( GL_DEPTH_TEST);
     // Draw the mean fiber.
     drawThickFiber( m_meanFiberPoints, (float)THICK_FIBER_THICKNESS/100.0f, THICK_FIBER_NB_TUBE_EDGE );
+
+	if(m_showStartPoint)
+	{
+		glColor3f(1.0f, 0.0f, 0.0f);
+		SceneManager::getInstance()->getScene()->drawSphere( m_meanFiberPoints[0].x, m_meanFiberPoints[0].y, m_meanFiberPoints[0].z, 5);
+	}
 	glEnable( GL_DEPTH_TEST);
 
     // TODO selection convex hull
@@ -2518,6 +2550,9 @@ void SelectionObject::setShowMeanFiberOption( bool i_val )
 	m_pSliderNoOfCS->Show( i_val );
 	m_pLblCrossSectionThreshold->Show( i_val );
 	m_pLblNoOfCS->Show( i_val );
+	m_pTxtBoxNbOfPlanes->Show( i_val );
+	m_pToggleShowStartingPoint->Show(i_val);
+	m_pToggleFlipStartingPoint->Show(i_val);
 }
 
 void SelectionObject::updateMeanFiberOpacity()
@@ -2533,7 +2568,9 @@ void SelectionObject::updateCSThreshold()
 
 void SelectionObject::updateNoOfCS()
 {
-	setNoOfCS( m_pSliderNoOfCS->GetValue() );
+	float v = m_pSliderNoOfCS->GetValue();
+	setNoOfCS( v );
+	m_pTxtBoxNbOfPlanes->SetValue(wxString::Format( wxT( "%.1f" ), v ));
 	notifyStatsNeedUpdating();
 }
 
@@ -2586,18 +2623,21 @@ void SelectionObject::createPropertiesSizer( PropertiesWindow *pParent )
 		m_pBtnRefAnat    = new wxButton( pParent, wxID_ANY, wxT( "Choose Anat" ) );
 
         m_pToggleDisplayMeanFiber     = new wxToggleButton( pParent, wxID_ANY, wxT( "Display Mean Fiber" ) );
+		m_pToggleShowStartingPoint     = new wxToggleButton( pParent, wxID_ANY, wxT( "Show starting point" ) );
+		m_pToggleFlipStartingPoint     = new wxToggleButton( pParent, wxID_ANY, wxT( "Flip" ), DEF_POS, wxSize( 20, -1 ) );
 		m_pSaveTractometry    = new wxButton( pParent, wxID_ANY, wxT( "Export values" ) );
          m_pToggleDisplayConvexHull    = new wxToggleButton( pParent, wxID_ANY, wxT( "Display convex hull" ) );
         m_pLblColoring          = new wxStaticText( pParent, wxID_ANY, wxT( "Coloring" ) );
         m_pLblMeanFiberOpacity  = new wxStaticText( pParent, wxID_ANY, wxT( "Opacity" ) );
 		m_pLblCrossSectionThreshold  = new wxStaticText( pParent, wxID_ANY, wxT( "C.S. threshold" ) );
-		m_pLblNoOfCS  = new wxStaticText( pParent, wxID_ANY, wxT( "Number of planes" ) );
+		m_pLblNoOfCS  = new wxStaticText( pParent, wxID_ANY, wxT( "No. of planes" ) );
+		m_pTxtBoxNbOfPlanes  = new wxTextCtrl( pParent, wxID_ANY, wxString::Format( wxT( "%d" ), m_noOfMeanFiberPts ), DEF_POS, wxSize( 10, -1 ) );
         m_pLblConvexHullOpacity = new wxStaticText( pParent, wxID_ANY, wxT( "Opacity" ) );
         m_pRadCustomColoring = new wxRadioButton( pParent, wxID_ANY, _T( "Custom" ), DEF_POS, DEF_SIZE, wxRB_GROUP );
         m_pRadNormalColoring = new wxRadioButton( pParent, wxID_ANY, _T( "Normal" ) );
         m_pSliderMeanFiberOpacity  = new wxSlider( pParent, wxID_ANY, 35, 0, 100, DEF_POS, wxSize( 40, -1 ), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
-		m_pSliderCSthreshold  = new wxSlider( pParent, wxID_ANY, 20, 0, 100, DEF_POS, wxSize( 40, -1 ), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
-		m_pSliderNoOfCS  = new wxSlider( pParent, wxID_ANY, 20, 10, 30, DEF_POS, wxSize( 40, -1 ), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
+		m_pSliderCSthreshold  = new wxSlider( pParent, wxID_ANY, 20, 1, 100, DEF_POS, wxSize( 40, -1 ), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
+		m_pSliderNoOfCS  = new wxSlider( pParent, wxID_ANY, 20, 10, 30, DEF_POS, wxSize( 60, -1 ), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
         m_pSliderConvexHullOpacity = new wxSlider( pParent, wxID_ANY, 35, 0, 100, DEF_POS, wxSize( 40, -1 ), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
         m_pTxtName  = new wxTextCtrl( pParent, wxID_ANY, getName(), DEF_POS, DEF_SIZE, wxTE_CENTRE | wxTE_READONLY );
         m_pTxtBoxX  = new wxTextCtrl( pParent, wxID_ANY, wxString::Format( wxT( "%.2f" ), m_center.x ), DEF_POS, wxSize( 10, -1 ) );
@@ -2741,7 +2781,13 @@ void SelectionObject::createPropertiesSizer( PropertiesWindow *pParent )
 		wxBoxSizer *pBoxSizer5 = new wxBoxSizer( wxHORIZONTAL );
 		pBoxSizer5->Add( m_pLblNoOfCS,    0, wxEXPAND, 0 );
         pBoxSizer5->Add( m_pSliderNoOfCS, 1, wxEXPAND, 0 );
+		pBoxSizer5->Add( m_pTxtBoxNbOfPlanes, 1, wxEXPAND, 0 );
         pBoxMain->Add( pBoxSizer5, 0, wxEXPAND | wxALL, 1 );
+
+		wxBoxSizer *pBoxSizerflip = new wxBoxSizer( wxHORIZONTAL );
+        pBoxSizerflip->Add( m_pToggleShowStartingPoint,  0, wxEXPAND, 0 );
+        pBoxSizerflip->Add( m_pToggleFlipStartingPoint, 1, wxEXPAND, 0 );
+        pBoxMain->Add( pBoxSizerflip, 0, wxEXPAND | wxALL, 1);
 
         //////////////////////////////////////////////////////////////////////////
 		wxBoxSizer *pBoxSizercs = new wxBoxSizer( wxVERTICAL );
@@ -2830,6 +2876,8 @@ void SelectionObject::createPropertiesSizer( PropertiesWindow *pParent )
         pParent->Connect( m_pToggleCalculatesFibersInfo->GetId(), wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler( PropertiesWindow::OnDisplayFibersInfo ) );
 		pParent->Connect( m_pBtnRefAnat->GetId(),    wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( PropertiesWindow::OnSelectRefAnat ) );
         pParent->Connect( m_pToggleDisplayMeanFiber->GetId(),     wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler( PropertiesWindow::OnDisplayMeanFiber ) );
+		pParent->Connect( m_pToggleShowStartingPoint->GetId(),     wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler( PropertiesWindow::OnShowStartingPoint ) );
+		pParent->Connect( m_pToggleFlipStartingPoint->GetId(),     wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler( PropertiesWindow::OnFlipStartingPoint ) );
         pParent->Connect( m_pToggleDisplayConvexHull->GetId(),    wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler( PropertiesWindow::OnDisplayConvexHull ) );
         pParent->Connect( m_pRadCustomColoring->GetId(), wxEVT_COMMAND_RADIOBUTTON_SELECTED, wxCommandEventHandler( PropertiesWindow::OnCustomMeanFiberColoring ) );
         pParent->Connect( m_pRadNormalColoring->GetId(), wxEVT_COMMAND_RADIOBUTTON_SELECTED, wxCommandEventHandler( PropertiesWindow::OnNormalMeanFiberColoring ) );
@@ -2980,6 +3028,7 @@ void SelectionObject::updatePropertiesSizer()
         m_pbtnDisplayDispersionTube->Enable(m_pToggleCalculatesFibersInfo->GetValue());
         m_pbtnDisplayCrossSections->Enable(m_pToggleCalculatesFibersInfo->GetValue());
 		m_pSaveTractometry->Enable(m_pToggleCalculatesFibersInfo->GetValue());
+		
     }
 
     if( m_boxMoved )

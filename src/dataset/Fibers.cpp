@@ -1808,7 +1808,7 @@ void Fibers::colorWithDistance( float *pColorData )
 
     for( unsigned int objIdx( 0 ); objIdx < selectionObjects.size(); ++objIdx )
     {
-        if( selectionObjects[objIdx]->IsUsedForDistanceColoring() )
+        if( selectionObjects[objIdx]->meanStreamlineDisplayed() )
         {
             simplifiedList.push_back( selectionObjects[objIdx] );
         }
@@ -1823,48 +1823,32 @@ void Fibers::colorWithDistance( float *pColorData )
 
     for( int i = 0; i < getPointCount(); ++i )
     {
-        float minDistance = FLT_MAX;
-        int x     = std::min( columns - 1, std::max( 0, (int)( m_pointArray[i * 3 ]    / voxelX ) ) );
-        int y     = std::min( rows    - 1, std::max( 0, (int)( m_pointArray[i * 3 + 1] / voxelY ) ) );
-        int z     = std::min( frames  - 1, std::max( 0, (int)( m_pointArray[i * 3 + 2] / voxelZ ) ) );
-        int index = x + y * columns + z * rows * columns;
-
+		vector<Vector> meanFiberPts;
         for( unsigned int j = 0; j < simplifiedList.size(); ++j )
         {
-            // TODO selection VOI adjust
-            /*if( simplifiedList[j]->m_sourceAnatomy != NULL )
-            {
-                float curValue = simplifiedList[j]->m_sourceAnatomy->at( index );
-
-                if( curValue < minDistance )
-                {
-                    minDistance = curValue;
-                }
-            }*/
+			meanFiberPts = simplifiedList[j]->getMeanFiberPts();
         }
 
-        float thresh = m_threshold / 2.0f;
+		float assignTo;
+		float dist = std::numeric_limits<float>::infinity();
+		for(int l=0; l<meanFiberPts.size();l++)
+			{
+				Vector curPts = Vector(m_pointArray[i * 3], m_pointArray[i * 3 +1], m_pointArray[i*3+2]);
+				float  l_distance = ( curPts - meanFiberPts[l] ).getLength();
 
-        if( minDistance > ( thresh ) && minDistance < ( thresh + LINEAR_GRADIENT_THRESHOLD ) )
-        {
-            float greenVal = ( minDistance - thresh ) / LINEAR_GRADIENT_THRESHOLD;
-            float redVal = 1 - greenVal;
-            pColorData[3 * i]      = redVal;
-            pColorData[3 * i + 1]  = greenVal;
-            pColorData[3 * i + 2]  = 0.0f;
-        }
-        else if( minDistance > ( thresh + LINEAR_GRADIENT_THRESHOLD ) )
-        {
-            pColorData[3 * i ]     = 0.0f;
-            pColorData[3 * i + 1]  = 1.0f;
-            pColorData[3 * i + 2]  = 0.0f;
-        }
-        else
-        {
-            pColorData[3 * i ]     = 1.0f;
-            pColorData[3 * i + 1]  = 0.0f;
-            pColorData[3 * i + 2]  = 0.0f;
-        }
+				if( l_distance < dist )
+				{
+					dist = l_distance;
+					assignTo = l;
+				}
+		}
+
+        float greenVal = assignTo/meanFiberPts.size();
+        float redVal = 1 - greenVal;
+        pColorData[3 * i]      = redVal;
+        pColorData[3 * i + 1]  = greenVal;
+        pColorData[3 * i + 2]  = 0.0f;
+
     }
 }
 

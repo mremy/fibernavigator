@@ -158,6 +158,8 @@ public:
     void OnDistanceAnchorSet                ( wxCommandEvent& event );
     void OnDisplayFibersInfo                ( wxCommandEvent& event );
     void OnDisplayMeanFiber                 ( wxCommandEvent& event );
+	void OnShowStartingPoint                ( wxCommandEvent& event );
+	void OnFlipStartingPoint                ( wxCommandEvent& event );
     void OnDisplayConvexHull                ( wxCommandEvent& event );
 	void OnSelectRefAnat                    ( wxCommandEvent& event );
 	void OnDisplayCrossSections             ( wxCommandEvent& event );

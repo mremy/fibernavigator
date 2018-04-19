@@ -242,8 +242,12 @@ int slider3 = 150;
     m_pToggleRandomInit = new wxToggleButton( this, wxID_ANY,wxT("Randomly spaced seeds"), wxDefaultPosition, wxSize(2*zoomS, -1) );
     Connect( m_pToggleRandomInit->GetId(), wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler(TrackingWindow::OnRandomSeeding) );
 
-    wxBoxSizer *pBoxRowRand = new wxBoxSizer( wxHORIZONTAL );
+	m_pToggleInterpolate = new wxToggleButton( this, wxID_ANY,wxT("Interpolate OFF"), wxDefaultPosition, wxSize(2*zoomS, -1) );
+	Connect( m_pToggleInterpolate->GetId(), wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler(TrackingWindow::OnInterpolate) );
+
+    wxBoxSizer *pBoxRowRand = new wxBoxSizer( wxVERTICAL );
     pBoxRowRand->Add( m_pToggleRandomInit, 0, wxALIGN_CENTER | wxALL, 1 );
+	pBoxRowRand->Add( m_pToggleInterpolate, 0, wxALIGN_CENTER | wxALL, 1 );
 	m_pTrackingSizer->Add( pBoxRowRand, 0, wxFIXED_MINSIZE | wxALL, 2 );
    
     wxBoxSizer *pBoxFlips = new wxBoxSizer( wxHORIZONTAL );
@@ -983,8 +987,18 @@ void TrackingWindow::OnRandomSeeding( wxCommandEvent& WXUNUSED(event) )
 //Deprecated
 void TrackingWindow::OnInterpolate( wxCommandEvent& WXUNUSED(event) )
 {
-    RTTrackingHelper::getInstance()->toggleInterpolateTensors();
+    RTTrackingHelper::getInstance()->toggleInterpolate();
     RTTrackingHelper::getInstance()->setRTTDirty( true );
+
+	//Set nb of seeds depending on the seeding mode 
+	if( !RTTrackingHelper::getInstance()->isInterpolated() )
+    {
+		m_pToggleInterpolate->SetLabel(wxT( "Interpolate OFF"));
+    }
+    else
+    {
+        m_pToggleInterpolate->SetLabel(wxT( "Interpolate ON"));
+    }
 }
 
 void TrackingWindow::OnSliderAxisSeedNbMoved( wxCommandEvent& WXUNUSED(event) )

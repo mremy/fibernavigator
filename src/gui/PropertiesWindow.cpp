@@ -1488,6 +1488,24 @@ void PropertiesWindow::OnDisplayMeanFiber( wxCommandEvent& WXUNUSED(event) )
     pSelObj->notifyStatsNeedUpdating();
 }
 
+void PropertiesWindow::OnShowStartingPoint( wxCommandEvent& WXUNUSED(event) )
+{
+    Logger::getInstance()->print( wxT( "Event triggered - PropertiesWindow::OnShowStartingPoint" ), LOGLEVEL_DEBUG );
+
+    SelectionObject *pSelObj = m_pMainFrame->getCurrentSelectionObject();
+    
+    pSelObj->setShowStartingPoint();
+}
+
+void PropertiesWindow::OnFlipStartingPoint( wxCommandEvent& WXUNUSED(event) )
+{
+    Logger::getInstance()->print( wxT( "Event triggered - PropertiesWindow::OnSFlipStartingPoint" ), LOGLEVEL_DEBUG );
+
+    SelectionObject *pSelObj = m_pMainFrame->getCurrentSelectionObject();
+    
+    pSelObj->flipStartingPoint();
+}
+
 ///////////////////////////////////////////////////////////////////////////
 // This function will be triggered when the user click on the display convex hull
 // button that is located in the m_fibersInfoSizer.

@@ -151,8 +151,10 @@ public :
     float      getStrength()                        { return m_Q;              };
     Vector     getMagnetField()                     { return m_magnetField; };
     void       setMagnetField(Vector field)         { m_magnetField = field; };
+	
+    bool meanStreamlineDisplayed() {return m_pToggleDisplayMeanFiber->GetValue();}
+	vector<Vector> getMeanFiberPts() {return m_meanFiberPoints;   }
 
-    
 
     void       setConvexHullColor( wxColour i_color ) { m_convexHullColor = i_color;            }; 
     wxColour   getConvexHullColor()                   { return m_convexHullColor;               };
@@ -296,6 +298,8 @@ public:
     void   UpdateMeanValueTypeBox             ();
     void   updateConvexHullOpacity            ();
 	bool   saveTractometry(wxString &filename);
+	void   flipStartingPoint();
+	void   setShowStartingPoint();
 protected:
     void   drawCrossSections                 ();
     void   drawCrossSectionsPolygons         ();
@@ -308,6 +312,7 @@ protected:
     void   drawThickFiber                    ( const std::vector< Vector >           &i_fiberPoints,
                                                      float                           i_thickness, 
                                                      int                             i_nmTubeEdge               );
+	void   drawStartingPoint();
     void   drawConvexHull                    ();
     void   setShowConvexHullOption           (bool i_val);
     void   drawTube                          ( const std::vector< std::vector< Vector > > &i_allCirclesPoints,
@@ -337,6 +342,7 @@ protected:
     bool   getMeanFiber                      ( const std::vector< std::vector< Vector > > &i_fibersPoints,
                                                      unsigned int                    i_nbPoints,
                                                      std::vector< Vector >           &o_meanFiber               );
+	
     bool   getMeanFiberValue                 ( const std::vector< std::vector< Vector > > &fibersPoints, 
                                                      float                           &computedMeanValue         );
 	bool   performTractometry                 ( const std::vector< std::vector< Vector > > &fibersPoints);
@@ -376,7 +382,9 @@ protected:
 	std::vector< std::vector<double> > VecMean;
     
     FibersInfoGridParams        m_stats;                // The stats for this box.
-    bool                        m_statsNeedUpdating;    // Will be used to check if the stats
+    bool                        m_statsNeedUpdating;    // Will be used to check if the stats<
+	bool                        m_showStartPoint;
+	bool						m_flipStartingPoint;
     /******************************************************************************************
     * END of the functions/variables related to the fiber info calculation.
     *****************************************************************************************/
@@ -391,6 +399,8 @@ private:
     wxToggleButton  *m_pToggleCalculatesFibersInfo;
     wxGrid          *m_pGridFibersInfo;
     wxToggleButton  *m_pToggleDisplayMeanFiber;
+	wxToggleButton  *m_pToggleShowStartingPoint;
+	wxToggleButton  *m_pToggleFlipStartingPoint;
      wxToggleButton  *m_pToggleDisplayConvexHull;
      wxBitmapButton  *m_pBtnSelectConvexHullColor;
      wxStaticText    *m_pLblConvexHullOpacity;
@@ -422,6 +432,7 @@ public:
     wxTextCtrl      *m_pTxtSizeX;
     wxTextCtrl      *m_pTxtSizeY;
     wxTextCtrl      *m_pTxtSizeZ;
+	wxTextCtrl      *m_pTxtBoxNbOfPlanes;
     wxSlider        *m_pSliderQ;
     wxTextCtrl      *m_pBoxQ;
     wxToggleButton  *m_pTogglePruneRemove;

@@ -25,7 +25,7 @@ public:
     bool isRTTReady() const     { return m_isRTTReady; }
     bool isRTTDirty() const     { return m_isRTTDirty; }
     bool isRTTActive() const    { return m_isRTTActive; }
-    bool isTensorsInterpolated() const  { return m_interpolateTensors; }
+    bool isInterpolated() const  { return m_interpolate; }
 	bool isSeedFromfMRI() const { return m_isSeedFromfMRI; }
     bool isTractoDrivenRSN() const { return m_isTractoDrivenRSN; }
     bool isGMAllowed() const { return m_isGMallowed; }
@@ -43,7 +43,7 @@ public:
     void setMaximaFlip( Vector flip)          { flippedAxes.x = flip.x; flippedAxes.y = flip.y; flippedAxes.z = flip.z; }
     Vector getMaximaFlip()          { return flippedAxes; }
 
-    bool toggleInterpolateTensors() { return m_interpolateTensors = !m_interpolateTensors; }
+    bool toggleInterpolate() { return m_interpolate = !m_interpolate; }
     bool toggleShellSeeds()         { return m_isShellSeeds = !m_isShellSeeds; }
 	bool toggleSeedMap()            { return m_isSeedMap = !m_isSeedMap; }
     bool toggleGMmap()              { return m_isGMallowed = !m_isGMallowed; }
@@ -89,7 +89,7 @@ private:
 private:
     static RTTrackingHelper * m_pInstance;
 
-    bool m_interpolateTensors;
+    bool m_interpolate;
     bool m_isFileSelected;
     bool m_isShellSeeds;
 	bool m_isSeedMap;

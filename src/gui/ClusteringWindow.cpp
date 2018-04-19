@@ -251,7 +251,7 @@ void ClusteringWindow::doClustering( vector<Fibers*> selectedFibers, wxString ba
 	}
     
     // Do the actual clustering.
-    QuickBundles clustering(selectedFibers, &metric, threshold, std::min(100, (int)min));
+    QuickBundles clustering(selectedFibers, &metric, threshold, 100);
 
     // Create each bundle that has been found by the clustering algorithm.
     Logger::getInstance()->print( wxT( "Creating Fibers objects..." ), LOGLEVEL_DEBUG );
