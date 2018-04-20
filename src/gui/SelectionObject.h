@@ -297,7 +297,7 @@ public:
 	void   updateNoOfCS                       ();
     void   UpdateMeanValueTypeBox             ();
     void   updateConvexHullOpacity            ();
-	bool   saveTractometry(wxString &filename);
+	bool   saveTractometry(wxString filename);
 	void   flipStartingPoint();
 	void   setShowStartingPoint();
 protected:

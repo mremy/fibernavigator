@@ -1642,7 +1642,7 @@ bool SelectionObject::getMeanMaxMinFiberLength( const vector< int > &selectedFib
     return true;
 }
 
-bool SelectionObject::saveTractometry(wxString &filename)
+bool SelectionObject::saveTractometry(wxString filename)
 {
 	//Compute part
 	FibersGroup *pFiberGroup = DatasetManager::getInstance()->getFibersGroup();
@@ -1707,7 +1707,7 @@ bool SelectionObject::getLongestStreamline( const vector< int > &selectedFibersI
                                                   Fibers        *pCurFibers)
 {
 	float maxLength  = 0.0f;
-	std::vector<std::pair<int,int>> mapLength;
+	std::vector<std::pair<int,int> > mapLength;
 	std::vector<Vector> firstStrmline;
 	firstStrmline.resize(m_noOfMeanFiberPts);
 	if( selectedFibersIndexes.empty() )
