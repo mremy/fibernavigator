@@ -6,9 +6,9 @@ uniform int dimX, dimY, dimZ;
 uniform float voxX, voxY, voxZ;
 uniform sampler3D tex;
 uniform float threshold;
-uniform int type;
 uniform bool useTex;
 uniform bool useOverlay;
+uniform bool isDistcoloring;
 
 varying vec4 myColor;
 
@@ -31,15 +31,17 @@ float lookupTex()
 
 void main()
 {
-	vec4 cooloor = vec4(1.0);
+	vec4 cooloor = myColor;
 	float value = lookupTex();
+    if(isDistcoloring)
+        value = myColor.r;
 	float newVal;
 	if (threshold < 1.0)
 		newVal = (value - threshold) / (1.0 - threshold);
 	else
 		newVal = 1.0;
 
-	if (type == 3 && useTex)
+	if (useTex)
 	{
 		if ( useColorMap == 1 )
 			cooloor.rgb  = colorMap1( newVal );
@@ -63,7 +65,8 @@ void main()
      cooloor.a = newVal*newVal;*/
 
 	cooloor.a = newVal * myColor.a;
-	if ( useOverlay )
-	   cooloor.rgb = myColor.rgb;
-	gl_FragColor = cooloor;
+	if ( useOverlay && !isDistcoloring)
+	   gl_FragColor = myColor;
+    else
+       gl_FragColor = cooloor;
 }
