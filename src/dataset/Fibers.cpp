@@ -1843,11 +1843,12 @@ void Fibers::colorWithDistance( float *pColorData )
 				}
 		}
 
+		//ShaderHelper::getInstance()->getFibersShader()->setUniFloat("distance", assignTo/meanFiberPts.size() );
         float greenVal = assignTo/meanFiberPts.size();
-        float redVal = 1 - greenVal;
-        pColorData[3 * i]      = redVal;
+        //float redVal = 1 - greenVal;
+        pColorData[3 * i]      = greenVal;
         pColorData[3 * i + 1]  = greenVal;
-        pColorData[3 * i + 2]  = 0.0f;
+        pColorData[3 * i + 2]  = greenVal;
 
     }
 }
@@ -4455,6 +4456,7 @@ void Fibers::setShader()
     {
         ShaderHelper::getInstance()->getFibersShader()->bind();
         ShaderHelper::getInstance()->setFiberShaderVars();
+		ShaderHelper::getInstance()->getFibersShader()->setUniInt( "isDistcoloring", m_fiberColorationMode == DISTANCE_COLOR );
         ShaderHelper::getInstance()->getFibersShader()->setUniInt( "useTex", !pDsInfo->getUseTex() );
         ShaderHelper::getInstance()->getFibersShader()->setUniInt( "useColorMap", SceneManager::getInstance()->getColorMap() );
         ShaderHelper::getInstance()->getFibersShader()->setUniInt( "useOverlay", pDsInfo->getShowFS() );
