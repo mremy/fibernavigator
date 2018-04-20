@@ -416,6 +416,11 @@ long ListCtrl::FindFiberGroupPosition()
     return -1;
 }
 
+void ListCtrl::SelectItem( long item )
+{
+    wxListCtrl::SetItemState(item, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
+}
+
 void ListCtrl::Swap( long i, long j )
 {
     long tmp = GetItemData( i );

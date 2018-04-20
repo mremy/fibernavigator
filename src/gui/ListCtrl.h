@@ -36,6 +36,7 @@ public:
     void UnselectAll();
     void UpdateFibers();
     void UpdateSelected();
+	void SelectItem( long item );
     
     // Getters/Setters
     int  GetColumnClicked() const                   { return m_column; }
@@ -45,6 +46,8 @@ public:
     bool SetColumnWidth( int col, int width )       { return wxListCtrl::SetColumnWidth( col, width ); }
     void SetMaxSize( const wxSize &size )           { wxListCtrl::SetMaxSize( size ); }
     void SetMinSize( const wxSize &size )           { wxListCtrl::SetMinSize( size ); }
+
+	long FindFiberGroupPosition();
 
     // Events
     void onActivate( wxListEvent& evt );
@@ -57,7 +60,6 @@ private:
     ListCtrl( const ListCtrl & );
     ListCtrl & operator= ( const ListCtrl & );
 
-    long FindFiberGroupPosition();
     void Swap( long i, long j );
     void update_internal( long index );
 

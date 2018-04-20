@@ -29,6 +29,7 @@ DatasetInfo::DatasetInfo()
 	m_edgeOp       ( 1.0f),
     m_brightness   ( 1.0f ),
     m_oldMax       ( 1.0 ),
+	m_dataMin      ( 0.0 ),
     m_newMax       ( 1.0 ),
 
     m_color        ( wxColour( 128, 10, 10 ) ),
@@ -222,6 +223,7 @@ void DatasetInfo::swap( DatasetInfo &d )
     std::swap( m_alpha, d.m_alpha );
     std::swap( m_brightness, d.m_brightness );
     std::swap( m_oldMax, d.m_oldMax );
+	std::swap( m_dataMin, d.m_dataMin);
     std::swap( m_newMax, d.m_newMax );
     std::swap( m_color, d.m_color );
     std::swap( m_GLuint, d.m_GLuint );

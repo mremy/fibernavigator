@@ -43,12 +43,17 @@ public:
     // Fibers loading methods
     bool    load( const wxString &filename );
     bool    createFrom( const vector<Fibers*>& fibers, wxString name=wxT("Merged"));
+	bool    createFrom( const vector<float*>& pointArray, const vector<int>& linePointers, const vector<float*>& colorArray, wxString name=wxT("Generated.trk"));
+	void    addCentroidToRender(vector<float> pts);
+	void    toggleShowCentroid();
+	bool    isShowCentroids() {return m_showCentroids;}
 
     void    updateFibersColors();
 
     Anatomy* generateFiberVolume();
 
     void    getFibersInfoToSave( std::vector<float> &pointsToSave, std::vector<int> &linesToSave, std::vector<int> &colorsToSave, int &countLines );
+	void    getFibersInfoToSaveTCK( std::vector<float> &pointsToSave, int &countLines );
     void    getNbLines( int &nbLines );
     void    loadDMRIFibersInFile( std::ofstream &myfile );
 
@@ -81,6 +86,7 @@ public:
     float    getLocalizedAlpha( int index );
 
     void    setFibersLength();
+	vector<float> getCentroidPts() { return m_centroidPts;}
     
     float   getFiberLength( const int fiberId ) const
     {
@@ -270,6 +276,8 @@ private:
     float           m_zDrawn;
     std::vector< unsigned int > m_cfStartOfLine;
     std::vector< unsigned int > m_cfPointsPerLine;
+	vector<float> m_centroidPts;
+	bool			m_showCentroids;
     
     wxColor         m_constantColor;
 
@@ -298,6 +306,7 @@ private:
     wxToggleButton *m_pToggleLocalColoring;
     wxToggleButton *m_pToggleNormalColoring;
     wxButton       *m_pSelectConstantFibersColor;
+	wxButton       *m_pShowCentroidPts;
     wxToggleButton *m_pToggleCrossingFibers;
     wxToggleButton *m_pToggleSliceFibers;
     wxRadioButton  *m_pRadNormalColoring;
@@ -311,6 +320,8 @@ private:
     wxToggleButton  *m_pToggleRenderFunc;
     wxToggleButton  *m_pToggleLocalGlobal;
     wxToggleButton  *m_pToggleEndpts;
+
+	friend class QuickBundles;
 };
 
 #endif /* FIBERS_H_ */

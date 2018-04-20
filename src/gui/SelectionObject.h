@@ -151,8 +151,10 @@ public :
     float      getStrength()                        { return m_Q;              };
     Vector     getMagnetField()                     { return m_magnetField; };
     void       setMagnetField(Vector field)         { m_magnetField = field; };
+	
+    bool meanStreamlineDisplayed() {return m_pToggleDisplayMeanFiber->GetValue();}
+	vector<Vector> getMeanFiberPts() {return m_meanFiberPoints;   }
 
-    
 
     void       setConvexHullColor( wxColour i_color ) { m_convexHullColor = i_color;            }; 
     wxColour   getConvexHullColor()                   { return m_convexHullColor;               };
@@ -165,6 +167,14 @@ public :
 
     void       setMeanFiberOpacity( float i_opacity) { m_meanFiberOpacity = i_opacity;         };
     float      getMeanFiberOpacity()                 { return m_meanFiberOpacity;              };
+
+	void       setCSThreshold( float i_CSthresh) { m_CSThreshold = i_CSthresh;         };
+    float      getCSThreshold()                 { return m_CSThreshold;              };
+
+	void       setNoOfCS( float i_noOfCS) { m_noOfMeanFiberPts = i_noOfCS;         };
+    float      getNoOfCS()                 { return m_noOfMeanFiberPts;              };
+
+	void       setRefAnat(Anatomy * refAnat);
 
     void       setMeanFiberColorMode( FibersColorationMode i_mode ) { m_meanFiberColorationMode = i_mode; };
     FibersColorationMode getMeanFiberColorMode()     { return m_meanFiberColorationMode;        };
@@ -226,6 +236,7 @@ protected :
     int             m_stepSize;
     float           m_Q;
     Vector          m_magnetField;
+	int             m_noOfMeanFiberPts;
 
     wxColour        m_color;         // Used for coloring the isosurface.
     
@@ -249,6 +260,7 @@ protected :
     wxColour m_meanFiberColor; //Custom color chose by the user
     std::vector< Vector > m_meanFiberColorVector; //Vector of colour compute by the program
     float m_meanFiberOpacity; //Between 0 and 1
+	float m_CSThreshold;
     FibersColorationMode m_meanFiberColorationMode;
 
     // Those variables represent the min/max value in pixel of the object.
@@ -258,7 +270,7 @@ protected :
     float m_maxX;
     float m_maxY;
     float m_maxZ;
-    
+    Anatomy *m_pRefAnatInfo;
 
     std::map< FiberIdType, SelectionState > m_selectionStates;
     
@@ -281,8 +293,13 @@ public:
     void   computeConvexHull                 ();
     
     void   updateMeanFiberOpacity             ();
+	void   updateCSThreshold                  ();
+	void   updateNoOfCS                       ();
     void   UpdateMeanValueTypeBox             ();
     void   updateConvexHullOpacity            ();
+	bool   saveTractometry(wxString filename);
+	void   flipStartingPoint();
+	void   setShowStartingPoint();
 protected:
     void   drawCrossSections                 ();
     void   drawCrossSectionsPolygons         ();
@@ -295,6 +312,7 @@ protected:
     void   drawThickFiber                    ( const std::vector< Vector >           &i_fiberPoints,
                                                      float                           i_thickness, 
                                                      int                             i_nmTubeEdge               );
+	void   drawStartingPoint();
     void   drawConvexHull                    ();
     void   setShowConvexHullOption           (bool i_val);
     void   drawTube                          ( const std::vector< std::vector< Vector > > &i_allCirclesPoints,
@@ -313,7 +331,8 @@ protected:
     bool   getFiberPlaneIntersectionPoint    ( const std::vector< Vector >           &i_fiberPoints, 
                                                const Vector                          &i_pointOnPlane,
                                                const Vector                          &i_planeNormal,
-                                                     std::vector< Vector >           &o_intersectionPoints      );
+                                                     std::vector< Vector >           &o_intersectionPoints,
+													 int id);
     
     bool   getFiberDispersion                (       float                           &o_dispersion              );
     
@@ -323,20 +342,26 @@ protected:
     bool   getMeanFiber                      ( const std::vector< std::vector< Vector > > &i_fibersPoints,
                                                      unsigned int                    i_nbPoints,
                                                      std::vector< Vector >           &o_meanFiber               );
+	
     bool   getMeanFiberValue                 ( const std::vector< std::vector< Vector > > &fibersPoints, 
                                                      float                           &computedMeanValue         );
+	bool   performTractometry                 ( const std::vector< std::vector< Vector > > &fibersPoints);
     
     bool   getMeanMaxMinFiberCrossSection    ( const std::vector< std::vector< Vector > > &i_fibersPoints,
                                                const std::vector< Vector >           &i_meanFiberPoints,
                                                      float                           &o_meanCrossSection,
                                                      float                           &o_maxCrossSection,
                                                      float                           &o_minCrossSection         );
+	void getSpline();
     
     bool   getMeanMaxMinFiberLength( const vector< int > &selectedFibersIndexes,
                                            Fibers        *pCurFibers,
                                            float         &o_meanLength,
                                            float         &o_maxLength,
-                                           float         &o_minLength );
+                                           float         &o_minLength);
+
+	bool   getLongestStreamline( const vector< int > &selectedFibersIndexes,
+                                           Fibers        *pCurFibers);
 
     std::vector< std::vector< Vector > >   getSelectedFibersPoints ();
     
@@ -353,9 +378,13 @@ protected:
     unsigned int                m_maxCrossSectionIndex; // Index of the max cross section of m_crossSectionsPoints.
     std::vector< Vector >       m_meanFiberPoints;      // The points representing the mean fiber.
     unsigned int                m_minCrossSectionIndex; // Index of the min cross section of m_crossSectionsPoints.
+	std::vector <float>         m_tractometrics;
+	std::vector< std::vector<double> > VecMean;
     
     FibersInfoGridParams        m_stats;                // The stats for this box.
-    bool                        m_statsNeedUpdating;    // Will be used to check if the stats
+    bool                        m_statsNeedUpdating;    // Will be used to check if the stats<
+	bool                        m_showStartPoint;
+	bool						m_flipStartingPoint;
     /******************************************************************************************
     * END of the functions/variables related to the fiber info calculation.
     *****************************************************************************************/
@@ -370,21 +399,30 @@ private:
     wxToggleButton  *m_pToggleCalculatesFibersInfo;
     wxGrid          *m_pGridFibersInfo;
     wxToggleButton  *m_pToggleDisplayMeanFiber;
-//     wxToggleButton  *m_pToggleDisplayConvexHull;
-//     wxBitmapButton  *m_pBtnSelectConvexHullColor;
-//     wxStaticText    *m_pLblConvexHullOpacity;
-//     wxSlider        *m_pSliderConvexHullOpacity;
+	wxToggleButton  *m_pToggleShowStartingPoint;
+	wxToggleButton  *m_pToggleFlipStartingPoint;
+     wxToggleButton  *m_pToggleDisplayConvexHull;
+     wxBitmapButton  *m_pBtnSelectConvexHullColor;
+     wxStaticText    *m_pLblConvexHullOpacity;
+     wxSlider        *m_pSliderConvexHullOpacity;
     wxBitmapButton  *m_pBtnSelectMeanFiberColor;
     wxStaticText    *m_pLblColoring;
     wxRadioButton   *m_pRadCustomColoring;
     wxRadioButton   *m_pRadNormalColoring;
     wxStaticText    *m_pLblMeanFiberOpacity;
+	wxStaticText    *m_pLblCrossSectionThreshold;
+	wxStaticText    *m_pLblNoOfCS;
     wxSlider        *m_pSliderMeanFiberOpacity;
+	wxSlider		*m_pSliderCSthreshold;
+	wxSlider        *m_pSliderNoOfCS;
     wxButton        *m_pbtnDisplayCrossSections;
     wxButton        *m_pbtnDisplayDispersionTube;
+	wxButton        *m_pSaveTractometry;
+	
     wxStaticText    *m_pLabelAnatomy;
     wxChoice        *m_pCBSelectDataSet;
     wxToggleButton  *m_pToggleFieldDirection;
+	wxStaticText    *m_pLblRefAnat;
     
 
 public:
@@ -394,12 +432,14 @@ public:
     wxTextCtrl      *m_pTxtSizeX;
     wxTextCtrl      *m_pTxtSizeY;
     wxTextCtrl      *m_pTxtSizeZ;
+	wxTextCtrl      *m_pTxtBoxNbOfPlanes;
     wxSlider        *m_pSliderQ;
     wxTextCtrl      *m_pBoxQ;
     wxToggleButton  *m_pTogglePruneRemove;
+	wxButton        *m_pBtnRefAnat;
     
     static const int    DISPERSION_CONE_NB_TUBE_EDGE=25; // This value represent the number of edge the dispersion cone will have.
-    static const int    MEAN_FIBER_NB_POINTS=50;         // This value represent the number of points we want the mean fiber to have.
+    //static const int    MEAN_FIBER_NB_POINTS=50;         // This value represent the number of points we want the mean fiber to have.
     static const int    THICK_FIBER_NB_TUBE_EDGE=10;     // This value represent the number of edge the tube of the thick fiber will have.
     static const int    THICK_FIBER_THICKNESS=33;        // This value represent the size of the tube the thick fiber will have (*1/100).
 

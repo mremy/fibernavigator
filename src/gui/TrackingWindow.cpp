@@ -151,6 +151,11 @@ int slider2 = 250;
 int slider3 = 150;
 #endif
 
+	wxBoxSizer *pBoxRow = new wxBoxSizer( wxHORIZONTAL );
+	wxStaticText *m_pTextThreshold  = new wxStaticText( this, wxID_ANY, wxT("From Chamberland et al. (2014)"), wxDefaultPosition, wxSize(zoomS*2, -1),  wxALIGN_CENTER );
+	pBoxRow->Add( m_pTextThreshold, 0, wxALIGN_CENTER_HORIZONTAL | wxALL, 1);
+	m_pTrackingSizer->Add( pBoxRow, 0, wxFIXED_MINSIZE | wxALL, 2 );
+
     m_pBtnSelectFile = new wxButton( this, wxID_ANY,wxT("Select Peaks"), wxDefaultPosition, wxSize(zoomS, -1) );
     Connect( m_pBtnSelectFile->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(TrackingWindow::OnSelectFileHARDI) );
     m_pBtnSelectFile->SetBackgroundColour(wxColour( 255, 147, 147 ));
@@ -237,8 +242,12 @@ int slider3 = 150;
     m_pToggleRandomInit = new wxToggleButton( this, wxID_ANY,wxT("Randomly spaced seeds"), wxDefaultPosition, wxSize(2*zoomS, -1) );
     Connect( m_pToggleRandomInit->GetId(), wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler(TrackingWindow::OnRandomSeeding) );
 
-    wxBoxSizer *pBoxRowRand = new wxBoxSizer( wxHORIZONTAL );
+	m_pToggleInterpolate = new wxToggleButton( this, wxID_ANY,wxT("Interpolate OFF"), wxDefaultPosition, wxSize(2*zoomS, -1) );
+	Connect( m_pToggleInterpolate->GetId(), wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler(TrackingWindow::OnInterpolate) );
+
+    wxBoxSizer *pBoxRowRand = new wxBoxSizer( wxVERTICAL );
     pBoxRowRand->Add( m_pToggleRandomInit, 0, wxALIGN_CENTER | wxALL, 1 );
+	pBoxRowRand->Add( m_pToggleInterpolate, 0, wxALIGN_CENTER | wxALL, 1 );
 	m_pTrackingSizer->Add( pBoxRowRand, 0, wxFIXED_MINSIZE | wxALL, 2 );
    
     wxBoxSizer *pBoxFlips = new wxBoxSizer( wxHORIZONTAL );
@@ -786,7 +795,7 @@ void TrackingWindow::OnSelectMask( wxCommandEvent& WXUNUSED(event) )
     {
         m_pMainFrame->m_pTrackingWindowHardi->m_pBtnStart->Enable( true );
         m_pMainFrame->m_pTrackingWindowHardi->m_pBtnStart->SetBackgroundColour(wxColour( 147, 255, 239 ));
-		m_pMainFrame->m_pFMRIWindow->setInitiateTractoBtn();
+		//m_pMainFrame->m_pFMRIWindow->setInitiateTractoBtn();
     }
 }
 
@@ -978,8 +987,18 @@ void TrackingWindow::OnRandomSeeding( wxCommandEvent& WXUNUSED(event) )
 //Deprecated
 void TrackingWindow::OnInterpolate( wxCommandEvent& WXUNUSED(event) )
 {
-    RTTrackingHelper::getInstance()->toggleInterpolateTensors();
+    RTTrackingHelper::getInstance()->toggleInterpolate();
     RTTrackingHelper::getInstance()->setRTTDirty( true );
+
+	//Set nb of seeds depending on the seeding mode 
+	if( !RTTrackingHelper::getInstance()->isInterpolated() )
+    {
+		m_pToggleInterpolate->SetLabel(wxT( "Interpolate OFF"));
+    }
+    else
+    {
+        m_pToggleInterpolate->SetLabel(wxT( "Interpolate ON"));
+    }
 }
 
 void TrackingWindow::OnSliderAxisSeedNbMoved( wxCommandEvent& WXUNUSED(event) )

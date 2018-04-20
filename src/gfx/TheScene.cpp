@@ -712,7 +712,7 @@ void TheScene::renderFibers()
                     {
                         lightsOn();
                         GLfloat light_position0[] = { 1.0f, 1.0f, 1.0f, 0.0f };
-                glLightfv( GL_LIGHT0, GL_POSITION, light_position0 );
+						glLightfv( GL_LIGHT0, GL_POSITION, light_position0 );
                     }
                     if( ! pFibers->getUseTex() )
                     {
@@ -724,6 +724,21 @@ void TheScene::renderFibers()
 
                     Logger::getInstance()->printIfGLError( wxT( "Draw fibers" ) );
                 }
+
+				if(pFibers->isShowCentroids())
+				{
+					glDisable( GL_DEPTH_TEST);
+					glPointSize(15);
+					glColor3f(1,1,1);
+					vector<float> centroid = pFibers->getCentroidPts();
+					for(int i =0; i< centroid.size(); i+=3)
+					{
+						glBegin(GL_POINTS);
+							glVertex3f(centroid[i],centroid[i+1], centroid[i+2]);
+						glEnd();
+					}
+					glEnable( GL_DEPTH_TEST);
+				}
             }
         }
     }
@@ -890,11 +905,7 @@ void TheScene::drawSelectionObjects()
     }
     
     bindTextures();
-    
-    ShaderProgram *pMeshShader = ShaderHelper::getInstance()->getMeshShader();
-    pMeshShader->bind();
-    ShaderHelper::getInstance()->setMeshShaderVars();
-    
+
     if( SceneManager::getInstance()->isPointMode() )
         glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
     else
@@ -902,10 +913,6 @@ void TheScene::drawSelectionObjects()
     
     glEnable( GL_BLEND );
     glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-    
-    pMeshShader->setUniInt  ( "showFS", true );
-    pMeshShader->setUniInt  ( "useTex", false );
-    pMeshShader->setUniFloat( "alpha_", 1.0 );
     
     for( unsigned int objIdx( 0 ); objIdx < selectionObjects.size(); ++objIdx )
     {
@@ -916,8 +923,6 @@ void TheScene::drawSelectionObjects()
             selectionObjects[objIdx]->draw();
         }
     }
-    
-    pMeshShader->release();
     
     lightsOff();
     

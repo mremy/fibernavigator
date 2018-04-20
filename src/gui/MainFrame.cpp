@@ -13,6 +13,7 @@
 #include "ToolBar.h"
 #include "TrackingWindow.h"
 #include "FMRIWindow.h"
+#include "ClusteringWindow.h"
 #include "../main.h"
 #include "../Logger.h"
 #include "../dataset/Anatomy.h"
@@ -233,7 +234,7 @@ MainFrame::MainFrame( const wxString     &title,
     m_lastPath( MyApp::respath + _T( "data" ) ),
     m_pTimer( NULL ),
     m_isDrawerToolActive( false ),
-    m_drawSize( 2 ),
+    m_drawSize( 5 ),
     m_drawRound( true ),
     m_draw3d( false ),
     m_canUseColorPicker( false ),
@@ -379,6 +380,7 @@ void MainFrame::initLayout()
     m_pPropertiesWindow = new PropertiesWindow( m_tab, this, wxID_ANY, wxDefaultPosition, wxSize( PROP_WND_WIDTH, PROP_WND_HEIGHT ), m_pListCtrl ); // Contains Scene Objects properties
     m_pPropertiesWindow->SetScrollbars( 10, 10, 50, 50 );
     m_pPropertiesWindow->EnableScrolling( false, true );
+	m_tab->AddPage( m_pPropertiesWindow, wxT( "Properties" ) );
 
     //////////////////////////////////////////////////////////////////////////
     // TrackingWindow initialization for RTT
@@ -390,13 +392,21 @@ void MainFrame::initLayout()
     m_pTrackingWindowHardi->SetScrollbars( 10, 10, 50, 50 );
     m_pTrackingWindowHardi->EnableScrolling( true, true );
 
-	m_pFMRIWindow = new FMRIWindow( m_tab, this, wxID_ANY, wxDefaultPosition, wxSize( PROP_WND_WIDTH, PROP_WND_HEIGHT )); // Contains realtime fmri properties
-    m_pFMRIWindow->SetScrollbars( 10, 10, 50, 50 );
-    m_pFMRIWindow->EnableScrolling( true, true );
+	//m_pFMRIWindow = new FMRIWindow( m_tab, this, wxID_ANY, wxDefaultPosition, wxSize( PROP_WND_WIDTH, PROP_WND_HEIGHT )); // Contains realtime fmri properties
+    //m_pFMRIWindow->SetScrollbars( 10, 10, 50, 50 );
+	//m_pFMRIWindow->EnableScrolling( true, true );
 
-    m_tab->AddPage( m_pPropertiesWindow, wxT( "Properties" ) );
-    m_tab->AddPage( m_pTrackingWindowHardi, wxT( "HARDI tracking" ) );
-    m_tab->AddPage( m_pFMRIWindow, wxT( "rsfMRI networks" ) );
+    m_tab->AddPage( m_pTrackingWindowHardi, wxT( "Real-time tractography" ) );
+
+	//////////////////////////////////////////////////////////////////////////
+    // ClusteringWindow initialization
+    m_pClusteringWindow = new ClusteringWindow( m_tab, this, wxID_ANY, wxDefaultPosition, wxSize( PROP_WND_WIDTH, PROP_WND_HEIGHT ) ); // Contains clustering properties
+    m_pClusteringWindow->SetScrollbars( 10, 10, 50, 50 );
+    m_pClusteringWindow->EnableScrolling( false, true );
+
+    m_tab->AddPage( m_pClusteringWindow, wxT( "Clustering" ) );
+
+    //m_tab->AddPage( m_pFMRIWindow, wxT( "rsfMRI networks" ) );
 	//m_tab->AddPage( m_pTrackingWindow, wxT( "DTI tracking" ) );
 
     pBoxTab->Add( m_tab, 1, wxEXPAND | wxALL, 2 );
@@ -437,7 +447,7 @@ void MainFrame::onLoad( wxCommandEvent& WXUNUSED(event) )
 {
     wxArrayString l_fileNames;
     wxString l_caption          = wxT( "Choose a file" );
-    wxString l_wildcard         = wxT( "*.*|*.*|Nifti (*.nii)|*.nii*|Mesh files (*.mesh)|*.mesh|Mesh files (*.surf)|*.surf|Mesh files (*.dip)|*.dip|Fibers VTK/DMRI (*.fib)|*.fib|Fibers VTK(*.vtk)|*.vtk|Fibers PTK (*.bundlesdata)|*.bundlesdata|Fibers TrackVis (*.trk)|*.trk|Fibers MRtrix (*.tck)|*.tck|Scene Files (*.scn)|*.scn|Tensor files (*.nii*)|*.nii|ODF files (*.nii)|*.nii*" );
+    wxString l_wildcard         = wxT( "*.*|*.*|Nifti (*.nii)|*.nii*|Mesh files (*.mesh)|*.mesh|Mesh files (*.surf)|*.surf|Mesh files (*.dip)|*.dip|Fibers VTK/DMRI (*.fib)|*.fib|Fibers VTK World Space (*.vtk)|*.vtk|Fibers PTK (*.bundlesdata)|*.bundlesdata|Fibers TrackVis (*.trk)|*.trk|Fibers MRtrix (*.tck)|*.tck|Scene Files (*.scn)|*.scn|Tensor files (*.nii*)|*.nii|ODF files (*.nii)|*.nii*" );
     wxString l_defaultDir       = wxEmptyString;
     wxString l_defaultFileName  = wxEmptyString;
     wxFileDialog dialog( this, l_caption, l_defaultDir, l_defaultFileName, l_wildcard, wxFD_OPEN | wxFD_MULTIPLE );
@@ -629,6 +639,42 @@ void MainFrame::onSave( wxCommandEvent& WXUNUSED(event) )
     }
 }
 
+void MainFrame::onSaveTractometry()
+{
+    Logger::getInstance()->print( _T("Event triggered - MainFrame::onSaveTractometry"), LOGLEVEL_DEBUG );
+
+    wxString caption         = wxT( "Choose a file" );
+    wxString wildcard        = wxT( "Tractometry files (*.txt)|*.txt|*.*|*.*" );
+    wxString defaultDir      = wxEmptyString;
+    wxString defaultFilename = wxEmptyString;
+    wxFileDialog dialog( this, caption, defaultDir, defaultFilename, wildcard, wxFD_SAVE );
+    dialog.SetFilterIndex( 0 );
+    dialog.SetDirectory( m_lastPath );
+
+	if( SceneManager::getInstance()->isSceneFileLoaded() )
+    {
+        dialog.SetFilename( SceneManager::getInstance()->getSceneFilename() );
+    }
+
+    dialog.SetDirectory( SceneManager::getInstance()->getScenePath() );
+
+    if( dialog.ShowModal() == wxID_OK )
+    {
+        SelectionObject *pSelObj = getCurrentSelectionObject();
+		if( pSelObj != NULL )
+		{
+			if( !pSelObj->saveTractometry( dialog.GetPath() ) )
+			{
+				wxString errorMsg = wxT( "Error occured while trying to save." );
+				Logger::getInstance()->print( errorMsg, LOGLEVEL_ERROR );
+				wxMessageBox( errorMsg, wxT( "Error while saving" ), wxOK | wxICON_ERROR, NULL );
+				GetStatusBar()->SetStatusText( wxT( "ERROR" ), 1 );
+				GetStatusBar()->SetStatusText( Logger::getInstance()->getLastError(), 2 );
+			}
+		}
+    }
+}
+
 void MainFrame::onSaveFibers( wxCommandEvent& WXUNUSED(event) )
 {
     Logger::getInstance()->print( _T("Event triggered - MainFrame::onSaveFibers"), LOGLEVEL_DEBUG );
@@ -639,7 +685,7 @@ void MainFrame::onSaveFibers( wxCommandEvent& WXUNUSED(event) )
     }
  
     wxString caption         = wxT( "Choose a file" );
-    wxString wildcard        = wxT( "VTK fiber files (*.vtk)|*.vtk|VTK fiber files (*.fib)|*.fib|DMRI fiber files (*.fib)|*.fib|*.*|*.*" );
+    wxString wildcard        = wxT( "VTK fiber files (*.vtk)|*.vtk|VTK fiber files (*.fib)|*.fib|MRtrix format (*.tck)|*.tck|DMRI fiber files (*.fib)|*.fib|*.*|*.*" );
     wxString defaultDir      = wxEmptyString;
     wxString defaultFilename = wxEmptyString;
     wxFileDialog dialog( this, caption, defaultDir, defaultFilename, wildcard, wxFD_SAVE );
@@ -661,7 +707,7 @@ void MainFrame::onSaveFibers( wxCommandEvent& WXUNUSED(event) )
                     Fibers* pFibers = DatasetManager::getInstance()->getSelectedFibers( m_pListCtrl->GetItem( index ) );
                     if( pFibers )
                     {
-                        if (dialog.GetFilterIndex()==2)
+                        if (dialog.GetFilterIndex()==3)
                         {
                             pFibers->saveDMRI( dialog.GetPath() );
                         }
@@ -676,7 +722,7 @@ void MainFrame::onSaveFibers( wxCommandEvent& WXUNUSED(event) )
             {
                 FibersGroup* l_fibersGroup = DatasetManager::getInstance()->getFibersGroup();
                 
-                if (dialog.GetFilterIndex()==2)
+                if (dialog.GetFilterIndex()==3)
                 {
                     l_fibersGroup->saveDMRI( dialog.GetPath() );
                 }
@@ -1953,7 +1999,7 @@ void MainFrame::onAbout( wxCommandEvent& WXUNUSED(event) )
     
     ostringstream oss;
     oss << "Fibernavigator: a tool for interactive MRI images and streamlines exploration." << std::endl << std::endl;
-    oss << "For documentation and release information, please visit our website: " << "http://scilus.github.io/fibernavigator/" << std::endl << std::endl;
+    oss << "For documentation and release information, please visit our website: " << "http://chamberm.github.io/fibernavigator/" << std::endl << std::endl;
     oss << "Current contributors: https://github.com/scilus/fibernavigator/wiki/Current-contributors" << std::endl;
     oss << "Past contributors: https://github.com/scilus/fibernavigator/wiki/Past-contributors" << std::endl << std::endl;
     oss << "Built on Git revision: " << fullSha1.substr(0, 10) << std::endl;
@@ -2107,13 +2153,14 @@ void MainFrame::updateStatusBar()
 {
     float value( 0 );
     long index = getCurrentListIndex();
+	bool isAnat = true;
     if( index != -1)
     {
         DatasetIndex idx = m_pListCtrl->GetItem( index );
         DatasetInfo* pDataset = DatasetManager::getInstance()->getDataset( idx );
         Anatomy* pAnat = dynamic_cast<Anatomy*>( pDataset );
 		
-        if( pAnat != NULL && pAnat->getType() != RGB )
+        if( pAnat != NULL )
         {
             //Picked position
             int rows = pAnat->getRows();
@@ -2141,6 +2188,15 @@ void MainFrame::updateStatusBar()
                         maxValue = pAnat->getOldMax();
                         break;
                     }
+					case RGB:
+					{
+						int valueR = (* ( pAnat->getFloatDataset() ) )[ind*3]*255.0f;
+						int valueG = (* ( pAnat->getFloatDataset() ) )[ind*3+1]*255.0f;
+						int valueB = (* ( pAnat->getFloatDataset() ) )[ind*3+2]*255.0f;
+						GetStatusBar()->SetStatusText( wxString::Format(wxT("Pos: %d  %d  %d Value %i %i %i" ), m_pXSlider->GetValue(), m_pYSlider->GetValue(),m_pZSlider->GetValue(), valueR, valueG, valueB ), 0 );
+						isAnat = false;
+					}
+					
                 }
                 //Denormalize
                 value = (* ( pAnat->getFloatDataset() ) )[ind] * maxValue;
@@ -2151,7 +2207,8 @@ void MainFrame::updateStatusBar()
                 value = (* ( pAnat->getEqualizedDataset() ) )[ind];
             }
         }
-        GetStatusBar()->SetStatusText( wxString::Format(wxT("Pos: %d  %d  %d Value %.2f" ), m_pXSlider->GetValue(), m_pYSlider->GetValue(),m_pZSlider->GetValue(), value ), 0 );
+		if(isAnat)
+			GetStatusBar()->SetStatusText( wxString::Format(wxT("Pos: %d  %d  %d Value %.2f" ), m_pXSlider->GetValue(), m_pYSlider->GetValue(),m_pZSlider->GetValue(), value ), 0 );
     }
 	 
     Logger::getInstance()->printIfGLError( wxT( "MainFrame::updateStatusBar" ) );

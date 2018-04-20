@@ -79,6 +79,7 @@ public:
     void OnNewIsoSurface                    ( wxCommandEvent& event ); 
 
     void OnFloodFill                        ( wxCommandEvent& event );
+	void OnKMeans                        ( wxCommandEvent& event );
     void OnSliderFloodMoved                 ( wxCommandEvent& event );
 
     void OnFibersFilter                     ( wxCommandEvent& event );
@@ -92,6 +93,7 @@ public:
     void OnColorWithTorsion                 ( wxCommandEvent& event );
     void OnColorWithConstantColor           ( wxCommandEvent& event );
     void OnSelectConstantColor              ( wxCommandEvent& event );
+	void OnShowCentroidPts					( wxCommandEvent& event );
     void ColorFibers();
     void OnFibersAlpha                      ( wxCommandEvent& event );
 
@@ -104,6 +106,8 @@ public:
     void OnNormalMeanFiberColoring          ( wxCommandEvent& event );
     void OnCustomMeanFiberColoring          ( wxCommandEvent& event );
     void OnMeanFiberOpacityChange           ( wxCommandEvent& event );
+	void OnCSThresholdChange				( wxCommandEvent& event );
+	void OnNoofCSchange						( wxCommandEvent& event );
 
     void OnGlyphMinHueSliderMoved           ( wxCommandEvent& event ); // The coloration.
     void OnGlyphMaxHueSliderMoved           ( wxCommandEvent& event ); // The coloration.
@@ -154,7 +158,13 @@ public:
     void OnDistanceAnchorSet                ( wxCommandEvent& event );
     void OnDisplayFibersInfo                ( wxCommandEvent& event );
     void OnDisplayMeanFiber                 ( wxCommandEvent& event );
+	void OnShowStartingPoint                ( wxCommandEvent& event );
+	void OnFlipStartingPoint                ( wxCommandEvent& event );
     void OnDisplayConvexHull                ( wxCommandEvent& event );
+	void OnSelectRefAnat                    ( wxCommandEvent& event );
+	void OnDisplayCrossSections             ( wxCommandEvent& event );
+    void OnDisplayDispersionTube            ( wxCommandEvent& event );
+	void onSaveTractometry					( wxCommandEvent& event );
     void OnConvexHullColorChange            ( wxCommandEvent& event );
     void OnConvexHullOpacityChange          ( wxCommandEvent& event );
     void OnMeanFiberColorChange             ( wxCommandEvent& event );

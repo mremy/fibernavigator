@@ -5,7 +5,7 @@
 RTTrackingHelper * RTTrackingHelper::m_pInstance = NULL;
 
 RTTrackingHelper::RTTrackingHelper()
-:   m_interpolateTensors( false ),
+:   m_interpolate( false ),
     m_isFileSelected( false ),
     m_isShellSeeds( false ),
 	m_isSeedMap( false ),

@@ -124,7 +124,7 @@ MARK_AS_ADVANCED( USE_GEOMETRY_SHADERS )
 # GUI, without features that are not used by lots
 # of users.
 
-OPTION(BUILD_LIGHTWEIGHT_GUI "Build lightweight GUI" ON)
+OPTION(BUILD_LIGHTWEIGHT_GUI "Build lightweight GUI" OFF)
 
 IF(BUILD_LIGHTWEIGHT_GUI)
     ADD_DEFINITIONS( -D_USE_LIGHT_GUI=1 )
@@ -136,7 +136,7 @@ MARK_AS_ADVANCED( BUILD_LIGHTWEIGHT_GUI )
 
 # Option to enable HD (e.g. 4k resolution) GUI
 
-OPTION(BUILD_HD_GUI_ZOOM "Build HD GUI for 4k" ON)
+OPTION(BUILD_HD_GUI_ZOOM "Build HD GUI for 4k" OFF)
 
 IF(BUILD_HD_GUI_ZOOM)
     ADD_DEFINITIONS( -D_USE_ZOOM_GUI=1 )
@@ -202,11 +202,11 @@ ENDIF( WIN32 )
 
 IF( WIN32 )
   FIND_FILE( GLEW_DLL_FOUND glew32.dll REQUIRED )
-  find_file( wxmsw28ud_adv_vc_custom_dll_found wxmsw28ud_adv_vc_custom.dll REQUIRED )
-  find_file( wxmsw28ud_core_vc_custom_dll_found wxmsw28ud_core_vc_custom.dll REQUIRED )
-  find_file( wxmsw28ud_gl_vc_custom_dll_found wxmsw28ud_gl_vc_custom.dll REQUIRED )
-  find_file( wxbase28ud_xml_vc_custom_dll_found wxbase28ud_xml_vc_custom.dll REQUIRED )
-  find_file( wxbase28ud_vc_custom_dll_found wxbase28ud_vc_custom.dll REQUIRED )
+  #find_file( wxmsw28ud_adv_vc_custom_dll_found wxmsw28ud_adv_vc_custom.dll REQUIRED )
+  #find_file( wxmsw28ud_core_vc_custom_dll_found wxmsw28ud_core_vc_custom.dll REQUIRED )
+  #find_file( wxmsw28ud_gl_vc_custom_dll_found wxmsw28ud_gl_vc_custom.dll REQUIRED )
+  #find_file( wxbase28ud_xml_vc_custom_dll_found wxbase28ud_xml_vc_custom.dll REQUIRED )
+  #find_file( wxbase28ud_vc_custom_dll_found wxbase28ud_vc_custom.dll REQUIRED )
   find_file( opengl_dll_found opengl32.dll REQUIRED )
   find_file( glu_dll_found glu32.dll REQUIRED )
 ENDIF( WIN32 )

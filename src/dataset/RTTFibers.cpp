@@ -676,12 +676,67 @@ void RTTFibers::renderRTTFibers(bool bindBuffers, bool isAnimate, bool changeAlp
 	ShaderHelper::getInstance()->getRTTShader()->release();
 }
 
+Vector RTTFibers::getClosestPeak(int vox, Vector ref)
+{
+	Vector vOut = ref;
+	float angle = 0.0f;
+	float angleMin = 360.0f;
+	vector<float> sticks;
+	Vector flippedAxes(RTTrackingHelper::getInstance()->getMaximaFlip());
+
+	if( vox < m_pMaximasInfo->getMainDirData()->size())
+    {
+        float absPeak = std::abs(m_pMaximasInfo->getMainDirData()->at(vox)[0] + m_pMaximasInfo->getMainDirData()->at(vox)[1] + m_pMaximasInfo->getMainDirData()->at(vox)[2]);
+
+        if( absPeak != 0)
+        {
+            sticks = m_pMaximasInfo->getMainDirData()->at(vox); 
+            sticks[0] *= flippedAxes.x;
+            sticks[1] *= flippedAxes.y;
+            sticks[2] *= flippedAxes.z;
+            sticks[3] *= flippedAxes.x;
+            sticks[4] *= flippedAxes.y;
+            sticks[5] *= flippedAxes.z;
+            sticks[6] *= flippedAxes.x;
+            sticks[7] *= flippedAxes.y;
+            sticks[8] *= flippedAxes.z;
+		}
+	}
+	//Find matching peak and return it
+	for(unsigned int i=0; i < sticks.size()/3; i++)
+    {
+        Vector v1(sticks[i*3],sticks[i*3+1], sticks[i*3+2]);
+            
+        if(v1.normalizeAndReturn() != 0)
+        {
+            if( ref.Dot(v1) < 0 ) //Ensures both vectors points in the same direction
+            {
+                v1 *= -1;
+            }
+
+            //Angle value
+            float dot = ref.Dot(v1);
+            float acos = std::acos( dot );
+            angle = 180 * acos / M_PI;
+        
+            //Direction most probable
+			if( angle < m_angleThreshold )
+            {
+                angleMin = angle;
+                vOut = v1;
+            } 
+        }
+    }
+
+	return vOut;
+}
+
+
 ///////////////////////////////////////////////////////////////////////////
 // Trilinear interpolation for realtime tracking (tensors)
 ///////////////////////////////////////////////////////////////////////////
-FMatrix RTTFibers::trilinearInterp( float fx, float fy, float fz )
+Vector RTTFibers::trilinearInterp( float fx, float fy, float fz, Vector vec )
 {
-
     using std::min;
     using std::max;
 
@@ -719,14 +774,14 @@ FMatrix RTTFibers::trilinearInterp( float fx, float fy, float fz )
 
     int tensor_nxnynz = nz * columns * rows + ny * columns + nx;
 
-    FMatrix valx0 = (1-dx) * m_pTensorsInfo->getTensorsMatrix()->at(tensor_xyz)  + (dx) * m_pTensorsInfo->getTensorsMatrix()->at(tensor_nxyz);
-    FMatrix valx1 = (1-dx) * m_pTensorsInfo->getTensorsMatrix()->at(tensor_xnyz) + (dx) * m_pTensorsInfo->getTensorsMatrix()->at(tensor_nxnyz);
+    Vector valx0 = (1-dx) * getClosestPeak(tensor_xyz, vec)  + (dx) * getClosestPeak(tensor_nxyz, vec);
+    Vector valx1 = (1-dx) * getClosestPeak(tensor_xnyz, vec) + (dx) * getClosestPeak(tensor_nxnyz, vec);
 
-    const FMatrix valy0 = (1-dy) * valx0 + (dy) * valx1;
-    valx0 = (1-dx) * m_pTensorsInfo->getTensorsMatrix()->at(tensor_xynz)  + (dx) * m_pTensorsInfo->getTensorsMatrix()->at(tensor_nxynz);
-    valx1 = (1-dx) * m_pTensorsInfo->getTensorsMatrix()->at(tensor_xnynz) + (dx) * m_pTensorsInfo->getTensorsMatrix()->at(tensor_nxnynz);
+    const Vector valy0 = (1-dy) * valx0 + (dy) * valx1;
+    valx0 = (1-dx) * getClosestPeak(tensor_xynz, vec)  + (dx) * getClosestPeak(tensor_nxynz, vec);
+    valx1 = (1-dx) * getClosestPeak(tensor_xnynz, vec) + (dx) * getClosestPeak(tensor_nxnynz, vec);
 
-    const FMatrix valy1 = (1-dy) * valx0 + (dy) * valx1;
+    const Vector valy1 = (1-dy) * valx0 + (dy) * valx1;
 
     return (1-dz) * valy0 + (dz) * valy1;
 }
@@ -868,6 +923,13 @@ Vector RTTFibers::advecIntegrateHARDI( Vector vin, const std::vector<float> &sti
         }
     }
 
+
+	//At this point, vOut is our peak to advec with vin.
+	//We either interpolate now or not
+	if(RTTrackingHelper::getInstance()->isInterpolated())
+	{
+		vOut = trilinearInterp(pos.x, pos.y, pos.z, vOut );
+	}
     //White Matter version of Chamberland et al. 2014 Frontiers in Neuroinformatics 
     //Vector res = 0.5f * wm * vOut + (0.5f * wm) * ( (1.0 - puncture ) * vin + puncture * vOut);
     
@@ -1096,15 +1158,9 @@ void RTTFibers::performDTIRTT(Vector seed, int bwdfwd, vector<float>& points, ve
 
     if( tensorNumber < m_pTensorsInfo->getTensorsMatrix()->size() )
     {
-        //Use Interpolation
-        if( RTTrackingHelper::getInstance()->isTensorsInterpolated() )
-        {
-            tensor = trilinearInterp( currPosition.x, currPosition.y, currPosition.z );
-        }
-        else
-        {
-            tensor = m_pTensorsInfo->getTensorsMatrix()->at(tensorNumber); 
-        }
+
+         tensor = m_pTensorsInfo->getTensorsMatrix()->at(tensorNumber); 
+
 
         //Find the MAIN axis
         setDiffusionAxis( tensor, e1, e2, e3 );
@@ -1139,15 +1195,9 @@ void RTTFibers::performDTIRTT(Vector seed, int bwdfwd, vector<float>& points, ve
 
         if( tensorNumber < m_pTensorsInfo->getTensorsMatrix()->size() )
         {
-            //Use interpolation
-            if( RTTrackingHelper::getInstance()->isTensorsInterpolated() )
-            {
-                tensor = trilinearInterp( nextPosition.x, nextPosition.y, nextPosition.z );
-            }
-            else
-            {
-                tensor = m_pTensorsInfo->getTensorsMatrix()->at(tensorNumber);
-            }
+
+            tensor = m_pTensorsInfo->getTensorsMatrix()->at(tensorNumber);
+
 
             //Find the main diffusion axis
             e1.zero();
@@ -1211,15 +1261,9 @@ void RTTFibers::performDTIRTT(Vector seed, int bwdfwd, vector<float>& points, ve
                     break;
                 }
 
-                //Use interpolation
-                if( RTTrackingHelper::getInstance()->isTensorsInterpolated() )
-                {
-                    tensor = trilinearInterp( nextPosition.x, nextPosition.y, nextPosition.z );
-                }
-                else
-                {
-                    tensor = m_pTensorsInfo->getTensorsMatrix()->at(tensorNumber);
-                }
+
+                tensor = m_pTensorsInfo->getTensorsMatrix()->at(tensorNumber);
+
 
                 //Find the MAIN axis
                 e1.zero();

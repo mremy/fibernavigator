@@ -62,6 +62,9 @@ public:
     bool toggleIsNavCoronal()   { return m_isNavCoronal = !m_isNavCoronal; }
     bool toggleIsNavSagittal()  { return m_isNavSagital = !m_isNavSagital; }
 
+	void lightsOff              ();
+    void lightsOn               ();
+
     bool         m_isRotateZ;
     bool         m_isRotateY;
     bool         m_isRotateX;
@@ -83,8 +86,7 @@ private:
     void drawColorMapLegend     ();
     void drawSelectionObjects   ();
     void drawVectors            ();
-    void lightsOff              ();
-    void lightsOn               ();
+    
     void renderFibers           ();
     void renderMesh             ();
     void renderMeshInternal( DatasetInfo *pDsInfo );

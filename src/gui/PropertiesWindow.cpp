@@ -6,6 +6,7 @@
 #include "SelectionEllipsoid.h"
 #include "SelectionTree.h"
 #include "TrackingWindow.h"
+#include "ClusteringWindow.h"
 #include "../Logger.h"
 #include "../main.h"
 #include "../dataset/Anatomy.h"
@@ -706,6 +707,14 @@ void PropertiesWindow::OnFloodFill(wxCommandEvent& WXUNUSED(event))
     ((Anatomy*)m_pMainFrame->m_pCurrentSceneObject)->toggleSegment();
 }
 
+void PropertiesWindow::OnKMeans(wxCommandEvent& WXUNUSED(event))
+{
+    Logger::getInstance()->print( wxT( "Event triggered - PropertiesWindow::OnFloodFill" ), LOGLEVEL_DEBUG );
+
+    SceneManager::getInstance()->setSegmentMethod( KMEANS );
+	m_pMainFrame->m_pMainGL->segment();
+}
+
 void PropertiesWindow::OnSliderFloodMoved( wxCommandEvent& WXUNUSED(event) )
 {
     Logger::getInstance()->print( wxT( "Event triggered - PropertiesWindow::OnSliderFloodMoved" ), LOGLEVEL_DEBUG );
@@ -815,62 +824,6 @@ void PropertiesWindow::OnListMenuMinDistance( wxCommandEvent& WXUNUSED(event))
 }
 
 
-///////////////////////////////////////////////////////////////////////////
-// This function will be triggered when the user click on the color with curvature button
-// button that is located in the m_fibersInfoSizer.
-///////////////////////////////////////////////////////////////////////////
-void PropertiesWindow::OnColorWithCurvature( wxCommandEvent& WXUNUSED(event) )
-{
-    Logger::getInstance()->print( wxT( "Event triggered - PropertiesWindow::OnColorWithCurvature" ), LOGLEVEL_DEBUG );
-
-    long index = MyApp::frame->getCurrentListIndex();
-    if( -1 != index )
-    {
-        Fibers* pFibers = DatasetManager::getInstance()->getSelectedFibers( MyApp::frame->m_pListCtrl->GetItem( index ) );
-        if( pFibers != NULL )
-        {
-            if( pFibers->getColorationMode() != CURVATURE_COLOR )
-            {
-                pFibers->setColorationMode( CURVATURE_COLOR );
-                pFibers->updateFibersColors();
-                pFibers->updateColorationMode();
-            }
-        }
-    }
-    else
-    {
-        Logger::getInstance()->print( wxT( "PropertiesWindow::OnColorWithCurvature - Current index is -1" ), LOGLEVEL_ERROR );
-    }
-}
-
-///////////////////////////////////////////////////////////////////////////
-// This function will be triggered when the user click on the display min/max cross section
-// button that is located in the m_fibersInfoSizer.
-///////////////////////////////////////////////////////////////////////////
-void PropertiesWindow::OnColorWithTorsion( wxCommandEvent& WXUNUSED(event) )
-{
-    Logger::getInstance()->print( wxT( "Event triggered - PropertiesWindow::OnColorWithTorsion" ), LOGLEVEL_DEBUG );
-
-    long index = MyApp::frame->getCurrentListIndex();
-    if( -1 != index )
-    {
-        Fibers* pFibers = DatasetManager::getInstance()->getSelectedFibers( MyApp::frame->m_pListCtrl->GetItem( index ) );
-        if( pFibers != NULL )
-        {
-            if( pFibers->getColorationMode() != TORSION_COLOR )
-            {
-                pFibers->setColorationMode( TORSION_COLOR );
-                pFibers->updateFibersColors();
-                pFibers->updateColorationMode();
-            }
-        }
-    }
-    else
-    {
-        Logger::getInstance()->print( wxT( "PropertiesWindow::OnColorWithTorsion - Current index is -1" ), LOGLEVEL_ERROR );
-    }
-}
-
 void PropertiesWindow::OnNormalColoring( wxCommandEvent& WXUNUSED(event) )
 {
     Logger::getInstance()->print( wxT( "Event triggered - PropertiesWindow::OnNormalColoring" ), LOGLEVEL_DEBUG );
@@ -947,6 +900,24 @@ void PropertiesWindow::OnSelectConstantColor( wxCommandEvent& WXUNUSED(event) )
     }
 }
 
+void PropertiesWindow::OnShowCentroidPts( wxCommandEvent& WXUNUSED(event) )
+{
+    Logger::getInstance()->print( wxT( "Event triggered - PropertiesWindow::OnShowCentroidPts" ), LOGLEVEL_DEBUG );
+    
+    long index = MyApp::frame->getCurrentListIndex();
+    if( -1 == index )
+    {
+        Logger::getInstance()->print( wxT( "PropertiesWindow::OnShowCentroidPts - Current index is -1" ), LOGLEVEL_ERROR );
+        return;
+    }
+    
+    Fibers* pFibers = DatasetManager::getInstance()->getSelectedFibers( MyApp::frame->m_pListCtrl->GetItem( index ) );
+    if( pFibers != NULL )
+    {
+        pFibers->toggleShowCentroid();
+    }
+}
+
 ///////////////////////////////////////////////////////////////////////////
 // This function will be triggered when the user click on the normal coloring radio
 // button located in the mean fiber coloring option
@@ -990,6 +961,28 @@ void PropertiesWindow::OnMeanFiberOpacityChange( wxCommandEvent& event )
     if( pSelObj != NULL )
     {
         pSelObj->updateMeanFiberOpacity();
+    }
+}
+
+void PropertiesWindow::OnCSThresholdChange( wxCommandEvent& event )
+{
+    Logger::getInstance()->print( wxT( "Event triggered - PropertiesWindow::OnCSThresholdChange" ), LOGLEVEL_DEBUG );
+    
+    SelectionObject *pSelObj = m_pMainFrame->getCurrentSelectionObject();
+    if( pSelObj != NULL )
+    {
+        pSelObj->updateCSThreshold();
+    }
+}
+
+void PropertiesWindow::OnNoofCSchange( wxCommandEvent& event )
+{
+    Logger::getInstance()->print( wxT( "Event triggered - PropertiesWindow::OnNoofCSchange" ), LOGLEVEL_DEBUG );
+    
+    SelectionObject *pSelObj = m_pMainFrame->getCurrentSelectionObject();
+    if( pSelObj != NULL )
+    {
+        pSelObj->updateNoOfCS();
     }
 }
 
@@ -1495,6 +1488,24 @@ void PropertiesWindow::OnDisplayMeanFiber( wxCommandEvent& WXUNUSED(event) )
     pSelObj->notifyStatsNeedUpdating();
 }
 
+void PropertiesWindow::OnShowStartingPoint( wxCommandEvent& WXUNUSED(event) )
+{
+    Logger::getInstance()->print( wxT( "Event triggered - PropertiesWindow::OnShowStartingPoint" ), LOGLEVEL_DEBUG );
+
+    SelectionObject *pSelObj = m_pMainFrame->getCurrentSelectionObject();
+    
+    pSelObj->setShowStartingPoint();
+}
+
+void PropertiesWindow::OnFlipStartingPoint( wxCommandEvent& WXUNUSED(event) )
+{
+    Logger::getInstance()->print( wxT( "Event triggered - PropertiesWindow::OnSFlipStartingPoint" ), LOGLEVEL_DEBUG );
+
+    SelectionObject *pSelObj = m_pMainFrame->getCurrentSelectionObject();
+    
+    pSelObj->flipStartingPoint();
+}
+
 ///////////////////////////////////////////////////////////////////////////
 // This function will be triggered when the user click on the display convex hull
 // button that is located in the m_fibersInfoSizer.
@@ -1508,6 +1519,58 @@ void PropertiesWindow::OnDisplayConvexHull( wxCommandEvent& WXUNUSED(event) )
         pSelObj->computeConvexHull();
         m_pMainFrame->refreshAllGLWidgets();
     }
+}
+
+void PropertiesWindow::OnSelectRefAnat( wxCommandEvent& WXUNUSED(event) )
+{
+    SelectionObject *pSelObj = m_pMainFrame->getCurrentSelectionObject();
+    if( pSelObj != NULL )
+    {
+		//Give selected anat to selobj and update button name
+
+		//Select map for threshold seeding
+		long item = m_pMainFrame->getCurrentListIndex();
+		Anatomy* refAnat = (Anatomy*)DatasetManager::getInstance()->getDataset (MyApp::frame->m_pListCtrl->GetItem( item )); 
+
+		if( refAnat != NULL && refAnat->getBands() == 1 )
+		{
+			pSelObj->setRefAnat( refAnat );
+		}
+
+        m_pMainFrame->refreshAllGLWidgets();
+    }
+}
+
+void PropertiesWindow::OnDisplayCrossSections( wxCommandEvent& WXUNUSED(event) )
+{
+	SelectionObject *pSelObj = m_pMainFrame->getCurrentSelectionObject();
+    if( pSelObj != NULL )
+    {
+		pSelObj->m_displayCrossSections = (CrossSectionsDisplay)( ( (int)pSelObj->m_displayCrossSections ) + 1 );
+		if( pSelObj->m_displayCrossSections == CS_NB_OF_CHOICES )
+        pSelObj->m_displayCrossSections = CS_NOTHING;
+
+    } 
+}
+
+///////////////////////////////////////////////////////////////////////////
+// This function will be triggered when the user click on the display dispersion tube
+// button that is located in the m_fibersInfoSizer.
+///////////////////////////////////////////////////////////////////////////
+void PropertiesWindow::OnDisplayDispersionTube( wxCommandEvent& WXUNUSED(event) )
+{
+	SelectionObject *pSelObj = m_pMainFrame->getCurrentSelectionObject();
+    if( pSelObj != NULL )
+    {
+		pSelObj->m_displayDispersionCone = (DispersionConeDisplay)( ( (int)pSelObj->m_displayDispersionCone ) + 1 );
+		if( pSelObj->m_displayDispersionCone == DC_NB_OF_CHOICES )
+			pSelObj->m_displayDispersionCone = DC_NOTHING;
+	}
+}
+
+void PropertiesWindow::onSaveTractometry( wxCommandEvent& WXUNUSED(event) )
+{
+	m_pMainFrame->onSaveTractometry();
 }
 
 ///////////////////////////////////////////////////////////////////////////

@@ -110,10 +110,15 @@ void FBSpline::setOrder(int order)
 
 void FBSpline::samplePoints(std::vector< std::vector< double > > &points, double resolution)
 {
-  double deltaT = resolution;
+  /*double deltaT = resolution;
   double currentT = knots[0];
 
-  int steps = (int)((knots[knots.size() - 1] - knots[0]) / deltaT + 1);
+  int steps = (int)((knots[knots.size() - 1] - knots[0]) / deltaT + 1);*/
+
+  int steps = (int)resolution;
+  double currentT = knots[0];
+
+  double deltaT = (knots[knots.size() - 1] - knots[0]) / (steps + 1);
 
   for( int step = 0; step < steps; step++)
   {

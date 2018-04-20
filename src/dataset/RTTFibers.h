@@ -42,10 +42,11 @@ public:
     bool withinMapThreshold(unsigned int sticksNumber, Vector pos);
 
     Vector generateRandomSeed( const Vector &min, const Vector &max );
-    FMatrix trilinearInterp( float fx, float fy, float fz );
+    Vector trilinearInterp( float fx, float fy, float fz, Vector vOut );
     Vector advecIntegrate( Vector vin, const FMatrix &tensor, Vector e1, Vector e2, Vector e3, float tensorNumber );
     Vector advecIntegrateHARDI( Vector vin, const std::vector<float> &sticks, float peaksNumber, Vector pos, float& amp );
     Vector magneticField( Vector vin, const std::vector<float> &sticks, float peaksNumber, Vector pos, Vector& vOut, float& F, float& G);
+	Vector getClosestPeak(int vox, Vector ref);
     
     void clearFibersRTT();
 

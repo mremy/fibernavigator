@@ -124,7 +124,8 @@ private:
     wxTextCtrl          *m_pTxtMaxLengthBox;
 	wxButton			*m_pBtnConvert;
     wxToggleButton      *m_pToggleRandomInit;
-    
+    wxToggleButton      *m_pToggleInterpolate;
+
     //wxStaticText        *m_pTextAxisSeedNb;
     //wxStaticText        *m_pTextTotalSeedNb;
     //wxStaticLine        *m_pLineSeparator;

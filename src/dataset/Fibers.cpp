@@ -92,6 +92,8 @@ Fibers::Fibers()
     m_zDrawn( 0.0f ),
     m_cfStartOfLine(),
     m_cfPointsPerLine(),
+	m_centroidPts(),
+	m_showCentroids(false),
     m_constantColor( 0, 0, 0 ),
     m_pSliderFibersFilterMin( NULL ),
     m_pSliderFibersFilterMax( NULL ),
@@ -101,6 +103,7 @@ Fibers::Fibers()
     m_pToggleLocalColoring( NULL ),
     m_pToggleNormalColoring( NULL ),
     m_pSelectConstantFibersColor( NULL ),
+	m_pShowCentroidPts ( NULL ),
     m_pToggleCrossingFibers( NULL ),
     m_pToggleSliceFibers( NULL ),
     m_pRadNormalColoring( NULL ),
@@ -938,6 +941,11 @@ bool Fibers::loadMRtrix( const wxString &filename )
     FMatrix invertedTransform( 4, 4 );
     invertedTransform = invert( localToWorld );
 
+	std::cout << invertedTransform(0,0) << " " << invertedTransform(0,1) << " " << invertedTransform(0,2) << " " << invertedTransform(0,3) << "\n";
+    std::cout << invertedTransform(1,0) << " " << invertedTransform(1,1) << " " << invertedTransform(1,2) << " " << invertedTransform(1,3) << "\n";
+    std::cout << invertedTransform(2,0) << " " << invertedTransform(2,1) << " " << invertedTransform(2,2) << " " << invertedTransform(2,3) << "\n";
+    std::cout << invertedTransform(3,0) << " " << invertedTransform(3,1) << " " << invertedTransform(3,2) << " " << invertedTransform(3,3) << "\n";
+
     for( int i = 0; i < m_countPoints * 3; ++i )
     {
         FMatrix curPoint( 4, 1 );
@@ -1572,6 +1580,58 @@ bool Fibers::createFrom( const vector<Fibers*>& bundles, wxString name )
     return true;
 }
 
+void Fibers::addCentroidToRender(vector<float> pts)
+{
+	m_centroidPts = pts;
+}
+bool Fibers::createFrom( const vector<float*>& pointsStartPtr, const vector<int>& linesLength,
+                         const vector<float*>& colorStartPtr, wxString name )
+{
+    // Count the total number of points included in this Fibers object.
+    m_countPoints = 0;
+    for (vector<int>::const_iterator it = linesLength.begin(); it != linesLength.end(); ++it)
+        m_countPoints += *it;
+
+    m_countLines = linesLength.size();
+    m_pointArray.clear();
+    m_colorArray.clear();
+    m_linePointers.clear();
+    m_reverse.clear();
+
+    m_pointArray.max_size();
+    m_pointArray.resize( m_countPoints * 3 );
+    m_colorArray.resize( m_countPoints * 3 );
+    m_reverse.resize( m_countPoints );
+    m_linePointers.resize( m_countLines + 1 );
+    m_selected.resize( m_countLines, false );
+    m_filtered.resize( m_countLines, false );
+    
+    // Copy points, copy colors, set line pointers and set reverse lookup
+    m_linePointers[0] = 0;
+    for( int i = 0; i < m_countLines; ++i )
+    {
+        int offset = m_linePointers[i] * 3;
+        for( int j = 0; j < linesLength[i] * 3; ++j )
+        {
+
+            m_pointArray[offset + j] = pointsStartPtr[i][j];
+            m_colorArray[offset + j] = colorStartPtr[i][j];
+            m_reverse[offset/3 + j/3] = i;
+        }
+
+        m_linePointers[i+1] = m_linePointers[i] + linesLength[i];
+    }
+    
+    createColorArray( false );
+    m_type = FIBERS;
+    m_fullPath = wxString(name);
+    m_name = wxString(name);
+
+    m_pOctree = new Octree( 2, m_pointArray, m_countPoints );
+
+    return true;
+}
+
 ///////////////////////////////////////////////////////////////////////////
 // This function was made for debug purposes, it will create a fake set of
 // fibers with hardcoded value to be able to test different things.
@@ -1705,15 +1765,7 @@ void Fibers::updateFibersColors()
             pColorData  = &m_normalArray[0];
         }
 
-        if( m_fiberColorationMode == CURVATURE_COLOR )
-        {
-            colorWithCurvature( pColorData );
-        }
-        else if( m_fiberColorationMode == TORSION_COLOR )
-        {
-            colorWithTorsion( pColorData );
-        }
-        else if( m_fiberColorationMode == DISTANCE_COLOR )
+        if( m_fiberColorationMode == DISTANCE_COLOR )
         {
             colorWithDistance( pColorData );
         }
@@ -1733,199 +1785,9 @@ void Fibers::updateFibersColors()
     }
 }
 
-///////////////////////////////////////////////////////////////////////////
-// This function will color the fibers depending on their torsion value.
-//
-// pColorData      : A pointer to the fiber color info.
-///////////////////////////////////////////////////////////////////////////
-void Fibers::colorWithTorsion( float *pColorData )
-{
-    if( pColorData == NULL )
-    {
-        return;
-    }
 
-    int    pc = 0;
-    // TODO remove
-    //Vector firstDerivative, secondDerivative, thirdDerivative;
 
-    // For each fibers.
-    for( int i = 0; i < getLineCount(); ++i )
-    {
-        double color        = 0.0f;
-        int    index        = 0;
-        float  progression  = 0.0f;
-        int    pointPerLine = getPointsPerLine( i );
 
-        // We cannot calculate the torsion for a fiber that as less that 5 points.
-        // So we simply do not cange the color for this fiber
-        if( pointPerLine < 5 )
-        {
-            continue;
-        }
-
-        // For each points of this fiber.
-        for( int j = 0; j < pointPerLine; ++j )
-        {
-            if( j == 0 )
-            {
-                index = 6;                             // For the first point of each fiber.
-                progression = 0.0f;
-            }
-            else if( j == 1 )
-            {
-                index = 6;                             // For the second point of each fiber.
-                progression = 0.25f;
-            }
-            else if( j == pointPerLine - 2 )
-            {
-                index = ( pointPerLine - 2 ) * 3;    // For the before last point of each fiber.
-                progression = 0.75f;
-            }
-            else if( j == pointPerLine - 1 )
-            {
-                index = ( pointPerLine - 2 ) * 3;    // For the last point of each fiber.
-                progression = 1.0f;
-            }
-            else
-            {
-                progression = 0.5f;     // For every other points.
-            }
-
-            Helper::getProgressionTorsion(
-                    Vector( m_pointArray[index - 6], m_pointArray[index - 5], m_pointArray[index - 4] ),
-                    Vector( m_pointArray[index - 3], m_pointArray[index - 2], m_pointArray[index - 1] ),
-                    Vector( m_pointArray[index],     m_pointArray[index + 1], m_pointArray[index + 2] ),
-                    Vector( m_pointArray[index + 3], m_pointArray[index + 4], m_pointArray[index + 5] ),
-                    Vector( m_pointArray[index + 6], m_pointArray[index + 7], m_pointArray[index + 8] ),
-                    progression, color );
-
-            // Lets apply a specific hard coded coloration for the torsion.
-            float realColor;
-
-            if( color <= 0.01f ) // Those points have no torsion so we simply but them pure blue.
-            {
-                pColorData[pc]     = 0.0f;
-                pColorData[pc + 1] = 0.0f;
-                pColorData[pc + 2] = 1.0f;
-            }
-            else if( color < 0.1f )  // The majority of the values are here.
-            {
-                double normalizedValue = ( color - 0.01f ) / ( 0.1f - 0.01f );
-                realColor = ( pow( ( double )2.71828182845904523536, normalizedValue ) ) - 1.0f;
-                pColorData[pc]     = 0.0f;
-                pColorData[pc + 1] = realColor;
-                pColorData[pc + 2] = 1.0f - realColor;
-            }
-            else // All the rest is simply pure green.
-            {
-                pColorData[pc]     = 0.0f;
-                pColorData[pc + 1] = 1.0f;
-                pColorData[pc + 2] = 0.0f;
-            }
-
-            pc    += 3;
-            index += 3;
-        }
-    }
-}
-
-///////////////////////////////////////////////////////////////////////////
-// This function will color the fibers depending on their curvature value.
-//
-// pColorData      : A pointer to the fiber color info.
-///////////////////////////////////////////////////////////////////////////
-void Fibers::colorWithCurvature( float *pColorData )
-{
-    if( pColorData == NULL )
-    {
-        return;
-    }
-
-    int    pc = 0;
-    // TODO remove
-    //Vector firstDerivative, secondDerivative, thirdDerivative;
-
-    // For each fibers.
-    for( int i = 0; i < getLineCount(); ++i )
-    {
-        double color        = 0.0f;
-        int    index        = 0;
-        float  progression  = 0.0f;
-        int    pointPerLine = getPointsPerLine( i );
-
-        // We cannot calculate the curvature for a fiber that as less that 5 points.
-        // So we simply do not cange the color for this fiber
-        if( pointPerLine < 5 )
-        {
-            continue;
-        }
-
-        // For each point of this fiber.
-        for( int j = 0; j < pointPerLine; ++j )
-        {
-            if( j == 0 )
-            {
-                index = 6;                             // For the first point of each fiber.
-                progression = 0.0f;
-            }
-            else if( j == 1 )
-            {
-                index = 6;                             // For the second point of each fiber.
-                progression = 0.25f;
-            }
-            else if( j == pointPerLine - 2 )
-            {
-                index = ( pointPerLine - 2 ) * 3;    // For the before last point of each fiber.
-                progression = 0.75f;
-            }
-            else if( j == pointPerLine - 1 )
-            {
-                index = ( pointPerLine - 2 ) * 3;    // For the last point of each fiber.
-                progression = 1.0f;
-            }
-            else
-            {
-                progression = 0.5f;     // For every other points.
-            }
-
-            Helper::getProgressionCurvature(
-                    Vector( m_pointArray[index - 6], m_pointArray[index - 5], m_pointArray[index - 4] ),
-                    Vector( m_pointArray[index - 3], m_pointArray[index - 2], m_pointArray[index - 1] ),
-                    Vector( m_pointArray[index],     m_pointArray[index + 1], m_pointArray[index + 2] ),
-                    Vector( m_pointArray[index + 3], m_pointArray[index + 4], m_pointArray[index + 5] ),
-                    Vector( m_pointArray[index + 6], m_pointArray[index + 7], m_pointArray[index + 8] ),
-                    progression, color );
-
-            // Lets apply a specific hard coded coloration for the curvature.
-            float realColor;
-
-            if( color <= 0.01f ) // Those points have no curvature so we simply but them pure blue.
-            {
-                pColorData[pc]     = 0.0f;
-                pColorData[pc + 1] = 0.0f;
-                pColorData[pc + 2] = 1.0f;
-            }
-            else if( color < 0.1f )  // The majority of the values are here.
-            {
-                double normalizedValue = ( color - 0.01f ) / ( 0.1f - 0.01f );
-                realColor = ( pow( ( double )2.71828182845904523536, normalizedValue ) ) - 1.0f;
-                pColorData[pc]     = 0.0f;
-                pColorData[pc + 1] = realColor;
-                pColorData[pc + 2] = 1.0f - realColor;
-            }
-            else // All the rest is simply pure green.
-            {
-                pColorData[pc]     = 0.0f;
-                pColorData[pc + 1] = 1.0f;
-                pColorData[pc + 2] = 0.0f;
-            }
-
-            pc    += 3;
-            index += 3;
-        }
-    }
-}
 
 ///////////////////////////////////////////////////////////////////////////
 // This function will color the fibers depending on their distance to the
@@ -1946,7 +1808,7 @@ void Fibers::colorWithDistance( float *pColorData )
 
     for( unsigned int objIdx( 0 ); objIdx < selectionObjects.size(); ++objIdx )
     {
-        if( selectionObjects[objIdx]->IsUsedForDistanceColoring() )
+        if( selectionObjects[objIdx]->meanStreamlineDisplayed() )
         {
             simplifiedList.push_back( selectionObjects[objIdx] );
         }
@@ -1961,48 +1823,33 @@ void Fibers::colorWithDistance( float *pColorData )
 
     for( int i = 0; i < getPointCount(); ++i )
     {
-        float minDistance = FLT_MAX;
-        int x     = std::min( columns - 1, std::max( 0, (int)( m_pointArray[i * 3 ]    / voxelX ) ) );
-        int y     = std::min( rows    - 1, std::max( 0, (int)( m_pointArray[i * 3 + 1] / voxelY ) ) );
-        int z     = std::min( frames  - 1, std::max( 0, (int)( m_pointArray[i * 3 + 2] / voxelZ ) ) );
-        int index = x + y * columns + z * rows * columns;
-
+		vector<Vector> meanFiberPts;
         for( unsigned int j = 0; j < simplifiedList.size(); ++j )
         {
-            // TODO selection VOI adjust
-            /*if( simplifiedList[j]->m_sourceAnatomy != NULL )
-            {
-                float curValue = simplifiedList[j]->m_sourceAnatomy->at( index );
-
-                if( curValue < minDistance )
-                {
-                    minDistance = curValue;
-                }
-            }*/
+			meanFiberPts = simplifiedList[j]->getMeanFiberPts();
         }
 
-        float thresh = m_threshold / 2.0f;
+		float assignTo;
+		float dist = std::numeric_limits<float>::infinity();
+		for(int l=0; l<meanFiberPts.size();l++)
+			{
+				Vector curPts = Vector(m_pointArray[i * 3], m_pointArray[i * 3 +1], m_pointArray[i*3+2]);
+				float  l_distance = ( curPts - meanFiberPts[l] ).getLength();
 
-        if( minDistance > ( thresh ) && minDistance < ( thresh + LINEAR_GRADIENT_THRESHOLD ) )
-        {
-            float greenVal = ( minDistance - thresh ) / LINEAR_GRADIENT_THRESHOLD;
-            float redVal = 1 - greenVal;
-            pColorData[3 * i]      = redVal;
-            pColorData[3 * i + 1]  = greenVal;
-            pColorData[3 * i + 2]  = 0.0f;
-        }
-        else if( minDistance > ( thresh + LINEAR_GRADIENT_THRESHOLD ) )
-        {
-            pColorData[3 * i ]     = 0.0f;
-            pColorData[3 * i + 1]  = 1.0f;
-            pColorData[3 * i + 2]  = 0.0f;
-        }
-        else
-        {
-            pColorData[3 * i ]     = 1.0f;
-            pColorData[3 * i + 1]  = 0.0f;
-            pColorData[3 * i + 2]  = 0.0f;
-        }
+				if( l_distance < dist )
+				{
+					dist = l_distance;
+					assignTo = l;
+				}
+		}
+
+		//ShaderHelper::getInstance()->getFibersShader()->setUniFloat("distance", assignTo/meanFiberPts.size() );
+        float greenVal = assignTo/meanFiberPts.size();
+        //float redVal = 1 - greenVal;
+        pColorData[3 * i]      = greenVal;
+        pColorData[3 * i + 1]  = greenVal;
+        pColorData[3 * i + 2]  = greenVal;
+
     }
 }
 
@@ -2148,17 +1995,22 @@ void Fibers::fitToAnat(bool saving)
         localToWorld.setSubMatrix( 0, 0, rotMat );
     }
 
+	std::cout << localToWorld(0,0) << " " << localToWorld(0,1) << " " << localToWorld(0,2) << " " << localToWorld(0,3) << "\n";
+    std::cout << localToWorld(1,0) << " " << localToWorld(1,1) << " " << localToWorld(1,2) << " " << localToWorld(1,3) << "\n";
+    std::cout << localToWorld(2,0) << " " << localToWorld(2,1) << " " << localToWorld(2,2) << " " << localToWorld(2,3) << "\n";
+    std::cout << localToWorld(3,0) << " " << localToWorld(3,1) << " " << localToWorld(3,2) << " " << localToWorld(3,3) << "\n";
+
     FMatrix invertedTransform( localToWorld );
 
-    //HACK nifti
-    invertedTransform(0,0) *= -1;
-    invertedTransform(0,1) *= -1;
-    invertedTransform(1,0) *= -1;
-    invertedTransform(0,2) *= -1;
-    invertedTransform(1,1) *= -1;
-    invertedTransform(1,2) *= -1;
-    invertedTransform(0,3) *= -1;
-    invertedTransform(1,3) *= -1;
+    ////HACK nifti
+    //invertedTransform(0,0) *= -1;
+    //invertedTransform(0,1) *= -1;
+    //invertedTransform(1,0) *= -1;
+    //invertedTransform(0,2) *= -1;
+    //invertedTransform(1,1) *= -1;
+    //invertedTransform(1,2) *= -1;
+    //invertedTransform(0,3) *= -1;
+    //invertedTransform(1,3) *= -1;
 
     if(!saving)
     {
@@ -2288,8 +2140,35 @@ Anatomy* Fibers::generateFiberVolume()
     return pTmpAnatomy;
 }
 
+void Fibers::getFibersInfoToSaveTCK( vector<float>& pointsToSave, int& countLines )
+{
+	int pointIndex( 0 );
+    countLines = 0;
+
+    for( int l = 0; l < m_countLines; ++l )
+    {
+        if( m_selected[l] && !m_filtered[l] )
+        {
+            unsigned int pc = getStartIndexForLine( l ) * 3;
+
+            for( int j = 0; j < getPointsPerLine( l ); ++j )
+            {
+                pointsToSave.push_back( m_pointArray[pc] );
+                ++pc;
+                pointsToSave.push_back( m_pointArray[pc] );
+                ++pc;
+                pointsToSave.push_back( m_pointArray[pc] );
+                ++pc;
+            }
+            ++countLines;
+			pointsToSave.push_back( 99999 );
+        }
+    }
+}
+
 void Fibers::getFibersInfoToSave( vector<float>& pointsToSave,  vector<int>& linesToSave, vector<int>& colorsToSave, int& countLines )
 {
+
     int pointIndex( 0 );
     countLines = 0;
 
@@ -2393,6 +2272,14 @@ void Fibers::save( wxString filename, int format )
         }
         fitToAnat(true);
     }
+	else if(format == 2)
+	{
+		if( filename.AfterLast( '.' ) != _T( "tck" ) )
+        {
+            filename += _T( ".tck" );
+        }
+        fitToAnat(true);
+	}
     else
     {
         if( filename.AfterLast( '.' ) != _T( "fib" ) )
@@ -2400,74 +2287,174 @@ void Fibers::save( wxString filename, int format )
             filename += _T( ".fib" );
         }
     }
+	
+	if(format == 2)
+	{
+		pFn = ( char * ) malloc( filename.length() );
+		strcpy( pFn, ( const char * ) filename.mb_str( wxConvUTF8 ) );
+		myfile.open( pFn, std::ios::binary );
 
-    pFn = ( char * ) malloc( filename.length() );
-    strcpy( pFn, ( const char * ) filename.mb_str( wxConvUTF8 ) );
-    myfile.open( pFn, std::ios::binary );
+		getFibersInfoToSaveTCK( pointsToSave, countLines );
 
-    getFibersInfoToSave( pointsToSave, linesToSave, colorsToSave, countLines );
+		string header1 = "mrtrix tracks\nmethod: fnav\nsource: fibernav\nstep_size: 1\n";
+		header1 += "datatype: Float32LE\n";
+		header1 += "count: "+ wxString::Format( wxT( "%i"), countLines)+"\n";
 
-    string header1 = "# vtk DataFile Version 3.0\nvtk output\nBINARY\nDATASET POLYDATA\nPOINTS ";
-    header1 += intToString( pointsToSave.size() / 3 );
-    header1 += " float\n";
-    for( unsigned int i = 0; i < header1.size(); ++i )
-    {
-        vBuffer.push_back( header1[i] );
-    }
-    for( unsigned int i = 0; i < pointsToSave.size(); ++i )
-    {
-        f.f = pointsToSave[i];
-        vBuffer.push_back( f.b[3] );
-        vBuffer.push_back( f.b[2] );
-        vBuffer.push_back( f.b[1] );
-        vBuffer.push_back( f.b[0] );
-    }
+		int tmpLength = header1.length();
+		int countLinesLength = 0;
+		do
+		{
+			++countLinesLength; 
+			tmpLength /= 10;
+		}while (tmpLength);
 
-    vBuffer.push_back( '\n' );
-    string header2 = "LINES " + intToString( countLines ) + " " + intToString( linesToSave.size() ) + "\n";
-    for( unsigned int i = 0; i < header2.size(); ++i )
-    {
-        vBuffer.push_back( header2[i] );
-    }
-    for( unsigned int i = 0; i < linesToSave.size(); ++i )
-    {
-        c.i = linesToSave[i];
-        vBuffer.push_back( c.b[3] );
-        vBuffer.push_back( c.b[2] );
-        vBuffer.push_back( c.b[1] );
-        vBuffer.push_back( c.b[0] );
-    }
+		int count = header1.length() + countLinesLength + 13;
+		int countLinesLength2 = 0;
+		do
+		{
+			++countLinesLength2; 
+			count /= 10;
+		}while (count);
 
-    vBuffer.push_back( '\n' );
-    string header3 = "POINT_DATA ";
-    header3 += intToString( pointsToSave.size() / 3 );
-    header3 += "\n";
-    header3 += "COLOR_SCALARS scalars 3\n";
-    for( unsigned int i = 0; i < header3.size(); ++i )
-    {
-        vBuffer.push_back( header3[i] );
-    }
-    for( unsigned int i = 0; i < colorsToSave.size(); ++i )
-    {
-        vBuffer.push_back( colorsToSave[i] );
-    }
-    vBuffer.push_back( '\n' );
+		int finalLength = header1.length() + std::max(countLinesLength2, countLinesLength) + 13;
 
-    // Put the buffer vector into a char* array.
-    char* pBuffer = new char[vBuffer.size()];
+		header1 += "file: . " + wxString::Format( wxT( "%i"), finalLength)+"\n";
+		header1 +=	"END\n";
+		for( unsigned int i = 0; i < header1.size(); ++i )
+		{
+			vBuffer.push_back( header1[i] );
+		}
 
-    for( unsigned int i = 0; i < vBuffer.size(); ++i )
-    {
-        pBuffer[i] = vBuffer[i];
-    }
+		for( unsigned int i = 0; i < pointsToSave.size(); ++i )
+		{
+			if(99999 != pointsToSave[i])
+			{
+				f.f = pointsToSave[i];
+				vBuffer.push_back( f.b[0] );
+				vBuffer.push_back( f.b[1] );
+				vBuffer.push_back( f.b[2] );
+				vBuffer.push_back( f.b[3] );
+			}
+			else
+			{
+				vBuffer.push_back( 0x00 );
+				vBuffer.push_back( 0x00 );
+				vBuffer.push_back( 0xC0 );
+				vBuffer.push_back( 0x7F );
+			
+				vBuffer.push_back( 0x00 );
+				vBuffer.push_back( 0x00 );
+				vBuffer.push_back( 0xC0 );
+				vBuffer.push_back( 0x7F );
 
-    myfile.write( pBuffer, vBuffer.size() );
-    myfile.close();
+				vBuffer.push_back( 0x00 );
+				vBuffer.push_back( 0x00 );
+				vBuffer.push_back( 0xC0 );
+				vBuffer.push_back( 0x7F );
+			}
+		}
+		f.f = std::numeric_limits<float>::infinity();
+		vBuffer.push_back( f.b[0] );
+		vBuffer.push_back( f.b[1] );
+		vBuffer.push_back( f.b[2] );
+		vBuffer.push_back( f.b[3] );
 
-    delete[] pBuffer;
-    pBuffer = NULL;
+		vBuffer.push_back( f.b[0] );
+		vBuffer.push_back( f.b[1] );
+		vBuffer.push_back( f.b[2] );
+		vBuffer.push_back( f.b[3] );
 
-    if( format == 0)
+		vBuffer.push_back( f.b[0] );
+		vBuffer.push_back( f.b[1] );
+		vBuffer.push_back( f.b[2] );
+		vBuffer.push_back( f.b[3] );
+
+		// Put the buffer vector into a char* array.
+		char* pBuffer = new char[vBuffer.size()];
+
+		for( unsigned int i = 0; i < vBuffer.size(); ++i )
+		{
+			pBuffer[i] = vBuffer[i];
+		}
+
+		myfile.write( pBuffer, vBuffer.size() );
+		myfile.close();
+
+		delete[] pBuffer;
+		pBuffer = NULL;
+	}
+	else
+	{
+
+		pFn = ( char * ) malloc( filename.length() );
+		strcpy( pFn, ( const char * ) filename.mb_str( wxConvUTF8 ) );
+		myfile.open( pFn, std::ios::binary );
+
+		getFibersInfoToSave( pointsToSave, linesToSave, colorsToSave, countLines );
+
+		string header1 = "# vtk DataFile Version 3.0\nvtk output\nBINARY\nDATASET POLYDATA\nPOINTS ";
+		header1 += intToString( pointsToSave.size() / 3 );
+		header1 += " float\n";
+		for( unsigned int i = 0; i < header1.size(); ++i )
+		{
+			vBuffer.push_back( header1[i] );
+		}
+		for( unsigned int i = 0; i < pointsToSave.size(); ++i )
+		{
+			f.f = pointsToSave[i];
+			vBuffer.push_back( f.b[3] );
+			vBuffer.push_back( f.b[2] );
+			vBuffer.push_back( f.b[1] );
+			vBuffer.push_back( f.b[0] );
+		}
+
+		vBuffer.push_back( '\n' );
+		string header2 = "LINES " + intToString( countLines ) + " " + intToString( linesToSave.size() ) + "\n";
+		for( unsigned int i = 0; i < header2.size(); ++i )
+		{
+			vBuffer.push_back( header2[i] );
+		}
+		for( unsigned int i = 0; i < linesToSave.size(); ++i )
+		{
+			c.i = linesToSave[i];
+			vBuffer.push_back( c.b[3] );
+			vBuffer.push_back( c.b[2] );
+			vBuffer.push_back( c.b[1] );
+			vBuffer.push_back( c.b[0] );
+		}
+
+		vBuffer.push_back( '\n' );
+		string header3 = "POINT_DATA ";
+		header3 += intToString( pointsToSave.size() / 3 );
+		header3 += "\n";
+		header3 += "COLOR_SCALARS scalars 3\n";
+		for( unsigned int i = 0; i < header3.size(); ++i )
+		{
+			vBuffer.push_back( header3[i] );
+		}
+		for( unsigned int i = 0; i < colorsToSave.size(); ++i )
+		{
+			vBuffer.push_back( colorsToSave[i] );
+		}
+		vBuffer.push_back( '\n' );
+
+		// Put the buffer vector into a char* array.
+		char* pBuffer = new char[vBuffer.size()];
+
+		for( unsigned int i = 0; i < vBuffer.size(); ++i )
+		{
+			pBuffer[i] = vBuffer[i];
+		}
+
+		myfile.write( pBuffer, vBuffer.size() );
+		myfile.close();
+
+		delete[] pBuffer;
+		pBuffer = NULL;
+
+	}
+
+    if( format == 0 || format == 2)
     {
         fitToAnat(false);
     }
@@ -3550,6 +3537,11 @@ void Fibers::drawSortedLines()
     delete[] pLineIds;
 }
 
+void Fibers::toggleShowCentroid()
+{
+	m_showCentroids = !m_showCentroids;
+}
+
 void Fibers::useFakeTubes()
 {
     m_useFakeTubes = !m_useFakeTubes;
@@ -3956,6 +3948,7 @@ void Fibers::createPropertiesSizer( PropertiesWindow *pParent )
     m_pToggleLocalColoring  = new wxToggleButton(   pParent, wxID_ANY, wxT( "Local Coloring" ) );
     m_pToggleNormalColoring = new wxToggleButton(   pParent, wxID_ANY, wxT( "Color With Overlay" ) );
     m_pSelectConstantFibersColor = new wxButton(    pParent, wxID_ANY, wxT( "Select Constant Color..." ) );
+	m_pShowCentroidPts = new wxButton(    pParent, wxID_ANY, wxT( "Show Centroids Pts (from QB)" ) );
     m_pToggleCrossingFibers = new wxToggleButton(   pParent, wxID_ANY, wxT( "TDI Fibers" ) );
     m_pToggleSliceFibers = new wxToggleButton(   pParent, wxID_ANY, wxT( "Slice Fibers" ) );
     m_pToggleSliceFibers->Enable(false);
@@ -4003,47 +3996,7 @@ void Fibers::createPropertiesSizer( PropertiesWindow *pParent )
     
     pBoxMain->Add(pBoxSampling, 0, wxFIXED_MINSIZE | wxEXPAND, 0 );
 
-    wxBoxSizer *pBoxcalpha = new wxBoxSizer( wxHORIZONTAL );
-    pBoxcalpha->Add( new wxStaticText( pParent, wxID_ANY, wxT( "c" ), wxDefaultPosition, wxSize(s, -1), wxALIGN_LEFT ), 0, wxALIGN_LEFT | wxALL, 1 );
-    pBoxcalpha->Add( m_pSliderFibersAlpha, 0, wxALIGN_CENTER | wxALL, 1);
-    pBoxcalpha->Add( m_pTxtAlphaBox,   0, wxALIGN_CENTER | wxALL, 1);
     
-    pBoxMain->Add(pBoxcalpha, 0, wxFIXED_MINSIZE | wxEXPAND, 0 );
-
-    wxBoxSizer *pBoxRowlina = new wxBoxSizer( wxHORIZONTAL );
-    pBoxRowlina->Add( new wxStaticText( pParent, wxID_ANY, wxT( "a" ), wxDefaultPosition, wxSize(s, -1), wxALIGN_LEFT ), 0, wxALIGN_LEFT | wxALL, 1 );
-    pBoxRowlina->Add( m_pSliderFibersLina, 0, wxALIGN_CENTER | wxALL, 1);
-    pBoxRowlina->Add( m_pTxtlina,   0, wxALIGN_CENTER | wxALL, 1);
-    
-    pBoxMain->Add(pBoxRowlina, 0, wxFIXED_MINSIZE | wxEXPAND, 0 );
-
-    wxBoxSizer *pBoxRowlinb = new wxBoxSizer( wxHORIZONTAL );
-    pBoxRowlinb->Add( new wxStaticText( pParent, wxID_ANY, wxT( "b" ), wxDefaultPosition, wxSize(s, -1), wxALIGN_LEFT ), 0, wxALIGN_LEFT | wxALL, 1 );
-    pBoxRowlinb->Add( m_pSliderFibersLinb, 0, wxALIGN_CENTER | wxALL, 1);
-    pBoxRowlinb->Add( m_pTxtlinb,   0, wxALIGN_CENTER | wxALL, 1);
-    
-    pBoxMain->Add(pBoxRowlinb, 0, wxFIXED_MINSIZE | wxEXPAND, 0 );
-
-    wxBoxSizer *pBoxRow1 = new wxBoxSizer( wxHORIZONTAL );
-    pBoxRow1->Add( new wxStaticText( pParent, wxID_ANY, wxT( "Theta" ), wxDefaultPosition, wxSize(s, -1), wxALIGN_LEFT ), 0, wxALIGN_LEFT | wxALL, 1 );
-    pBoxRow1->Add( m_pSliderFibersTheta, 0, wxALIGN_CENTER | wxALL, 1);
-    pBoxRow1->Add( m_pTxtThetaBox,   0, wxALIGN_CENTER | wxALL, 1);
-    
-    pBoxMain->Add(pBoxRow1, 0, wxFIXED_MINSIZE | wxEXPAND, 0 );
-
-    wxBoxSizer *pBoxRow2 = new wxBoxSizer( wxHORIZONTAL );
-    pBoxRow2->Add( new wxStaticText( pParent, wxID_ANY, wxT( "Phi" ), wxDefaultPosition, wxSize(s, -1), wxALIGN_LEFT ), 0, wxALIGN_LEFT | wxALL, 1 );
-    pBoxRow2->Add( m_pSliderFibersPhi, 0, wxALIGN_CENTER | wxALL, 1);
-    pBoxRow2->Add( m_pTxtPhiBox,   0, wxALIGN_CENTER | wxALL, 1);
-    
-    pBoxMain->Add(pBoxRow2, 0, wxFIXED_MINSIZE | wxEXPAND, 0 );
-
-    wxBoxSizer *pBoxcl = new wxBoxSizer( wxHORIZONTAL );
-    pBoxcl->Add( new wxStaticText( pParent, wxID_ANY, wxT( "T_cl" ), wxDefaultPosition, wxSize(s, -1), wxALIGN_LEFT ), 0, wxALIGN_LEFT | wxALL, 1 );
-    pBoxcl->Add( m_pSliderFiberscl, 0, wxALIGN_CENTER | wxALL, 1);
-    pBoxcl->Add( m_pTxtclBox,   0, wxALIGN_CENTER | wxALL, 1);
-    
-    pBoxMain->Add(pBoxcl, 0, wxFIXED_MINSIZE | wxEXPAND, 0 );
 
 
     //////////////////////////////////////////////////////////////////////////
@@ -4058,6 +4011,7 @@ void Fibers::createPropertiesSizer( PropertiesWindow *pParent )
     pBoxMain->Add( m_pToggleLocalColoring,     0, wxEXPAND | wxLEFT | wxRIGHT, 24 );
     pBoxMain->Add( m_pToggleNormalColoring,    0, wxEXPAND | wxLEFT | wxRIGHT, 24 );
     pBoxMain->Add( m_pSelectConstantFibersColor, 0, wxEXPAND | wxLEFT | wxRIGHT, 24 );
+	pBoxMain->Add( m_pShowCentroidPts, 0, wxEXPAND | wxLEFT | wxRIGHT, 24 );
 
     //////////////////////////////////////////////////////////////////////////
 
@@ -4101,6 +4055,48 @@ void Fibers::createPropertiesSizer( PropertiesWindow *pParent )
 	pBoxMain->Add( pBoxOpac, 0, wxFIXED_MINSIZE | wxEXPAND | wxTOP | wxBOTTOM, 8 );
 
 
+	wxBoxSizer *pBoxcalpha = new wxBoxSizer( wxHORIZONTAL );
+    pBoxcalpha->Add( new wxStaticText( pParent, wxID_ANY, wxT( "c" ), wxDefaultPosition, wxSize(s, -1), wxALIGN_LEFT ), 0, wxALIGN_LEFT | wxALL, 1 );
+    pBoxcalpha->Add( m_pSliderFibersAlpha, 0, wxALIGN_CENTER | wxALL, 1);
+    pBoxcalpha->Add( m_pTxtAlphaBox,   0, wxALIGN_CENTER | wxALL, 1);
+    
+    pBoxMain->Add(pBoxcalpha, 0, wxFIXED_MINSIZE | wxEXPAND, 0 );
+
+    wxBoxSizer *pBoxRowlina = new wxBoxSizer( wxHORIZONTAL );
+    pBoxRowlina->Add( new wxStaticText( pParent, wxID_ANY, wxT( "a" ), wxDefaultPosition, wxSize(s, -1), wxALIGN_LEFT ), 0, wxALIGN_LEFT | wxALL, 1 );
+    pBoxRowlina->Add( m_pSliderFibersLina, 0, wxALIGN_CENTER | wxALL, 1);
+    pBoxRowlina->Add( m_pTxtlina,   0, wxALIGN_CENTER | wxALL, 1);
+    
+    pBoxMain->Add(pBoxRowlina, 0, wxFIXED_MINSIZE | wxEXPAND, 0 );
+
+    wxBoxSizer *pBoxRowlinb = new wxBoxSizer( wxHORIZONTAL );
+    pBoxRowlinb->Add( new wxStaticText( pParent, wxID_ANY, wxT( "b" ), wxDefaultPosition, wxSize(s, -1), wxALIGN_LEFT ), 0, wxALIGN_LEFT | wxALL, 1 );
+    pBoxRowlinb->Add( m_pSliderFibersLinb, 0, wxALIGN_CENTER | wxALL, 1);
+    pBoxRowlinb->Add( m_pTxtlinb,   0, wxALIGN_CENTER | wxALL, 1);
+    
+    pBoxMain->Add(pBoxRowlinb, 0, wxFIXED_MINSIZE | wxEXPAND, 0 );
+
+    wxBoxSizer *pBoxRow1 = new wxBoxSizer( wxHORIZONTAL );
+    pBoxRow1->Add( new wxStaticText( pParent, wxID_ANY, wxT( "Theta" ), wxDefaultPosition, wxSize(s, -1), wxALIGN_LEFT ), 0, wxALIGN_LEFT | wxALL, 1 );
+    pBoxRow1->Add( m_pSliderFibersTheta, 0, wxALIGN_CENTER | wxALL, 1);
+    pBoxRow1->Add( m_pTxtThetaBox,   0, wxALIGN_CENTER | wxALL, 1);
+    
+    pBoxMain->Add(pBoxRow1, 0, wxFIXED_MINSIZE | wxEXPAND, 0 );
+
+    wxBoxSizer *pBoxRow2 = new wxBoxSizer( wxHORIZONTAL );
+    pBoxRow2->Add( new wxStaticText( pParent, wxID_ANY, wxT( "Phi" ), wxDefaultPosition, wxSize(s, -1), wxALIGN_LEFT ), 0, wxALIGN_LEFT | wxALL, 1 );
+    pBoxRow2->Add( m_pSliderFibersPhi, 0, wxALIGN_CENTER | wxALL, 1);
+    pBoxRow2->Add( m_pTxtPhiBox,   0, wxALIGN_CENTER | wxALL, 1);
+    
+    pBoxMain->Add(pBoxRow2, 0, wxFIXED_MINSIZE | wxEXPAND, 0 );
+
+    wxBoxSizer *pBoxcl = new wxBoxSizer( wxHORIZONTAL );
+    pBoxcl->Add( new wxStaticText( pParent, wxID_ANY, wxT( "T_cl" ), wxDefaultPosition, wxSize(s, -1), wxALIGN_LEFT ), 0, wxALIGN_LEFT | wxALL, 1 );
+    pBoxcl->Add( m_pSliderFiberscl, 0, wxALIGN_CENTER | wxALL, 1);
+    pBoxcl->Add( m_pTxtclBox,   0, wxALIGN_CENTER | wxALL, 1);
+    
+    pBoxMain->Add(pBoxcl, 0, wxFIXED_MINSIZE | wxEXPAND, 0 );
+
     //////////////////////////////////////////////////////////////////////////
 
     m_pPropertiesSizer->Add( pBoxMain, 0, wxFIXED_MINSIZE | wxEXPAND, 0 );
@@ -4122,6 +4118,7 @@ void Fibers::createPropertiesSizer( PropertiesWindow *pParent )
     pParent->Connect( m_pToggleLocalColoring->GetId(),           wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler( PropertiesWindow::OnToggleUseTex ) );
     pParent->Connect( m_pToggleNormalColoring->GetId(),          wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxEventHandler(        PropertiesWindow::OnToggleShowFS ) );
     pParent->Connect( m_pSelectConstantFibersColor->GetId(),     wxEVT_COMMAND_BUTTON_CLICKED,       wxCommandEventHandler( PropertiesWindow::OnSelectConstantColor ) );
+	pParent->Connect( m_pShowCentroidPts->GetId(),     wxEVT_COMMAND_BUTTON_CLICKED,       wxCommandEventHandler( PropertiesWindow::OnShowCentroidPts ) );
     pParent->Connect( m_pToggleCrossingFibers->GetId(),          wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxEventHandler(        PropertiesWindow::OnToggleCrossingFibers ) );
     pParent->Connect( m_pToggleSliceFibers->GetId(),          wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxEventHandler(        PropertiesWindow::OnToggleSliceFibers ) );
     pParent->Connect( m_pRadNormalColoring->GetId(),             wxEVT_COMMAND_RADIOBUTTON_SELECTED, wxCommandEventHandler( PropertiesWindow::OnNormalColoring ) );
@@ -4129,8 +4126,6 @@ void Fibers::createPropertiesSizer( PropertiesWindow *pParent )
 #if !_USE_LIGHT_GUI
     pParent->Connect( m_pRadDistanceAnchoring->GetId(),          wxEVT_COMMAND_RADIOBUTTON_SELECTED, wxCommandEventHandler( PropertiesWindow::OnListMenuDistance ) );
     pParent->Connect( m_pRadMinDistanceAnchoring->GetId(),       wxEVT_COMMAND_RADIOBUTTON_SELECTED, wxCommandEventHandler( PropertiesWindow::OnListMenuMinDistance ) );
-    pParent->Connect( m_pRadTorsion->GetId(),                    wxEVT_COMMAND_RADIOBUTTON_SELECTED, wxCommandEventHandler( PropertiesWindow::OnColorWithTorsion ) );
-    pParent->Connect( m_pRadCurvature->GetId(),                  wxEVT_COMMAND_RADIOBUTTON_SELECTED, wxCommandEventHandler( PropertiesWindow::OnColorWithCurvature ) );
 #endif
 
     pParent->Connect( m_pRadConstant->GetId(),                   wxEVT_COMMAND_RADIOBUTTON_SELECTED, wxCommandEventHandler( PropertiesWindow::OnColorWithConstantColor ) );
@@ -4201,7 +4196,7 @@ void Fibers::updatePropertiesSizer()
         m_isColorationUpdated = false;
     }
 
-    DatasetInfo* pDatasetInfo = NULL;
+    /*DatasetInfo* pDatasetInfo = NULL;
 
     long nextItemId = MyApp::frame->getCurrentListIndex();
 
@@ -4249,7 +4244,7 @@ void Fibers::updatePropertiesSizer()
         {
             DatasetInfo::m_pBtnUp->Disable();
         }
-    }
+    }*/
 }
 
 bool Fibers::toggleShow()
@@ -4461,6 +4456,7 @@ void Fibers::setShader()
     {
         ShaderHelper::getInstance()->getFibersShader()->bind();
         ShaderHelper::getInstance()->setFiberShaderVars();
+		ShaderHelper::getInstance()->getFibersShader()->setUniInt( "isDistcoloring", m_fiberColorationMode == DISTANCE_COLOR );
         ShaderHelper::getInstance()->getFibersShader()->setUniInt( "useTex", !pDsInfo->getUseTex() );
         ShaderHelper::getInstance()->getFibersShader()->setUniInt( "useColorMap", SceneManager::getInstance()->getColorMap() );
         ShaderHelper::getInstance()->getFibersShader()->setUniInt( "useOverlay", pDsInfo->getShowFS() );
