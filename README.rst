@@ -5,7 +5,7 @@ The Fibernavigator is a tool designed for a fast and versatile visualization of 
 
 **Welcome new users**
 
-You can find a pre-built executable (windows &  Mac) and all the latest tools here: https://github.com/chamberm/fibernavigator/releases.
+You can find a pre-built executable and all the latest tools here: https://github.com/chamberm/fibernavigator/releases.
 
 Acknowledgements
 -------------------------------------
@@ -19,7 +19,7 @@ Tutorials
 ---------
 **NEW**: Updated live demo on how-to use the tractography tools: https://youtu.be/A3KCekqPTok
 
-rs-fMRI and real-time fiber tractography tutorials soon available: `Tutorial Page`_.
+Some tutorials here: `Tutorial Page`_.
 
  **Video tutorials** of the Fibernavigator are available.
 
@@ -31,7 +31,7 @@ rs-fMRI and real-time fiber tractography tutorials soon available: `Tutorial Pag
 - `Opacity rendering`_: how to generate orientation-dependent opacity rendering.
 - `Tractography-driven resting-state fMRI`_: how to combine dMRI with fMRI.
 
-A list of all tutorials can be seen on the `video tutorials`_ page.
+A list of all tutorials can be seen on the `Tutorial Page`_ page.
 
 Highlights:
 -----------
@@ -39,7 +39,6 @@ Highlights:
 - Fast and efficient visualization of the results of deterministic and probabilistic tractograms.
 - Interactive selection of fibers.
 - Real-time fiber tractography (Chamberland et al. 2014, Frontiers in Neuroinformatics).
-- Tractography-driven resting-state fMRI (Chamberland et al. 2015, Frontiers in Neuroscience).
 - Orientation-dependent opacity rendering (Tax et al. 2015, PLoS ONE).
 - Display of MRI & functional MRI. `Image Gallery`_
 
@@ -47,6 +46,7 @@ How to get the application
 --------------------------
 
 - `Build instructions for Ubuntu`_ and other Linux distributions are provided
+- Visit the wiki for MAC building
 - Windows builds are available on the Releases_ page.
 
 Development and contact with the team
