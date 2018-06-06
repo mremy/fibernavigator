@@ -12,6 +12,7 @@ uniform bool isDistcoloring;
 
 varying vec4 myColor;
 
+
 float lookupTex()
 {
 	vec3 v = VaryingTexCoord0.xyz;
