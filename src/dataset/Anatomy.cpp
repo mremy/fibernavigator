@@ -727,7 +727,7 @@ bool Anatomy::load( nifti_image *pHeader, nifti_image *pBody )
     }
     
     // Check the data type.
-    if( pHeader->datatype == 2 || pHeader->datatype == 16)
+    if( pHeader->datatype == 2 || (pHeader->datatype == 16 && pHeader->dim[4] == 3))
     {
         if( pHeader->dim[4] == 1 )
         {
