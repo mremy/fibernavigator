@@ -105,6 +105,8 @@ public:
 
     void OnNormalMeanFiberColoring          ( wxCommandEvent& event );
     void OnCustomMeanFiberColoring          ( wxCommandEvent& event );
+	void OnMeanMean          ( wxCommandEvent& event );
+    void OnMeanCross          ( wxCommandEvent& event );
     void OnMeanFiberOpacityChange           ( wxCommandEvent& event );
 	void OnCSThresholdChange				( wxCommandEvent& event );
 	void OnNoofCSchange						( wxCommandEvent& event );

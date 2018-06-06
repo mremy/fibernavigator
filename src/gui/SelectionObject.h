@@ -178,6 +178,9 @@ public :
 
     void       setMeanFiberColorMode( FibersColorationMode i_mode ) { m_meanFiberColorationMode = i_mode; };
     FibersColorationMode getMeanFiberColorMode()     { return m_meanFiberColorationMode;        };
+
+	void       setMeanMethodMode( MeanMethods i_mode ) { m_meanFiberMode = i_mode; };
+    MeanMethods getMeanMethodMode()     { return m_meanFiberMode;        };
     
     // Methods related to the different fiber bundles selection.
     typedef DatasetIndex FiberIdType;
@@ -262,6 +265,7 @@ protected :
     float m_meanFiberOpacity; //Between 0 and 1
 	float m_CSThreshold;
     FibersColorationMode m_meanFiberColorationMode;
+	MeanMethods m_meanFiberMode;
 
     // Those variables represent the min/max value in pixel of the object.
     float m_minX;
@@ -409,6 +413,9 @@ private:
     wxStaticText    *m_pLblColoring;
     wxRadioButton   *m_pRadCustomColoring;
     wxRadioButton   *m_pRadNormalColoring;
+	wxStaticText    *m_pLblMethod;
+    wxRadioButton   *m_pRadMeanMean;
+    wxRadioButton   *m_pRadMeanCross;
     wxStaticText    *m_pLblMeanFiberOpacity;
 	wxStaticText    *m_pLblCrossSectionThreshold;
 	wxStaticText    *m_pLblNoOfCS;

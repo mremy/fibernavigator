@@ -933,6 +933,18 @@ void PropertiesWindow::OnNormalMeanFiberColoring( wxCommandEvent& event )
     }
 }
 
+void PropertiesWindow::OnMeanMean( wxCommandEvent& event )
+{
+    Logger::getInstance()->print( wxT( "Event triggered - PropertiesWindow::OnMeanMean" ), LOGLEVEL_DEBUG );
+
+    SelectionObject *pSelObj = m_pMainFrame->getCurrentSelectionObject();
+    if( pSelObj != NULL )
+    {
+        pSelObj->setMeanMethodMode( MEAN );
+		pSelObj->notifyStatsNeedUpdating();
+    }
+}
+
 ///////////////////////////////////////////////////////////////////////////
 // This function will be triggered when the user click on the custom coloring radio
 // button located in the mean fiber coloring option
@@ -946,6 +958,18 @@ void PropertiesWindow::OnCustomMeanFiberColoring( wxCommandEvent& event )
     if( pSelObj != NULL )
     {
         pSelObj->setMeanFiberColorMode( CUSTOM_COLOR );
+    }
+}
+
+void PropertiesWindow::OnMeanCross( wxCommandEvent& event )
+{
+    Logger::getInstance()->print( wxT( "Event triggered - PropertiesWindow::OnMeanCross" ), LOGLEVEL_DEBUG );
+
+    SelectionObject *pSelObj = m_pMainFrame->getCurrentSelectionObject();
+    if( pSelObj != NULL )
+    {
+        pSelObj->setMeanMethodMode( CROSS );
+		pSelObj->notifyStatsNeedUpdating();
     }
 }
 

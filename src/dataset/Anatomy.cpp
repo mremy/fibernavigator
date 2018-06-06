@@ -727,7 +727,7 @@ bool Anatomy::load( nifti_image *pHeader, nifti_image *pBody )
     }
     
     // Check the data type.
-    if( pHeader->datatype == 2 )
+    if( pHeader->datatype == 2 || pHeader->datatype == 16)
     {
         if( pHeader->dim[4] == 1 )
         {
@@ -981,17 +981,27 @@ bool Anatomy::load( nifti_image *pHeader, nifti_image *pBody )
 
         case RGB:
         {
-            unsigned char* pData = (unsigned char*)pBody->data;
-
-            m_floatDataset.resize( datasetSize * 3 );
-
-            for( int i(0); i < datasetSize; ++i )
-            {
-                m_floatDataset[i * 3]       = (float)pData[i]  / 255.0f;
-                m_floatDataset[i * 3 + 1]   = (float)pData[datasetSize + i] / 255.0f;
-                m_floatDataset[i * 3 + 2]   = (float)pData[(2 * datasetSize) + i] / 255.0f;
-            }
-
+			m_floatDataset.resize( datasetSize * 3 );
+			if(pHeader->datatype == 2)
+			{
+				unsigned char* pData = (unsigned char*)pBody->data;
+				for( int i(0); i < datasetSize; ++i )
+				{
+					m_floatDataset[i * 3]       = (float)pData[i]  / 255.0f;
+					m_floatDataset[i * 3 + 1]   = (float)pData[datasetSize + i] / 255.0f;
+					m_floatDataset[i * 3 + 2]   = (float)pData[(2 * datasetSize) + i] / 255.0f;
+				}
+			}	
+			else
+			{
+				float* pData = (float*)pBody->data;
+				for( int i(0); i < datasetSize; ++i )
+				{
+					m_floatDataset[i * 3]       = (float)pData[i];
+					m_floatDataset[i * 3 + 1]   = (float)pData[datasetSize + i];
+					m_floatDataset[i * 3 + 2]   = (float)pData[(2 * datasetSize) + i];
+				}
+			}
             flag = true;
             break;
         }
