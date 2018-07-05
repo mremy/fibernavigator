@@ -1021,7 +1021,7 @@ void SelectionObject::updateStats()
 
 	if(m_meanFiberMode == MEAN)
 	{
-		getMeanFiber(l_fibersPtns, 100, m_meanFiberPoints);
+		getMeanFiber(l_fibersPtns, 50, m_meanFiberPoints);
 	}
 	else if(m_meanFiberMode == CROSS)
 	{
@@ -1041,7 +1041,7 @@ void SelectionObject::getSpline()
 	{
 		FBSpline spline(4, VecMean);
 		std::vector<std::vector<double> > pts;
-		spline.samplePoints(pts,100);
+		spline.samplePoints(pts,50);
 		m_meanFiberPoints.clear();
 		for(int i =0; i< pts.size(); i++)
 		{
@@ -1501,8 +1501,10 @@ bool SelectionObject::performTractometry( const vector< vector< Vector > > &fibe
     
     Anatomy *pCurrentAnatomy( NULL );
 	std::vector<std::vector <float> > localMetrics;
+	std::vector<std::vector <float> > localDists;
 	m_tractometrics.resize(noOfPts);
 	localMetrics.resize(noOfPts);
+	localDists.resize(noOfPts);
     vector< Anatomy* > datasets = DatasetManager::getInstance()->getAnatomies();
     
 	if( m_pCBSelectDataSet == NULL && datasets.size() > 0 && m_pRefAnatInfo != NULL)
@@ -1561,6 +1563,7 @@ bool SelectionObject::performTractometry( const vector< vector< Vector > > &fibe
 				}
 			}
 			localMetrics[assignTo].push_back(value);
+			localDists[assignTo].push_back(dist);
 
             ++pointsCount;
         }
@@ -1585,13 +1588,35 @@ bool SelectionObject::performTractometry( const vector< vector< Vector > > &fibe
             break;
         }
     }
+	vector<float> distMins;
+	vector<float> distMaxs;
+	//find min max dist for each point along the core to minmax norm their values when assigned
+	for(int l=0; l<noOfPts;l++)
+	{
+		float min = std::numeric_limits<float>::infinity();
+		float max = 0;
+		for(int m=0; m<localDists[l].size();m++)
+		{
+			float v = localDists[l][m];
+			if(v < min)
+			{
+				min = v;
+			}
+			if(v > max)
+			{
+				max = v;
+			}
+		}
+		distMins.push_back(min);
+		distMaxs.push_back(max);
+	}
 
 	for(int l=0; l<noOfPts;l++)
 	{
 		float sum = 0;
 		for(int m=0; m<localMetrics[l].size();m++)
 		{
-			sum +=localMetrics[l][m];
+			sum += localMetrics[l][m] * (1 - ((localDists[l][m] - distMins[l]) / (distMaxs[l] - distMins[l])));
 		}
 		m_tractometrics[l] = (sum/localMetrics[l].size())*maxValue;
 	}
@@ -1699,7 +1724,11 @@ bool SelectionObject::saveTractometry(wxString filename)
     myfile.open( pFn, std::ios::out );
 
 	for (int i = 0; i < m_tractometrics.size(); i++)
-		myfile << m_tractometrics[i] << " ";
+	{
+		myfile << m_tractometrics[i];
+		if(i != m_tractometrics.size()-1)
+			myfile << ", ";
+	}
 
     myfile.close();
 

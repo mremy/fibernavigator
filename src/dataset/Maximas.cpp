@@ -264,32 +264,24 @@ bool Maximas::createStructure  ( std::vector< float > &i_fileFloatData )
 
 	FMatrix transform = FMatrix( DatasetManager::getInstance()->getNiftiTransform() );
 	FMatrix rotMat( 3, 3 );
-    transform.getSubMatrix( rotMat, 0, 0 );
-	rotMat(0,0) = 1;
-	rotMat(1,1) = 1;
-	rotMat(2,2) = 1;
-	storedRot = rotMat;
-	
-	
-	/*float voxelX = DatasetManager::getInstance()->getVoxelX();
-    float voxelY = DatasetManager::getInstance()->getVoxelY();
-    float voxelZ = DatasetManager::getInstance()->getVoxelZ();
-	FMatrix transform = FMatrix( DatasetManager::getInstance()->getNiftiTransform() );
-	FMatrix rotMat( 3, 3 );
-    transform.getSubMatrix( rotMat, 0, 0 );
-	rotMat(0,0) = 1;
-	rotMat(1,1) = 1;
-	rotMat(2,2) = 1;
-	FMatrix test( rotMat );
-    test = invert(rotMat);
-    rotMat = test;*/
+	transform.getSubMatrix( rotMat, 0, 0 );
+    
+	storedRot = rotMat*(1.0f/abs(rotMat(0,0))); //Divide by identity values for scaling
 
+	//std::cout << storedRot( 0, 0 ) << " " << storedRot( 0, 1 ) << " " << storedRot( 0, 2 ) << std::endl;
+	//std::cout << storedRot( 1, 0 ) << " " << storedRot( 1, 1 ) << " " << storedRot( 1, 2 ) << std::endl;
+	//std::cout << storedRot( 2, 0 ) << " " << storedRot( 2, 1 ) << " " << storedRot( 2, 2 ) << std::endl;
+	//
     //Fetching the directions
     for( it = i_fileFloatData.begin(), i = 0; it != i_fileFloatData.end(); it += m_bands, ++i )
     { 
-        m_mainDirections[i].insert( m_mainDirections[i].end(), it, it + m_bands );
+        m_mainDirections[i].insert( m_mainDirections[i].end(), it, it + m_bands );	
+    }
 
-		/*FMatrix p1( 3, 1 );
+	for( int i = 0; i < m_mainDirections.size(); i++ )
+    { 
+
+		FMatrix p1( 3, 1 );
 		FMatrix p2( 3, 1 );
 		FMatrix p3( 3, 1 );
         p1( 0, 0 ) = m_mainDirections[i][0];
@@ -300,14 +292,13 @@ bool Maximas::createStructure  ( std::vector< float > &i_fileFloatData )
         p2( 1, 0 ) = m_mainDirections[i][4];
         p2( 2, 0 ) = m_mainDirections[i][5];
 
-
 		p3( 0, 0 ) = m_mainDirections[i][6];
         p3( 1, 0 ) = m_mainDirections[i][7];
         p3( 2, 0 ) = m_mainDirections[i][8];
 
-        FMatrix rotP1 = rotMat  * p1;
-		FMatrix rotP2 = rotMat  * p2;
-		FMatrix rotP3 = rotMat  * p3;
+        FMatrix rotP1 = invert(storedRot)  * p1;
+		FMatrix rotP2 = invert(storedRot)  * p2;
+		FMatrix rotP3 = invert(storedRot)  * p3;
 
         m_mainDirections[i][0] = rotP1( 0, 0 );
         m_mainDirections[i][1] = rotP1( 1, 0 );
@@ -319,7 +310,7 @@ bool Maximas::createStructure  ( std::vector< float > &i_fileFloatData )
 
 		m_mainDirections[i][6] = rotP3( 0, 0 );
         m_mainDirections[i][7] = rotP3( 1, 0 );
-        m_mainDirections[i][8] = rotP3( 2, 0 );*/
+        m_mainDirections[i][8] = rotP3( 2, 0 );
 
     }
 
@@ -339,10 +330,13 @@ void Maximas::rotatePeaks()
 	FMatrix rot;
 	
 	if(m_doRotate)
-		rot = invert(storedRot);
-	else
 		rot = storedRot;
+	else
+		rot = invert(storedRot);
 
+	//std::cout << rot( 0, 0 ) << " " << rot( 0, 1 ) << " " << rot( 0, 2 ) << std::endl;
+	//std::cout << rot( 1, 0 ) << " " << rot( 1, 1 ) << " " << rot( 1, 2 ) << std::endl;
+	//std::cout << rot( 2, 0 ) << " " << rot( 2, 1 ) << " " << rot( 2, 2 ) << std::endl;
 
 	for( int i = 0; i < m_mainDirections.size(); i++ )
     { 
@@ -357,7 +351,6 @@ void Maximas::rotatePeaks()
 		p2( 0, 0 ) = m_mainDirections[i][3];
         p2( 1, 0 ) = m_mainDirections[i][4];
         p2( 2, 0 ) = m_mainDirections[i][5];
-
 
 		p3( 0, 0 ) = m_mainDirections[i][6];
         p3( 1, 0 ) = m_mainDirections[i][7];
@@ -591,7 +584,7 @@ int zoomS = 300;
 
     wxBoxSizer *pBoxMain = new wxBoxSizer( wxVERTICAL );
 
-	wxToggleButton *m_pToggleRotPeaks = new wxToggleButton( pParent, wxID_ANY,wxT("Rotate peaks with header"), wxDefaultPosition, wxSize(zoomS*2, -1) );
+	wxToggleButton *m_pToggleRotPeaks = new wxToggleButton( pParent, wxID_ANY,wxT("Un-rotate peaks with header"), wxDefaultPosition, wxSize(zoomS*2, -1) );
     pParent->Connect( m_pToggleRotPeaks->GetId(), wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler(PropertiesWindow::OnToggleRotatePeaks) );
 	pBoxMain->Add( m_pToggleRotPeaks, 0, wxFIXED_MINSIZE | wxEXPAND, 0 );
 
