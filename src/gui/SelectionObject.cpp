@@ -2658,6 +2658,7 @@ void SelectionObject::createPropertiesSizer( PropertiesWindow *pParent )
 		m_pLblRefAnat          = new wxStaticText( pParent, wxID_ANY, wxT( "Ref. Anat:" ) );
 		m_pBtnRefAnat    = new wxButton( pParent, wxID_ANY, wxT( "Choose Anat" ) );
 
+
         m_pToggleDisplayMeanFiber     = new wxToggleButton( pParent, wxID_ANY, wxT( "Display Mean Fiber" ) );
 		m_pToggleShowStartingPoint     = new wxToggleButton( pParent, wxID_ANY, wxT( "Show starting point" ) );
 		m_pToggleFlipStartingPoint     = new wxToggleButton( pParent, wxID_ANY, wxT( "Flip" ), DEF_POS, wxSize( 20, -1 ) );
@@ -2727,10 +2728,12 @@ void SelectionObject::createPropertiesSizer( PropertiesWindow *pParent )
 
         pBoxMain->Add( m_pToggleCalculatesFibersInfo, 0, wxEXPAND | wxLEFT | wxRIGHT, 24 );
 
+		#ifdef __WXMSW__ 
 		wxBoxSizer *pBoxSizerRef = new wxBoxSizer( wxHORIZONTAL );
         pBoxSizerRef->Add( m_pLblRefAnat,    0, wxEXPAND, 0 );
         pBoxSizerRef->Add( m_pBtnRefAnat, 1, wxEXPAND, 0 );
         pBoxMain->Add( pBoxSizerRef, 0, wxEXPAND | wxALL, 1 );
+		#endif
 
         pBoxMain->AddSpacer( 2 );
 
@@ -2924,7 +2927,9 @@ void SelectionObject::createPropertiesSizer( PropertiesWindow *pParent )
         pParent->Connect( pToggleAndNot->GetId(),       wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler( PropertiesWindow::OnToggleAndNot ) );
         pParent->Connect( m_pTogglePruneRemove->GetId(),       wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler( PropertiesWindow::OnTogglePruneRemove ) );
         pParent->Connect( m_pToggleCalculatesFibersInfo->GetId(), wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler( PropertiesWindow::OnDisplayFibersInfo ) );
+		#ifdef __WXMSW__ 
 		pParent->Connect( m_pBtnRefAnat->GetId(),    wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( PropertiesWindow::OnSelectRefAnat ) );
+		#endif
         pParent->Connect( m_pToggleDisplayMeanFiber->GetId(),     wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler( PropertiesWindow::OnDisplayMeanFiber ) );
 		pParent->Connect( m_pToggleShowStartingPoint->GetId(),     wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler( PropertiesWindow::OnShowStartingPoint ) );
 		pParent->Connect( m_pToggleFlipStartingPoint->GetId(),     wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler( PropertiesWindow::OnFlipStartingPoint ) );

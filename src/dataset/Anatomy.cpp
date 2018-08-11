@@ -699,11 +699,11 @@ bool Anatomy::load( nifti_image *pHeader, nifti_image *pBody )
         }
         if( pHeader->sto_xyz.m[1][1] < 0.0 )
         {
-            m_originalSagOrientation = ORIENTATION_ANT_TO_POST;
+            m_originalSagOrientation = ORIENTATION_POST_TO_ANT;
         }
         else
         {
-            m_originalSagOrientation = ORIENTATION_POST_TO_ANT;
+            m_originalSagOrientation = ORIENTATION_ANT_TO_POST;
         }
     }
     else if( pHeader->qform_code > 0 )
@@ -718,11 +718,11 @@ bool Anatomy::load( nifti_image *pHeader, nifti_image *pBody )
         }
         if( pHeader->qto_xyz.m[1][1] < 0.0 )
         {
-            m_originalSagOrientation = ORIENTATION_ANT_TO_POST;
+            m_originalSagOrientation = ORIENTATION_POST_TO_ANT;
         }
         else
         {
-            m_originalSagOrientation = ORIENTATION_POST_TO_ANT;
+            m_originalSagOrientation = ORIENTATION_ANT_TO_POST;
         }        
     }
     
@@ -1038,7 +1038,7 @@ bool Anatomy::load( nifti_image *pHeader, nifti_image *pBody )
         flipAxisInternal( X_AXIS, false );
         DatasetManager::getInstance()->setFlippedXOnLoad(true);
     }
-    if( m_originalSagOrientation == ORIENTATION_ANT_TO_POST )
+    if( m_originalSagOrientation == ORIENTATION_POST_TO_ANT )
     {
         flipAxisInternal( Y_AXIS, false );
         DatasetManager::getInstance()->setFlippedYOnLoad(true);

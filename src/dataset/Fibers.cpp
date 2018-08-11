@@ -194,8 +194,22 @@ bool Fibers::load( const wxString &filename )
     /* OcTree points classification */
     m_pOctree = new Octree( 2, m_pointArray, m_countPoints );
 
+
     //Global properties for opacity rendering
     computeGLobalProperties();
+
+	if(DatasetManager::getInstance()->getFlippedXOnLoad())
+    {
+        flipAxis(X_AXIS);
+        std::cout << "flipX save\n";
+    }
+
+    if(DatasetManager::getInstance()->getFlippedYOnLoad())
+    {
+        flipAxis(Y_AXIS);
+        std::cout << "flipY save\n";
+    }
+
 
     return res;
 }
@@ -1964,13 +1978,13 @@ void Fibers::fitToAnat(bool saving)
         if(DatasetManager::getInstance()->getFlippedXOnLoad())
         {
             flipAxis(X_AXIS);
-            std::cout << "flipX \n";
+            std::cout << "flipX save\n";
         }
 
-        if(DatasetManager::getInstance()->getFlippedXOnLoad())
+        if(DatasetManager::getInstance()->getFlippedYOnLoad())
         {
             flipAxis(Y_AXIS);
-            std::cout << "flipY \n";
+            std::cout << "flipY save\n";
         }
     }
 
@@ -2047,13 +2061,13 @@ void Fibers::fitToAnat(bool saving)
         if(DatasetManager::getInstance()->getFlippedXOnLoad())
         {
             flipAxis(X_AXIS);
-            std::cout << "flipX \n";
+            std::cout << "flipX not saving\n";
         }
 
-        if(DatasetManager::getInstance()->getFlippedXOnLoad())
+        if(DatasetManager::getInstance()->getFlippedYOnLoad())
         {
             flipAxis(Y_AXIS);
-            std::cout << "flipY \n";
+            std::cout << "flipY not saving\n";
         }
     }
 
