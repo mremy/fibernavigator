@@ -111,7 +111,7 @@ public:
     void    setLocalGlobal(bool value);
     void    setUsingEndpts(bool value);
 
-    void    flipAxis( AxisType i_axe );
+    void    flipAxis( AxisType i_axe);
     void    fitToAnat( bool saving);
     
     int     getFibersCount() const { return m_countLines; }

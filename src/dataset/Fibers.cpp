@@ -3773,9 +3773,9 @@ void Fibers::setFibersLength()
         {
             // The values are in pixel, we need to set them in millimeters using the spacing
             // specified in the anatomy file ( m_datasetHelper->xVoxel... ).
-            dx = ( currentFiberPoints[i].x - currentFiberPoints[i - 1].x ) * voxelX;
-            dy = ( currentFiberPoints[i].y - currentFiberPoints[i - 1].y ) * voxelY;
-            dz = ( currentFiberPoints[i].z - currentFiberPoints[i - 1].z ) * voxelZ;
+            dx = ( currentFiberPoints[i].x - currentFiberPoints[i - 1].x );
+            dy = ( currentFiberPoints[i].y - currentFiberPoints[i - 1].y );
+            dz = ( currentFiberPoints[i].z - currentFiberPoints[i - 1].z );
             FArray currentVector( dx, dy, dz );
             m_length[j] += ( float )currentVector.norm();
         }
