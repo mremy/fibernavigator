@@ -66,7 +66,7 @@ public:
     bool    load( wxString  filename ) { return false; };
     void    draw()                      {};
     void    smooth()                    {};
-    void    flipAxis( AxisType i_axe )  {};
+    void    flipAxis( AxisType i_axe)  {};
     void    drawVectors()               {};
     void    generateTexture()           {};
     void    generateGeometry()          {};

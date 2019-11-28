@@ -699,11 +699,11 @@ bool Anatomy::load( nifti_image *pHeader, nifti_image *pBody )
         }
         if( pHeader->sto_xyz.m[1][1] < 0.0 )
         {
-            m_originalSagOrientation = ORIENTATION_ANT_TO_POST;
+            m_originalSagOrientation = ORIENTATION_POST_TO_ANT;
         }
         else
         {
-            m_originalSagOrientation = ORIENTATION_POST_TO_ANT;
+            m_originalSagOrientation = ORIENTATION_ANT_TO_POST;
         }
     }
     else if( pHeader->qform_code > 0 )
@@ -718,16 +718,16 @@ bool Anatomy::load( nifti_image *pHeader, nifti_image *pBody )
         }
         if( pHeader->qto_xyz.m[1][1] < 0.0 )
         {
-            m_originalSagOrientation = ORIENTATION_ANT_TO_POST;
+            m_originalSagOrientation = ORIENTATION_POST_TO_ANT;
         }
         else
         {
-            m_originalSagOrientation = ORIENTATION_POST_TO_ANT;
+            m_originalSagOrientation = ORIENTATION_ANT_TO_POST;
         }        
     }
     
     // Check the data type.
-    if( pHeader->datatype == 2 )
+    if( pHeader->datatype == 2 || (pHeader->datatype == 16 && pHeader->dim[4] == 3))
     {
         if( pHeader->dim[4] == 1 )
         {
@@ -981,17 +981,27 @@ bool Anatomy::load( nifti_image *pHeader, nifti_image *pBody )
 
         case RGB:
         {
-            unsigned char* pData = (unsigned char*)pBody->data;
-
-            m_floatDataset.resize( datasetSize * 3 );
-
-            for( int i(0); i < datasetSize; ++i )
-            {
-                m_floatDataset[i * 3]       = (float)pData[i]  / 255.0f;
-                m_floatDataset[i * 3 + 1]   = (float)pData[datasetSize + i] / 255.0f;
-                m_floatDataset[i * 3 + 2]   = (float)pData[(2 * datasetSize) + i] / 255.0f;
-            }
-
+			m_floatDataset.resize( datasetSize * 3 );
+			if(pHeader->datatype == 2)
+			{
+				unsigned char* pData = (unsigned char*)pBody->data;
+				for( int i(0); i < datasetSize; ++i )
+				{
+					m_floatDataset[i * 3]       = (float)pData[i]  / 255.0f;
+					m_floatDataset[i * 3 + 1]   = (float)pData[datasetSize + i] / 255.0f;
+					m_floatDataset[i * 3 + 2]   = (float)pData[(2 * datasetSize) + i] / 255.0f;
+				}
+			}	
+			else
+			{
+				float* pData = (float*)pBody->data;
+				for( int i(0); i < datasetSize; ++i )
+				{
+					m_floatDataset[i * 3]       = (float)pData[i];
+					m_floatDataset[i * 3 + 1]   = (float)pData[datasetSize + i];
+					m_floatDataset[i * 3 + 2]   = (float)pData[(2 * datasetSize) + i];
+				}
+			}
             flag = true;
             break;
         }
@@ -1028,7 +1038,7 @@ bool Anatomy::load( nifti_image *pHeader, nifti_image *pBody )
         flipAxisInternal( X_AXIS, false );
         DatasetManager::getInstance()->setFlippedXOnLoad(true);
     }
-    if( m_originalSagOrientation == ORIENTATION_ANT_TO_POST )
+    if( m_originalSagOrientation == ORIENTATION_POST_TO_ANT )
     {
         flipAxisInternal( Y_AXIS, false );
         DatasetManager::getInstance()->setFlippedYOnLoad(true);

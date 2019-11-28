@@ -1018,8 +1018,17 @@ void SelectionObject::updateStats()
                             m_stats.m_meanCrossSection, 
                             m_stats.m_maxCrossSection,
                             m_stats.m_minCrossSection   );
+
+	if(m_meanFiberMode == MEAN)
+	{
+		getMeanFiber(l_fibersPtns, 50, m_meanFiberPoints);
+	}
+	else if(m_meanFiberMode == CROSS)
+	{
+		getSpline();
+	}
 	
-	getSpline();
+
 	getFiberDispersion              ( m_stats.m_dispersion        );
     
     updateStatsGrid();
@@ -1032,7 +1041,7 @@ void SelectionObject::getSpline()
 	{
 		FBSpline spline(4, VecMean);
 		std::vector<std::vector<double> > pts;
-		spline.samplePoints(pts,100);
+		spline.samplePoints(pts,50);
 		m_meanFiberPoints.clear();
 		for(int i =0; i< pts.size(); i++)
 		{
@@ -1262,11 +1271,9 @@ bool SelectionObject::getMeanFiber( const vector< vector< Vector > > &i_fibersPo
                                           unsigned int                i_nbPoints,
                                           vector< Vector >           &o_meanFiberPoints )
 {
-    o_meanFiberPoints.resize( i_nbPoints );
+    o_meanFiberPoints.assign(i_nbPoints, Vector( 0.0, 0.0, 0.0 ));
 	std::vector<Vector> firstStrmline;
 	firstStrmline.resize(i_nbPoints);
-	vector<vector<Vector> > medianStreamPts;
-	medianStreamPts.resize(i_nbPoints);
 
 	//For each streamline, resample to nbPoints
     for( unsigned int i = 0; i < i_fibersPoints.size(); ++i )
@@ -1278,7 +1285,7 @@ bool SelectionObject::getMeanFiber( const vector< vector< Vector > > &i_fibersPo
 
         // The -1 is because we dont take into consideration the number of points but 
         // the number of vector between the points.      
-        float        l_currentFiberRatio    = (float)( i_fibersPoints[i].size() - 1 ) / ( i_nbPoints - 1 );
+        float        l_currentFiberRatio    = (float)( i_fibersPoints[i].size() ) / ( i_nbPoints );
         
         currentStrmResampled[0]              += i_fibersPoints[i][0];
         currentStrmResampled[i_nbPoints - 1] += i_fibersPoints[i][l_currentFiberNbPoints - 1] ;
@@ -1299,51 +1306,47 @@ bool SelectionObject::getMeanFiber( const vector< vector< Vector > > &i_fibersPo
 		if(i==0) //keep first streamline order
 		{
 			o_meanFiberPoints = currentStrmResampled;
-			firstStrmline = currentStrmResampled;
 		}
 		else
 		{
-			//Before insterting it in the o_meanfiberPoints, check MDF for flips
-			float dDirect = 0;
-			float dFlipped = 0;
+			float dDirect = 0.0;
+			float dFlipped = 0.0;
+			float dx, dy, dz;
+			float dxf, dyf, dzf;
+
+			//Average the mean points
+			vector<Vector> centroid;
+			centroid.assign(i_nbPoints, Vector( 0.0, 0.0, 0.0 ));
+			for( unsigned int it = 0; it < o_meanFiberPoints.size(); ++it )
+				centroid[it] = o_meanFiberPoints[it] / i;
+
+			for( unsigned int j=0; j < i_nbPoints; j++ )
+			{
+				dx = centroid[j].x - currentStrmResampled[j].x;
+				dy = centroid[j].y - currentStrmResampled[j].y;
+				dz = centroid[j].z - currentStrmResampled[j].z;
+				dDirect += sqrt(dx * dx + dy * dy + dz * dz);
+
+				dxf = centroid[j].x - currentStrmResampled[i_nbPoints-1-j].x;
+				dyf = centroid[j].y - currentStrmResampled[i_nbPoints-1-j].y;
+				dzf = centroid[j].z - currentStrmResampled[i_nbPoints-1-j].z;
+				dFlipped += sqrt(dxf * dxf + dyf * dyf + dzf * dzf);
+			}
+
+			dDirect /= i_nbPoints;
+			dFlipped /= i_nbPoints;
+			int idx;
 			for( unsigned int j = 0; j < i_nbPoints; ++j )
-			{	
-				dDirect += abs(sqrt((firstStrmline[j].x - currentStrmResampled[j].x)*(firstStrmline[j].x - currentStrmResampled[j].x)
-					+(firstStrmline[j].y - currentStrmResampled[j].y)*(firstStrmline[j].y - currentStrmResampled[j].y)
-					+(firstStrmline[j].z - currentStrmResampled[j].z)*(firstStrmline[j].z - currentStrmResampled[j].z)));
-
-				int k = (i_nbPoints-1)-j;
-
-				dFlipped += abs(sqrt((firstStrmline[j].x - currentStrmResampled[k].x)*(firstStrmline[j].x - currentStrmResampled[k].x)
-					+(firstStrmline[j].y - currentStrmResampled[k].y)*(firstStrmline[j].y - currentStrmResampled[k].y)
-					+(firstStrmline[j].z - currentStrmResampled[k].z)*(firstStrmline[j].z - currentStrmResampled[k].z)));
-
-				dDirect /= i_nbPoints;
-				dFlipped /= i_nbPoints;
-			}
-
-			if(dDirect < dFlipped)
 			{
-				for( unsigned int j = 0; j < i_nbPoints; ++j )
-				{
-					o_meanFiberPoints[j] += currentStrmResampled[j];
-				}
-			}
-			else
-			{
-				int l = 0;
-				for( int j = i_nbPoints - 1; j > -1; --j )
-				{				
-					o_meanFiberPoints[l] += currentStrmResampled[j];
-					l++;
-				}
+				idx = (dDirect > dFlipped)? i_nbPoints-1-j : j; 
+				o_meanFiberPoints[idx] += currentStrmResampled[j];
 			}
 		}
 	}
 
 	//Average the mean points
-    for( unsigned int i = 0; i < o_meanFiberPoints.size(); ++i )
-        o_meanFiberPoints[i] /= i_fibersPoints.size();
+	for( unsigned int i = 0; i < o_meanFiberPoints.size(); ++i )
+		o_meanFiberPoints[i] /= i_fibersPoints.size();
 
     return true;
 }
@@ -1498,8 +1501,10 @@ bool SelectionObject::performTractometry( const vector< vector< Vector > > &fibe
     
     Anatomy *pCurrentAnatomy( NULL );
 	std::vector<std::vector <float> > localMetrics;
+	std::vector<std::vector <float> > localDists;
 	m_tractometrics.resize(noOfPts);
 	localMetrics.resize(noOfPts);
+	localDists.resize(noOfPts);
     vector< Anatomy* > datasets = DatasetManager::getInstance()->getAnatomies();
     
 	if( m_pCBSelectDataSet == NULL && datasets.size() > 0 && m_pRefAnatInfo != NULL)
@@ -1558,6 +1563,7 @@ bool SelectionObject::performTractometry( const vector< vector< Vector > > &fibe
 				}
 			}
 			localMetrics[assignTo].push_back(value);
+			localDists[assignTo].push_back(dist);
 
             ++pointsCount;
         }
@@ -1582,13 +1588,35 @@ bool SelectionObject::performTractometry( const vector< vector< Vector > > &fibe
             break;
         }
     }
+	vector<float> distMins;
+	vector<float> distMaxs;
+	//find min max dist for each point along the core to minmax norm their values when assigned
+	for(int l=0; l<noOfPts;l++)
+	{
+		float min = std::numeric_limits<float>::infinity();
+		float max = 0;
+		for(int m=0; m<localDists[l].size();m++)
+		{
+			float v = localDists[l][m];
+			if(v < min)
+			{
+				min = v;
+			}
+			if(v > max)
+			{
+				max = v;
+			}
+		}
+		distMins.push_back(min);
+		distMaxs.push_back(max);
+	}
 
 	for(int l=0; l<noOfPts;l++)
 	{
 		float sum = 0;
 		for(int m=0; m<localMetrics[l].size();m++)
 		{
-			sum +=localMetrics[l][m];
+			sum += localMetrics[l][m] * (1 - ((localDists[l][m] - distMins[l]) / (distMaxs[l] - distMins[l])));
 		}
 		m_tractometrics[l] = (sum/localMetrics[l].size())*maxValue;
 	}
@@ -1696,7 +1724,11 @@ bool SelectionObject::saveTractometry(wxString filename)
     myfile.open( pFn, std::ios::out );
 
 	for (int i = 0; i < m_tractometrics.size(); i++)
-		myfile << m_tractometrics[i] << " ";
+	{
+		myfile << m_tractometrics[i];
+		if(i != m_tractometrics.size()-1)
+			myfile << ", ";
+	}
 
     myfile.close();
 
@@ -1780,10 +1812,10 @@ bool SelectionObject::getLongestStreamline( const vector< int > &selectedFibersI
 				dFlipped += abs(sqrt((firstStrmline[j].x - currentStrmResampled[k].x)*(firstStrmline[j].x - currentStrmResampled[k].x)
 					+(firstStrmline[j].y - currentStrmResampled[k].y)*(firstStrmline[j].y - currentStrmResampled[k].y)
 					+(firstStrmline[j].z - currentStrmResampled[k].z)*(firstStrmline[j].z - currentStrmResampled[k].z)));
-
-				dDirect /= m_noOfMeanFiberPts;
-				dFlipped /= m_noOfMeanFiberPts;
 			}
+
+			dDirect /= m_noOfMeanFiberPts;
+			dFlipped /= m_noOfMeanFiberPts;
 
 			if(dDirect < dFlipped)
 			{
@@ -1917,7 +1949,7 @@ bool SelectionObject::getMeanMaxMinFiberCrossSection( const vector< vector< Vect
 		
 	/*	if(i != 0 && i != m_crossSectionsPoints.size()-1) 
 		{*/
-			m_meanFiberPoints[i] = mean;
+			//m_meanFiberPoints[i] = mean;
 			vector<double> v;
 			v.push_back(mean.x);
 			v.push_back(mean.y);
@@ -2544,6 +2576,9 @@ void SelectionObject::setShowMeanFiberOption( bool i_val )
     m_pLblColoring->Show( i_val );
     m_pRadCustomColoring->Show( i_val );
     m_pRadNormalColoring->Show( i_val );
+	m_pLblMethod->Show( i_val );
+    m_pRadMeanMean->Show( i_val );
+    m_pRadMeanCross->Show( i_val );
     m_pLblMeanFiberOpacity->Show( i_val );
     m_pSliderMeanFiberOpacity->Show( i_val );
 	m_pSliderCSthreshold->Show( i_val );
@@ -2588,6 +2623,7 @@ void SelectionObject::createPropertiesSizer( PropertiesWindow *pParent )
 		m_CSThreshold = 20;
         m_convexHullOpacity = 0.35f;
         m_meanFiberColorationMode = NORMAL_COLOR;
+		m_meanFiberMode = MEAN;
 
         //////////////////////////////////////////////////////////////////////////
 #if _USE_ZOOM_GUI
@@ -2622,12 +2658,14 @@ void SelectionObject::createPropertiesSizer( PropertiesWindow *pParent )
 		m_pLblRefAnat          = new wxStaticText( pParent, wxID_ANY, wxT( "Ref. Anat:" ) );
 		m_pBtnRefAnat    = new wxButton( pParent, wxID_ANY, wxT( "Choose Anat" ) );
 
+
         m_pToggleDisplayMeanFiber     = new wxToggleButton( pParent, wxID_ANY, wxT( "Display Mean Fiber" ) );
 		m_pToggleShowStartingPoint     = new wxToggleButton( pParent, wxID_ANY, wxT( "Show starting point" ) );
 		m_pToggleFlipStartingPoint     = new wxToggleButton( pParent, wxID_ANY, wxT( "Flip" ), DEF_POS, wxSize( 20, -1 ) );
 		m_pSaveTractometry    = new wxButton( pParent, wxID_ANY, wxT( "Export values" ) );
          m_pToggleDisplayConvexHull    = new wxToggleButton( pParent, wxID_ANY, wxT( "Display convex hull" ) );
         m_pLblColoring          = new wxStaticText( pParent, wxID_ANY, wxT( "Coloring" ) );
+		m_pLblMethod          = new wxStaticText( pParent, wxID_ANY, wxT( "Method" ) );
         m_pLblMeanFiberOpacity  = new wxStaticText( pParent, wxID_ANY, wxT( "Opacity" ) );
 		m_pLblCrossSectionThreshold  = new wxStaticText( pParent, wxID_ANY, wxT( "C.S. threshold" ) );
 		m_pLblNoOfCS  = new wxStaticText( pParent, wxID_ANY, wxT( "No. of planes" ) );
@@ -2635,6 +2673,9 @@ void SelectionObject::createPropertiesSizer( PropertiesWindow *pParent )
         m_pLblConvexHullOpacity = new wxStaticText( pParent, wxID_ANY, wxT( "Opacity" ) );
         m_pRadCustomColoring = new wxRadioButton( pParent, wxID_ANY, _T( "Custom" ), DEF_POS, DEF_SIZE, wxRB_GROUP );
         m_pRadNormalColoring = new wxRadioButton( pParent, wxID_ANY, _T( "Normal" ) );
+		m_pRadMeanMean = new wxRadioButton( pParent, wxID_ANY, _T( "Mean" ), DEF_POS, DEF_SIZE, wxRB_GROUP );
+        m_pRadMeanCross = new wxRadioButton( pParent, wxID_ANY, _T( "Cross-sections" ) );
+		//m_pRadMeanCross->SetValue(true);
         m_pSliderMeanFiberOpacity  = new wxSlider( pParent, wxID_ANY, 35, 0, 100, DEF_POS, wxSize( 40, -1 ), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
 		m_pSliderCSthreshold  = new wxSlider( pParent, wxID_ANY, 20, 1, 100, DEF_POS, wxSize( 40, -1 ), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
 		m_pSliderNoOfCS  = new wxSlider( pParent, wxID_ANY, 20, 10, 30, DEF_POS, wxSize( 60, -1 ), wxSL_HORIZONTAL | wxSL_AUTOTICKS );
@@ -2687,10 +2728,12 @@ void SelectionObject::createPropertiesSizer( PropertiesWindow *pParent )
 
         pBoxMain->Add( m_pToggleCalculatesFibersInfo, 0, wxEXPAND | wxLEFT | wxRIGHT, 24 );
 
+		#ifdef __WXMSW__ 
 		wxBoxSizer *pBoxSizerRef = new wxBoxSizer( wxHORIZONTAL );
         pBoxSizerRef->Add( m_pLblRefAnat,    0, wxEXPAND, 0 );
         pBoxSizerRef->Add( m_pBtnRefAnat, 1, wxEXPAND, 0 );
         pBoxMain->Add( pBoxSizerRef, 0, wxEXPAND | wxALL, 1 );
+		#endif
 
         pBoxMain->AddSpacer( 2 );
 
@@ -2765,6 +2808,16 @@ void SelectionObject::createPropertiesSizer( PropertiesWindow *pParent )
         pBoxColoring->Add( pBoxColoringRadios, 0, wxALIGN_LEFT | wxLEFT, 32 );
 
         pBoxMain->Add( pBoxColoring, 0, wxFIXED_MINSIZE | wxEXPAND | wxTOP | wxBOTTOM, 8 );
+
+		wxBoxSizer *pBoxMethod = new wxBoxSizer( wxVERTICAL );
+        pBoxMethod->Add( m_pLblMethod, 0, wxALIGN_LEFT | wxALL, 1 );
+
+        wxBoxSizer *pBoxMethodRadios = new wxBoxSizer( wxVERTICAL );
+        pBoxMethodRadios->Add( m_pRadMeanMean, 0, wxALIGN_LEFT | wxALL, 1 );
+        pBoxMethodRadios->Add( m_pRadMeanCross, 0, wxALIGN_LEFT | wxALL, 1 );
+        pBoxMethod->Add( pBoxMethodRadios, 0, wxALIGN_LEFT | wxLEFT, 32 );
+
+        pBoxMain->Add( pBoxMethod, 0, wxFIXED_MINSIZE | wxEXPAND | wxTOP | wxBOTTOM, 8 );
 
         //////////////////////////////////////////////////////////////////////////
 
@@ -2874,13 +2927,17 @@ void SelectionObject::createPropertiesSizer( PropertiesWindow *pParent )
         pParent->Connect( pToggleAndNot->GetId(),       wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler( PropertiesWindow::OnToggleAndNot ) );
         pParent->Connect( m_pTogglePruneRemove->GetId(),       wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler( PropertiesWindow::OnTogglePruneRemove ) );
         pParent->Connect( m_pToggleCalculatesFibersInfo->GetId(), wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler( PropertiesWindow::OnDisplayFibersInfo ) );
+		#ifdef __WXMSW__ 
 		pParent->Connect( m_pBtnRefAnat->GetId(),    wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( PropertiesWindow::OnSelectRefAnat ) );
+		#endif
         pParent->Connect( m_pToggleDisplayMeanFiber->GetId(),     wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler( PropertiesWindow::OnDisplayMeanFiber ) );
 		pParent->Connect( m_pToggleShowStartingPoint->GetId(),     wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler( PropertiesWindow::OnShowStartingPoint ) );
 		pParent->Connect( m_pToggleFlipStartingPoint->GetId(),     wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler( PropertiesWindow::OnFlipStartingPoint ) );
         pParent->Connect( m_pToggleDisplayConvexHull->GetId(),    wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler( PropertiesWindow::OnDisplayConvexHull ) );
         pParent->Connect( m_pRadCustomColoring->GetId(), wxEVT_COMMAND_RADIOBUTTON_SELECTED, wxCommandEventHandler( PropertiesWindow::OnCustomMeanFiberColoring ) );
         pParent->Connect( m_pRadNormalColoring->GetId(), wxEVT_COMMAND_RADIOBUTTON_SELECTED, wxCommandEventHandler( PropertiesWindow::OnNormalMeanFiberColoring ) );
+		pParent->Connect( m_pRadMeanMean->GetId(), wxEVT_COMMAND_RADIOBUTTON_SELECTED, wxCommandEventHandler( PropertiesWindow::OnMeanMean ) );
+        pParent->Connect( m_pRadMeanCross->GetId(), wxEVT_COMMAND_RADIOBUTTON_SELECTED, wxCommandEventHandler( PropertiesWindow::OnMeanCross ) );
         pParent->Connect( m_pSliderMeanFiberOpacity->GetId(),  wxEVT_COMMAND_SLIDER_UPDATED, wxCommandEventHandler( PropertiesWindow::OnMeanFiberOpacityChange ) );
 		pParent->Connect( m_pSliderCSthreshold->GetId(),  wxEVT_COMMAND_SLIDER_UPDATED, wxCommandEventHandler( PropertiesWindow::OnCSThresholdChange ) );
 		pParent->Connect( m_pSliderNoOfCS->GetId(),  wxEVT_COMMAND_SLIDER_UPDATED, wxCommandEventHandler( PropertiesWindow::OnNoofCSchange ) );

@@ -194,8 +194,22 @@ bool Fibers::load( const wxString &filename )
     /* OcTree points classification */
     m_pOctree = new Octree( 2, m_pointArray, m_countPoints );
 
+
     //Global properties for opacity rendering
     computeGLobalProperties();
+
+	if(DatasetManager::getInstance()->getFlippedXOnLoad())
+    {
+        flipAxis(X_AXIS);
+        std::cout << "flipX save\n";
+    }
+
+    if(DatasetManager::getInstance()->getFlippedYOnLoad())
+    {
+        flipAxis(Y_AXIS);
+        std::cout << "flipY save\n";
+    }
+
 
     return res;
 }
@@ -1964,13 +1978,13 @@ void Fibers::fitToAnat(bool saving)
         if(DatasetManager::getInstance()->getFlippedXOnLoad())
         {
             flipAxis(X_AXIS);
-            std::cout << "flipX \n";
+            std::cout << "flipX save\n";
         }
 
-        if(DatasetManager::getInstance()->getFlippedXOnLoad())
+        if(DatasetManager::getInstance()->getFlippedYOnLoad())
         {
             flipAxis(Y_AXIS);
-            std::cout << "flipY \n";
+            std::cout << "flipY save\n";
         }
     }
 
@@ -2047,13 +2061,13 @@ void Fibers::fitToAnat(bool saving)
         if(DatasetManager::getInstance()->getFlippedXOnLoad())
         {
             flipAxis(X_AXIS);
-            std::cout << "flipX \n";
+            std::cout << "flipX not saving\n";
         }
 
-        if(DatasetManager::getInstance()->getFlippedXOnLoad())
+        if(DatasetManager::getInstance()->getFlippedYOnLoad())
         {
             flipAxis(Y_AXIS);
-            std::cout << "flipY \n";
+            std::cout << "flipY not saving\n";
         }
     }
 
@@ -3759,9 +3773,9 @@ void Fibers::setFibersLength()
         {
             // The values are in pixel, we need to set them in millimeters using the spacing
             // specified in the anatomy file ( m_datasetHelper->xVoxel... ).
-            dx = ( currentFiberPoints[i].x - currentFiberPoints[i - 1].x ) * voxelX;
-            dy = ( currentFiberPoints[i].y - currentFiberPoints[i - 1].y ) * voxelY;
-            dz = ( currentFiberPoints[i].z - currentFiberPoints[i - 1].z ) * voxelZ;
+            dx = ( currentFiberPoints[i].x - currentFiberPoints[i - 1].x );
+            dy = ( currentFiberPoints[i].y - currentFiberPoints[i - 1].y );
+            dz = ( currentFiberPoints[i].z - currentFiberPoints[i - 1].z );
             FArray currentVector( dx, dy, dz );
             m_length[j] += ( float )currentVector.norm();
         }

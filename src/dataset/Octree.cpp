@@ -37,35 +37,37 @@ Octree::~Octree()
 //////////////////////////////////////////
 void Octree::findBoundingBox()
 {
-    m_maxPointX = m_pointArray[0];
-    m_maxPointY = m_pointArray[1];
-    m_maxPointZ = m_pointArray[2];
+	DatasetManager *pDatMan = DatasetManager::getInstance();
 
-    m_minPointX = m_pointArray[0];
-    m_minPointY = m_pointArray[1];
-    m_minPointZ = m_pointArray[2];
+    m_maxPointX = pDatMan->getColumns() * pDatMan->getVoxelX();
+    m_maxPointY = pDatMan->getRows() * pDatMan->getVoxelY();
+    m_maxPointZ = pDatMan->getFrames() * pDatMan->getVoxelZ();
 
-    //Find the bounding box for the dataSet
-    for(int i=0; i < m_countPoints; i++)
-    {
-        if(m_pointArray[i*3] > m_maxPointX)
-            m_maxPointX = m_pointArray[i*3];
+    m_minPointX = 0.0f;
+    m_minPointY = 0.0f;
+    m_minPointZ = 0.0f;
 
-        if(m_pointArray[i*3+1] > m_maxPointY)
-            m_maxPointY = m_pointArray[i*3+1];
+    ////Find the bounding box for the dataSet
+    //for(int i=0; i < m_countPoints; i++)
+    //{
+    //    if(m_pointArray[i*3] > m_maxPointX)
+    //        m_maxPointX = m_pointArray[i*3];
 
-        if(m_pointArray[i*3+2] > m_maxPointZ)
-            m_maxPointZ = m_pointArray[i*3+2];
+    //    if(m_pointArray[i*3+1] > m_maxPointY)
+    //        m_maxPointY = m_pointArray[i*3+1];
 
-        if(m_pointArray[i*3] < m_minPointX)
-            m_minPointX = m_pointArray[i*3];
+    //    if(m_pointArray[i*3+2] > m_maxPointZ)
+    //        m_maxPointZ = m_pointArray[i*3+2];
 
-        if(m_pointArray[i*3+1] < m_minPointY)
-            m_minPointY = m_pointArray[i*3+1];
+    //    if(m_pointArray[i*3] < m_minPointX)
+    //        m_minPointX = m_pointArray[i*3];
 
-        if(m_pointArray[i*3+2] < m_minPointZ)
-            m_minPointZ = m_pointArray[i*3+2];
-    }
+    //    if(m_pointArray[i*3+1] < m_minPointY)
+    //        m_minPointY = m_pointArray[i*3+1];
+
+    //    if(m_pointArray[i*3+2] < m_minPointZ)
+    //        m_minPointZ = m_pointArray[i*3+2];
+    //}
 }
 
 //////////////////////////////////////////

@@ -139,6 +139,12 @@ enum FibersColorationMode
     CONSTANT_COLOR      = 6
 };
 
+enum MeanMethods
+{
+    MEAN        = 0,
+    CROSS     = 1,
+};
+
 ///////////////////////////////////////////////////////////////////////////
 // Enum representing the different type of display associated to the cross sections.
 ///////////////////////////////////////////////////////////////////////////
